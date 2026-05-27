@@ -1,43 +1,23 @@
 {
   "version": 1,
-  "architectureDocs": [
-    "docs/architecture.md"
-  ],
-  "requiredFiles": [
-    "blueprints/completed/2026-05-27-edge-matte.md"
-  ],
+  "architectureDocs": ["docs/architecture.md"],
+  "requiredFiles": ["blueprints/completed/2026-05-27-edge-matte.md"],
   "rules": [
     {
       "id": "production-domain",
-      "paths": [
-        "docs/architecture.md",
-        "blueprints/**/*.md",
-        "README.md"
-      ],
-      "mustContain": [
-        "edge-matte.ozby.dev"
-      ]
+      "paths": ["docs/architecture.md", "blueprints/**/*.md", "README.md"],
+      "mustContain": ["edge-matte.ozby.dev"]
     },
     {
       "id": "agent-kit-quality-reuse",
-      "paths": [
-        "docs/architecture.md",
-        "blueprints/**/*.md"
-      ],
-      "mustContain": [
-        "agent-kit",
-        "vite-plus"
-      ]
+      "paths": ["docs/architecture.md", "blueprints/**/*.md"],
+      "mustContain": ["agent-kit", "vite-plus"]
     }
   ],
   "blueprintPolicy": {
     "enabled": true,
-    "blueprintGlobs": [
-      "blueprints/**/*.md"
-    ],
-    "architectureDocGlobs": [
-      "docs/architecture.md"
-    ],
+    "blueprintGlobs": ["blueprints/**/*.md"],
+    "architectureDocGlobs": ["docs/architecture.md"],
     "requireArchitectureLinks": true,
     "requireBeforeAfterWhenArchitectureChanging": true,
     "architectureChangeMarkers": [
@@ -53,9 +33,6 @@
     ],
     "beforeHeading": "Architecture before",
     "afterHeading": "Architecture after",
-    "exemptStatuses": [
-      "completed",
-      "archived"
-    ]
+    "exemptStatuses": ["completed", "archived"]
   }
 }

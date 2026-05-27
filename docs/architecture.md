@@ -124,10 +124,7 @@ remote-URL-only assumption. The adapter shape is:
 
 ```ts
 const response = (
-  await env.IMAGES
-    .input(cutoutStream)
-    .transform({ flip: "h" })
-    .output({ format: "image/png" })
+  await env.IMAGES.input(cutoutStream).transform({ flip: "h" }).output({ format: "image/png" })
 ).response();
 ```
 
@@ -211,16 +208,16 @@ artifact lifecycle explicit and testable.
 
 ## Principal requirement traceability
 
-| task.pdf requirement | Architecture contract |
-|---|---|
-| Upload a single image | `POST /api/jobs` accepts exactly one multipart file after client + server validation. |
-| Remove background via third-party service | `BackgroundRemovalProvider` port with Photoroom production adapter. |
+| task.pdf requirement                       | Architecture contract                                                                  |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Upload a single image                      | `POST /api/jobs` accepts exactly one multipart file after client + server validation.  |
+| Remove background via third-party service  | `BackgroundRemovalProvider` port with Photoroom production adapter.                    |
 | Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`. |
-| Host processed image online at unique URL | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`. |
-| Delete uploaded and processed images | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata. |
-| Backend must be TypeScript | Worker/core/adapters are TypeScript-only surfaces. |
-| Full stack deployed online | Worker + static assets deploy together to `edge-matte.ozby.dev`. |
-| Code shared in GitHub repository | Blueprint/release flow assumes public GitHub review target. |
+| Host processed image online at unique URL  | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`.                           |
+| Delete uploaded and processed images       | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata.    |
+| Backend must be TypeScript                 | Worker/core/adapters are TypeScript-only surfaces.                                     |
+| Full stack deployed online                 | Worker + static assets deploy together to `edge-matte.ozby.dev`.                       |
+| Code shared in GitHub repository           | Blueprint/release flow assumes public GitHub review target.                            |
 
 ## Delete flow
 

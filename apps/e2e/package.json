@@ -1,7 +1,7 @@
 {
   "name": "@edge-matte/e2e",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "pretest": "pnpm --filter @edge-matte/client run build",

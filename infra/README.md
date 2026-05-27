@@ -6,9 +6,9 @@ routes, bindings, and deploy — see [`wrangler.toml`](../wrangler.toml) and
 
 ## Resources
 
-| Resource | Name / scope |
-| --- | --- |
-| R2 bucket | `edge-matte-images` (bound as `IMAGES_BUCKET` in Wrangler) |
+| Resource     | Name / scope                                                                        |
+| ------------ | ----------------------------------------------------------------------------------- |
+| R2 bucket    | `edge-matte-images` (bound as `IMAGES_BUCKET` in Wrangler)                          |
 | R2 lifecycle | Delete `jobs/*` and `images/*` objects older than `artifactMaxAgeDays` (default 30) |
 
 Object key layout matches the Worker (`apps/worker/src/core/object-keys.ts`):

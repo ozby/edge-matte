@@ -1,12 +1,12 @@
 ---
 type: tech-debt
 status: open
-severity: '{{severity}}'
-category: '{{category}}'
+severity: "{{severity}}"
+category: "{{category}}"
 review_cadence: quarterly
 last_updated: 2026-05-27
-last_reviewed: '{{date}}'
-created: '{{date}}'
+last_reviewed: "{{date}}"
+created: "{{date}}"
 linked_blueprints: []
 affected_modules: []
 ---

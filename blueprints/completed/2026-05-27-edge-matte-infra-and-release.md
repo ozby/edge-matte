@@ -131,26 +131,26 @@ Exact stop condition:
 
 ### Wave 1 — independent red verification
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| IR-1 | Add failing checks for CI/dry-run/smoke workflow expectations | none | workflow tests/docs |
-| IR-2 | Add failing checks for Wrangler/Pulumi binding/domain expectations | none | infra/config tests |
-| IR-3 | Draft release/bootstrap/secret-ownership docs | none | docs |
+| Task ID | Task                                                               | Depends on | Write scope         |
+| ------- | ------------------------------------------------------------------ | ---------- | ------------------- |
+| IR-1    | Add failing checks for CI/dry-run/smoke workflow expectations      | none       | workflow tests/docs |
+| IR-2    | Add failing checks for Wrangler/Pulumi binding/domain expectations | none       | infra/config tests  |
+| IR-3    | Draft release/bootstrap/secret-ownership docs                      | none       | docs                |
 
 ### Wave 2 — independent implementation lanes
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| IR-4 | Implement Pulumi/R2 ownership and lifecycle config | IR-2 | `infra/**` |
-| IR-5 | Implement Wrangler bindings/routes/domain config | IR-2 | `wrangler.toml`, worker config |
-| IR-6 | Implement PR/main workflows with dry-run and smoke stages | IR-1 | `.github/workflows/**` |
+| Task ID | Task                                                      | Depends on | Write scope                    |
+| ------- | --------------------------------------------------------- | ---------- | ------------------------------ |
+| IR-4    | Implement Pulumi/R2 ownership and lifecycle config        | IR-2       | `infra/**`                     |
+| IR-5    | Implement Wrangler bindings/routes/domain config          | IR-2       | `wrangler.toml`, worker config |
+| IR-6    | Implement PR/main workflows with dry-run and smoke stages | IR-1       | `.github/workflows/**`         |
 
 ### Wave 3 — merge and production verify
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| IR-7 | Reconcile docs, secret ownership, and bootstrap path with final config | IR-3, IR-4, IR-5, IR-6 | docs |
-| IR-8 | Run deploy verification, `production-smoke`, and drift checks; fix remaining release gaps | IR-4, IR-5, IR-6, UI blueprint complete | repo-wide verification |
+| Task ID | Task                                                                                      | Depends on                              | Write scope            |
+| ------- | ----------------------------------------------------------------------------------------- | --------------------------------------- | ---------------------- |
+| IR-7    | Reconcile docs, secret ownership, and bootstrap path with final config                    | IR-3, IR-4, IR-5, IR-6                  | docs                   |
+| IR-8    | Run deploy verification, `production-smoke`, and drift checks; fix remaining release gaps | IR-4, IR-5, IR-6, UI blueprint complete | repo-wide verification |
 
 Parallelization notes:
 
@@ -175,4 +175,3 @@ python3 scripts/check_architecture_drift.py
 ## Completion notes
 
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
-

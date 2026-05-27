@@ -143,32 +143,32 @@ Exact stop condition:
 
 ### Wave 1 — independent red tests
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| CP-1 | Add failing tests for domain model, keys, token hashing, error taxonomy | none | `apps/worker/**tests**`, core test files |
-| CP-2 | Add failing tests for route contract and validation behavior | none | route test files |
-| CP-3 | Add failing tests for orchestration, provider/transform failures, cleanup | none | orchestration/integration test files |
+| Task ID | Task                                                                      | Depends on | Write scope                              |
+| ------- | ------------------------------------------------------------------------- | ---------- | ---------------------------------------- |
+| CP-1    | Add failing tests for domain model, keys, token hashing, error taxonomy   | none       | `apps/worker/**tests**`, core test files |
+| CP-2    | Add failing tests for route contract and validation behavior              | none       | route test files                         |
+| CP-3    | Add failing tests for orchestration, provider/transform failures, cleanup | none       | orchestration/integration test files     |
 
 ### Wave 2 — independent implementation lanes
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| CP-4 | Implement domain model/helpers | CP-1 | `apps/worker/src/core/**` |
-| CP-5 | Implement provider/transform/repository/object-store ports + adapters | CP-3 | `apps/worker/src/ports/**`, `apps/worker/src/adapters/**` |
-| CP-6 | Implement Hono route layer and request validation | CP-2 | `apps/worker/src/adapters/hono/**`, `apps/worker/src/index.ts` |
+| Task ID | Task                                                                  | Depends on | Write scope                                                    |
+| ------- | --------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
+| CP-4    | Implement domain model/helpers                                        | CP-1       | `apps/worker/src/core/**`                                      |
+| CP-5    | Implement provider/transform/repository/object-store ports + adapters | CP-3       | `apps/worker/src/ports/**`, `apps/worker/src/adapters/**`      |
+| CP-6    | Implement Hono route layer and request validation                     | CP-2       | `apps/worker/src/adapters/hono/**`, `apps/worker/src/index.ts` |
 
 ### Wave 3 — merge lane
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| CP-7 | Implement/finish `processImageJob()` and delete orchestration across all adapters | CP-4, CP-5 | `apps/worker/src/core/**` |
-| CP-8 | Reconcile route wiring with orchestration and hosted URL contract | CP-6, CP-7 | `apps/worker/src/index.ts`, route files |
+| Task ID | Task                                                                              | Depends on | Write scope                             |
+| ------- | --------------------------------------------------------------------------------- | ---------- | --------------------------------------- |
+| CP-7    | Implement/finish `processImageJob()` and delete orchestration across all adapters | CP-4, CP-5 | `apps/worker/src/core/**`               |
+| CP-8    | Reconcile route wiring with orchestration and hosted URL contract                 | CP-6, CP-7 | `apps/worker/src/index.ts`, route files |
 
 ### Wave 4 — verify
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| CP-9 | Run worker/backend suites, `upload-delete`, and drift checks; fix contract gaps | CP-8 | repo-wide verification |
+| Task ID | Task                                                                            | Depends on | Write scope            |
+| ------- | ------------------------------------------------------------------------------- | ---------- | ---------------------- |
+| CP-9    | Run worker/backend suites, `upload-delete`, and drift checks; fix contract gaps | CP-8       | repo-wide verification |
 
 Parallelization notes:
 
@@ -189,4 +189,3 @@ python3 scripts/check_architecture_drift.py
 ## Completion notes
 
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
-

@@ -22,6 +22,7 @@ apps/e2e/.e2e-base-url
 # Environment and secrets
 .env
 .env.*
+!.env.example
 .dev.vars
 .dev.vars.*
 

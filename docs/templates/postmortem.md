@@ -30,7 +30,7 @@ All times in UTC.
 
 ## Root cause
 
-Explain the *cause*, not just the symptom. What invariant broke, and why
+Explain the _cause_, not just the symptom. What invariant broke, and why
 did the system allow it?
 
 ## Trigger

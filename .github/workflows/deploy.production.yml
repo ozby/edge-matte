@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   PRODUCTION_URL: https://edge-matte.ozby.dev
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with:
-          node-version: '24.16.0'
+          node-version: "24.16.0"
           cache: pnpm
       - uses: oven-sh/setup-bun@v2
         with:
@@ -46,5 +46,5 @@ jobs:
         run: curl -sf "${PRODUCTION_URL}/"
       - name: Post-deploy production-smoke e2e
         env:
-          E2E_RUN_PRODUCTION: '1'
+          E2E_RUN_PRODUCTION: "1"
         run: pnpm e2e -- --suite production-smoke

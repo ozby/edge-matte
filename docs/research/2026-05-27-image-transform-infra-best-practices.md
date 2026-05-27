@@ -116,18 +116,18 @@ Keep abstractions narrow:
 
 ```ts
 interface BackgroundRemovalProvider {
-  removeBackground(input: File, signal: AbortSignal): Promise<Blob>
+  removeBackground(input: File, signal: AbortSignal): Promise<Blob>;
 }
 
 interface ImageTransformer {
-  flipHorizontal(input: ReadableStream, output: "image/png" | "image/webp"): Promise<Response>
+  flipHorizontal(input: ReadableStream, output: "image/png" | "image/webp"): Promise<Response>;
 }
 
 interface ImageStore {
-  putOriginal(record, file): Promise<void>
-  putProcessed(record, body, contentType): Promise<void>
-  getProcessed(id): Promise<Response | null>
-  deleteAll(record): Promise<void>
+  putOriginal(record, file): Promise<void>;
+  putProcessed(record, body, contentType): Promise<void>;
+  getProcessed(id): Promise<Response | null>;
+  deleteAll(record): Promise<void>;
 }
 ```
 

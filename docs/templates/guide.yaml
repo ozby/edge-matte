@@ -21,11 +21,11 @@ sections:
 
 location:
   patterns:
-    - 'docs/guides/**/*.md'
+    - "docs/guides/**/*.md"
   exclude:
-    - 'docs/guides/cookbook/**'
+    - "docs/guides/cookbook/**"
 
 naming:
   pattern: "[a-z0-9-]+\\.md"
   case: lower
-  description: 'kebab-case'
+  description: "kebab-case"

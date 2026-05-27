@@ -66,16 +66,16 @@ Recommended public identity:
 This blueprint is the principal-level interpretation layer for `task.pdf`. If
 optional polish ever conflicts with the take-home brief, the brief wins.
 
-| `task.pdf` requirement | EdgeMatte contract |
-|---|---|
-| Upload a single image file | One-file upload UI and `POST /api/jobs` multipart API. |
-| Remove the background using a third-party service | `PhotoroomBackgroundRemovalProvider` behind the `BackgroundRemovalProvider` port. |
-| Horizontally flip after background removal | `CloudflareImagesTransformer` uses the Workers Images binding to apply `flip=h` after cutout. |
-| Host the processed image online and return a unique URL | The processed artifact is stored in R2 and served at `https://edge-matte.ozby.dev/i/:id`. |
-| Allow deletion of uploaded and processed images | `DELETE /api/jobs/:id` deletes original object, processed object, and metadata using the capability delete token. |
-| Backend must be TypeScript | Worker/core/adapters are TypeScript. |
-| Frontend + backend deployed online | Worker + static assets deploy together to `edge-matte.ozby.dev`. |
-| Source shared via GitHub repository | `review_target: public GitHub repository` remains the release target. |
+| `task.pdf` requirement                                  | EdgeMatte contract                                                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Upload a single image file                              | One-file upload UI and `POST /api/jobs` multipart API.                                                            |
+| Remove the background using a third-party service       | `PhotoroomBackgroundRemovalProvider` behind the `BackgroundRemovalProvider` port.                                 |
+| Horizontally flip after background removal              | `CloudflareImagesTransformer` uses the Workers Images binding to apply `flip=h` after cutout.                     |
+| Host the processed image online and return a unique URL | The processed artifact is stored in R2 and served at `https://edge-matte.ozby.dev/i/:id`.                         |
+| Allow deletion of uploaded and processed images         | `DELETE /api/jobs/:id` deletes original object, processed object, and metadata using the capability delete token. |
+| Backend must be TypeScript                              | Worker/core/adapters are TypeScript.                                                                              |
+| Frontend + backend deployed online                      | Worker + static assets deploy together to `edge-matte.ozby.dev`.                                                  |
+| Source shared via GitHub repository                     | `review_target: public GitHub repository` remains the release target.                                             |
 
 Pinpoint interpretation note: the blueprint intentionally does **not** expand
 the assignment into auth, batch jobs, dashboards, or queue-first architecture.
@@ -131,14 +131,14 @@ For this repo, “done” means the user-facing flow remains covered end-to-end:
 
 ## Reuse decisions
 
-| Existing pattern | EdgeMatte decision |
-|---|---|
-| Webpresso vision | Reuse evidence-first readiness, explicit failure modes, rollback/recovery language. |
-| IngestLens repo structure | Reuse reviewer-friendly README, apps split, Cloudflare Worker organization, and docs/blueprint lifecycle. |
-| IngestLens quality surface | Reuse `vp` scripts, `wp` audits/setup, agent-kit Vitest presets, and `ak_*` lanes. |
-| IngestLens e2e surface | Reuse `agent-kit.config.ts` host adapter, `apps/e2e` suite manifest, suite/file resolution, and Playwright/Vitest runner split. |
-| IngestLens infra boundary | Pulumi owns durable resources; Wrangler owns Worker deployment, routes, bindings, and secret names. |
-| Webpresso runtime discipline | Use deadline-bounded provider fetches, structured validation, and explicit error taxonomy. |
+| Existing pattern             | EdgeMatte decision                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Webpresso vision             | Reuse evidence-first readiness, explicit failure modes, rollback/recovery language.                                             |
+| IngestLens repo structure    | Reuse reviewer-friendly README, apps split, Cloudflare Worker organization, and docs/blueprint lifecycle.                       |
+| IngestLens quality surface   | Reuse `vp` scripts, `wp` audits/setup, agent-kit Vitest presets, and `ak_*` lanes.                                              |
+| IngestLens e2e surface       | Reuse `agent-kit.config.ts` host adapter, `apps/e2e` suite manifest, suite/file resolution, and Playwright/Vitest runner split. |
+| IngestLens infra boundary    | Pulumi owns durable resources; Wrangler owns Worker deployment, routes, bindings, and secret names.                             |
+| Webpresso runtime discipline | Use deadline-bounded provider fetches, structured validation, and explicit error taxonomy.                                      |
 
 Public-install caveat: keep **app runtime** independent of private/internal packages.
 `pnpm install` in this repo resolves only public workspace deps (TypeScript, Husky, etc.).
@@ -254,7 +254,11 @@ interface JobRepository {
 
 interface ImageObjectStore {
   putOriginal(job: ImageJob, file: File): Promise<void>;
-  putProcessed(job: ImageJob, body: ReadableStream | ArrayBuffer, contentType: string): Promise<void>;
+  putProcessed(
+    job: ImageJob,
+    body: ReadableStream | ArrayBuffer,
+    contentType: string,
+  ): Promise<void>;
   getProcessed(id: string): Promise<Response | null>;
   deleteAll(job: ImageJob): Promise<void>;
 }
@@ -441,12 +445,12 @@ dependencies are green.
 
 ### Cross-blueprint dependency graph
 
-| Blueprint | Depends on | Unblocks |
-|---|---|---|
-| workspace scaffold | none | core pipeline, UI + E2E, infra + release |
-| core pipeline | workspace scaffold | UI + E2E, infra + release |
-| UI + E2E | workspace scaffold, core pipeline | infra + release |
-| infra + release | workspace scaffold, core pipeline, UI + E2E | ship |
+| Blueprint          | Depends on                                  | Unblocks                                 |
+| ------------------ | ------------------------------------------- | ---------------------------------------- |
+| workspace scaffold | none                                        | core pipeline, UI + E2E, infra + release |
+| core pipeline      | workspace scaffold                          | UI + E2E, infra + release                |
+| UI + E2E           | workspace scaffold, core pipeline           | infra + release                          |
+| infra + release    | workspace scaffold, core pipeline, UI + E2E | ship                                     |
 
 ### Parallel lane rules
 
@@ -458,12 +462,12 @@ dependencies are green.
 
 ### File-conflict boundaries
 
-| Lane family | Primary write scope |
-|---|---|
-| scaffold/root | root config files, docs/bootstrap, shared config |
-| worker/core | `apps/worker/**` |
-| client/ui | `apps/client/**` |
-| e2e | `apps/e2e/**`, `agent-kit.config.ts`, runner wiring |
+| Lane family   | Primary write scope                                               |
+| ------------- | ----------------------------------------------------------------- |
+| scaffold/root | root config files, docs/bootstrap, shared config                  |
+| worker/core   | `apps/worker/**`                                                  |
+| client/ui     | `apps/client/**`                                                  |
+| e2e           | `apps/e2e/**`, `agent-kit.config.ts`, runner wiring               |
 | infra/release | `infra/**`, `.github/workflows/**`, `wrangler.toml`, release docs |
 
 If a task needs more than one lane family, treat it as a merge/verification task
@@ -487,8 +491,8 @@ Root scripts should follow the IngestLens/Webpresso shape:
     "postinstall": "WP_SKIP_GSTACK=1 WP_SKIP_UPDATE_CHECK=1 wp setup --yes --overwrite",
     "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
     "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
-    "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts"
-  }
+    "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
+  },
 }
 ```
 
@@ -541,12 +545,12 @@ apps/e2e/
 
 Suites:
 
-| Suite | Runner | Purpose | CI use |
-|---|---|---|---|
-| `smoke` | Vitest or Playwright | `/health` and SPA shell boot | PR + main |
-| `upload-delete` | Playwright | mock provider full user flow | PR |
-| `production-smoke` | Playwright | `edge-matte.ozby.dev` read-only canary | post-deploy |
-| `full` | mixed | all non-destructive journeys | pre-release/manual |
+| Suite              | Runner               | Purpose                                | CI use             |
+| ------------------ | -------------------- | -------------------------------------- | ------------------ |
+| `smoke`            | Vitest or Playwright | `/health` and SPA shell boot           | PR + main          |
+| `upload-delete`    | Playwright           | mock provider full user flow           | PR                 |
+| `production-smoke` | Playwright           | `edge-matte.ozby.dev` read-only canary | post-deploy        |
+| `full`             | mixed                | all non-destructive journeys           | pre-release/manual |
 
 The local e2e runner may start `wrangler dev` on random ports and inject mock
 provider vars, but orchestration must stay small and generated from the suite
@@ -609,13 +613,13 @@ manifest. Do not fork a second QA framework; expose suites through agent-kit so
 
 ## Test contract by feature
 
-| Feature | Red/green test-first requirement | E2E contract |
-|---|---|---|
-| Upload validation | failing route/integration tests for missing file, multiple files, unsupported type, spoofed bytes, oversize | `upload-delete` covers real browser upload rejection/success path |
-| Background removal + flip | failing core/route tests for exact state progression and safe error codes | `upload-delete` verifies final artifact is reachable only after processing completes |
-| Hosted image URL | failing route tests for `GET /i/:id` ready/not-ready/deleted cases | `upload-delete` and `production-smoke` open the returned URL through HTTP/browser |
-| Delete capability | failing core/route tests for valid token, invalid token, missing job | `upload-delete` deletes through UX then confirms image URL returns 404 |
-| Production readiness | failing smoke expectations for health/app shell/release path | `production-smoke` is required post-deploy contract coverage |
+| Feature                   | Red/green test-first requirement                                                                            | E2E contract                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Upload validation         | failing route/integration tests for missing file, multiple files, unsupported type, spoofed bytes, oversize | `upload-delete` covers real browser upload rejection/success path                    |
+| Background removal + flip | failing core/route tests for exact state progression and safe error codes                                   | `upload-delete` verifies final artifact is reachable only after processing completes |
+| Hosted image URL          | failing route tests for `GET /i/:id` ready/not-ready/deleted cases                                          | `upload-delete` and `production-smoke` open the returned URL through HTTP/browser    |
+| Delete capability         | failing core/route tests for valid token, invalid token, missing job                                        | `upload-delete` deletes through UX then confirms image URL returns 404               |
+| Production readiness      | failing smoke expectations for health/app shell/release path                                                | `production-smoke` is required post-deploy contract coverage                         |
 
 E2E rule: the contract suites must exercise the system through browser actions
 and HTTP requests only. They must not “pass” by importing internal Worker/core
@@ -623,12 +627,12 @@ modules or bypassing the public route/UI surfaces.
 
 ## Test strategy by blueprint
 
-| Blueprint | Unit focus | Integration focus | Confidence gate |
-|---|---|---|---|
-| Workspace scaffold | config helpers, script resolution, secret-doc guards | bootstrap/config/audit wiring | next blueprint cannot require topology rework |
-| Core pipeline | domain model, validators, key derivation, redaction helpers | orchestration, routes, R2/store behavior, failure cleanup | backend contract stable enough for real client binding |
-| UI + E2E | state transitions, UI helpers, component behavior | jsdom UI flow, client/API boundary, suite discovery | visible journey passes locally and contract E2E is green |
-| Infra + release | deploy/config helpers, workflow logic | CI/workflow/config/deploy smoke | production URL live and `production-smoke` green |
+| Blueprint          | Unit focus                                                  | Integration focus                                         | Confidence gate                                          |
+| ------------------ | ----------------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
+| Workspace scaffold | config helpers, script resolution, secret-doc guards        | bootstrap/config/audit wiring                             | next blueprint cannot require topology rework            |
+| Core pipeline      | domain model, validators, key derivation, redaction helpers | orchestration, routes, R2/store behavior, failure cleanup | backend contract stable enough for real client binding   |
+| UI + E2E           | state transitions, UI helpers, component behavior           | jsdom UI flow, client/API boundary, suite discovery       | visible journey passes locally and contract E2E is green |
+| Infra + release    | deploy/config helpers, workflow logic                       | CI/workflow/config/deploy smoke                           | production URL live and `production-smoke` green         |
 
 ## Coverage map
 
@@ -754,29 +758,29 @@ Secrets:
 
 ## 6-hour execution plan
 
-| Time | Work |
-|---|---|
+| Time      | Work                                                                                  |
+| --------- | ------------------------------------------------------------------------------------- |
 | 0:00-0:30 | Scaffold repo, package scripts, agent-kit config, Cloudflare config, README skeleton. |
-| 0:30-1:30 | Job model, validation, R2 repositories/stores, token hashing. |
-| 1:30-2:30 | Provider adapter, transform adapter, pure pipeline core, status transitions. |
-| 2:30-3:30 | Hono routes, typed errors, health route, route tests. |
-| 3:30-4:30 | Polished UI with status timeline and result/delete flows. |
-| 4:30-5:15 | Unit/route/worker/client tests plus agent-kit e2e smoke/upload-delete. |
-| 5:15-5:45 | Production deploy to `edge-matte.ozby.dev` and production-smoke e2e. |
-| 5:45-6:00 | README final pass, architecture docs, known caveats. |
+| 0:30-1:30 | Job model, validation, R2 repositories/stores, token hashing.                         |
+| 1:30-2:30 | Provider adapter, transform adapter, pure pipeline core, status transitions.          |
+| 2:30-3:30 | Hono routes, typed errors, health route, route tests.                                 |
+| 3:30-4:30 | Polished UI with status timeline and result/delete flows.                             |
+| 4:30-5:15 | Unit/route/worker/client tests plus agent-kit e2e smoke/upload-delete.                |
+| 5:15-5:45 | Production deploy to `edge-matte.ozby.dev` and production-smoke e2e.                  |
+| 5:45-6:00 | README final pass, architecture docs, known caveats.                                  |
 
 ## Risks and mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Scope blows the timebox | Inline runner first; queue adapter stays conditional. |
-| Cloudflare Images binding unavailable | Switch to URL-based Cloudflare image transform behind the same `ImageTransformer` port. |
-| Provider quota/API friction | Keep mock provider for tests; document provider setup and quota caveat. |
-| Worker memory pressure | 8 MiB upload cap, no batch uploads, stream where practical. |
+| Risk                                            | Mitigation                                                                                                                                                                |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope blows the timebox                         | Inline runner first; queue adapter stays conditional.                                                                                                                     |
+| Cloudflare Images binding unavailable           | Switch to URL-based Cloudflare image transform behind the same `ImageTransformer` port.                                                                                   |
+| Provider quota/API friction                     | Keep mock provider for tests; document provider setup and quota caveat.                                                                                                   |
+| Worker memory pressure                          | 8 MiB upload cap, no batch uploads, stream where practical.                                                                                                               |
 | Public install friction from Webpresso packages | Keep runtime npm-clean; document global `wp`/`vp` prerequisites in README; CI provides `wp` on PATH for audit jobs. Vitest preset packages are a separate, later concern. |
-| E2E harness drift | Use agent-kit host adapter and suite manifest; no second local QA framework. |
-| Partial storage after failure | Runner updates failed status and deletes safe orphaned objects. |
-| Delete token lost | Document one-time capability behavior; no recovery in v1. |
+| E2E harness drift                               | Use agent-kit host adapter and suite manifest; no second local QA framework.                                                                                              |
+| Partial storage after failure                   | Runner updates failed status and deletes safe orphaned objects.                                                                                                           |
+| Delete token lost                               | Document one-time capability behavior; no recovery in v1.                                                                                                                 |
 
 ## Review notes
 
@@ -790,4 +794,3 @@ Secrets:
 ## Completion notes
 
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
-

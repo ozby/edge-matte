@@ -7,7 +7,7 @@ last_updated: "YYYY-MM-DD"
 
 **Truth state:** shipped | partial | aspirational
 
-> One paragraph: what this system is, why it exists, and what it is *not*.
+> One paragraph: what this system is, why it exists, and what it is _not_.
 
 ## Architecture
 

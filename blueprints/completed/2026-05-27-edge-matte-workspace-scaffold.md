@@ -133,26 +133,26 @@ Exact stop condition:
 
 ### Wave 1 — independent red tests and root skeleton
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| WS-1 | Add failing checks for root scripts/config discovery | none | root test/config files |
-| WS-2 | Add failing checks for app/E2E topology discovery | none | root test/config files |
-| WS-3 | Draft bootstrap/secret onboarding docs | none | `README.md`, docs |
+| Task ID | Task                                                 | Depends on | Write scope            |
+| ------- | ---------------------------------------------------- | ---------- | ---------------------- |
+| WS-1    | Add failing checks for root scripts/config discovery | none       | root test/config files |
+| WS-2    | Add failing checks for app/E2E topology discovery    | none       | root test/config files |
+| WS-3    | Draft bootstrap/secret onboarding docs               | none       | `README.md`, docs      |
 
 ### Wave 2 — independent scaffold implementation
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| WS-4 | Add root workspace/package metadata and scripts | WS-1 | root config files |
-| WS-5 | Add Worker/client directory skeletons | WS-2 | `apps/worker/**`, `apps/client/**` |
-| WS-6 | Add E2E skeleton + host-adapter/config wiring | WS-2 | `apps/e2e/**`, `agent-kit.config.ts` |
+| Task ID | Task                                            | Depends on | Write scope                          |
+| ------- | ----------------------------------------------- | ---------- | ------------------------------------ |
+| WS-4    | Add root workspace/package metadata and scripts | WS-1       | root config files                    |
+| WS-5    | Add Worker/client directory skeletons           | WS-2       | `apps/worker/**`, `apps/client/**`   |
+| WS-6    | Add E2E skeleton + host-adapter/config wiring   | WS-2       | `apps/e2e/**`, `agent-kit.config.ts` |
 
 ### Wave 3 — merge and verify
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| WS-7 | Finalize Wrangler + TypeScript + shared config wiring | WS-4, WS-5, WS-6 | root config + `wrangler.toml` |
-| WS-8 | Run install/build/test/guardrail verification and fix drift | WS-3, WS-7 | repo-wide verification/docs |
+| Task ID | Task                                                        | Depends on       | Write scope                   |
+| ------- | ----------------------------------------------------------- | ---------------- | ----------------------------- |
+| WS-7    | Finalize Wrangler + TypeScript + shared config wiring       | WS-4, WS-5, WS-6 | root config + `wrangler.toml` |
+| WS-8    | Run install/build/test/guardrail verification and fix drift | WS-3, WS-7       | repo-wide verification/docs   |
 
 Parallelization notes:
 
@@ -175,4 +175,3 @@ python3 scripts/check_architecture_drift.py
 ## Completion notes
 
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
-

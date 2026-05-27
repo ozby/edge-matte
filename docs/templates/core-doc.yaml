@@ -18,9 +18,9 @@ sections:
 
 location:
   patterns:
-    - 'docs/*.md'
+    - "docs/*.md"
   exclude:
-    - 'docs/README.md'
+    - "docs/README.md"
 
 naming:
   pattern: "[A-Z_-]+\\.md"

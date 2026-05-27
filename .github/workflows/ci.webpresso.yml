@@ -10,7 +10,7 @@ env:
   # 2026-06-02 GitHub default switch (replaces the deprecation warning
   # surfaced by actions/checkout@v4, actions/setup-node@v4, and
   # pnpm/action-setup@v4 internally running on Node 20).
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   check:
@@ -20,7 +20,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with:
-          node-version: '24.16.0'
+          node-version: "24.16.0"
           cache: pnpm
       - uses: oven-sh/setup-bun@v2
         with:
@@ -28,19 +28,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run verify:secrets
       - run: pnpm run audit:secret-provider-quarantine
-      - name: Install global wp (no repo GH_PACKAGES_TOKEN)
-        run: |
-          set -euo pipefail
-          npm config set @webpresso:registry https://npm.pkg.github.com
-          npm config set "//npm.pkg.github.com/:_authToken" "${{ github.token }}"
-          npm install -g @webpresso/agent-kit@latest
-      - name: Verify global wp
-        run: command -v wp
+      # Public clone path: @webpresso/agent-kit is private; wp/docs/blueprint audits run locally.
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run lint
-      - run: pnpm run docs:check
-      - run: pnpm run blueprints:check
 
   test:
     runs-on: ubuntu-latest
@@ -49,7 +40,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with:
-          node-version: '24.16.0'
+          node-version: "24.16.0"
           cache: pnpm
       - uses: oven-sh/setup-bun@v2
         with:
@@ -64,7 +55,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with:
-          node-version: '24.16.0'
+          node-version: "24.16.0"
           cache: pnpm
       - uses: oven-sh/setup-bun@v2
         with:
@@ -73,27 +64,3 @@ jobs:
       - run: pnpm run build
       - name: Wrangler production deploy dry-run
         run: pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
-
-  wp-audits:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24.16.0'
-          cache: pnpm
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - run: pnpm install --frozen-lockfile
-      - name: Install global wp (no repo GH_PACKAGES_TOKEN)
-        run: |
-          set -euo pipefail
-          npm config set @webpresso:registry https://npm.pkg.github.com
-          npm config set "//npm.pkg.github.com/:_authToken" "${{ github.token }}"
-          npm install -g @webpresso/agent-kit@latest
-      - name: Verify global wp
-        run: command -v wp
-      - name: Run wp audit guardrails
-        run: WP_SKIP_UPDATE_CHECK=1 wp audit guardrails

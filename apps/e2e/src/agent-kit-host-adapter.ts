@@ -4,26 +4,26 @@ import {
   resolveE2ESuiteForFile,
   resolveE2ESuiteId,
   type E2ESuiteDefinition,
-} from './e2e-suite-manifest'
+} from "./e2e-suite-manifest";
 
 type E2eExecutionRequest = {
-  suite?: string
-  file?: readonly string[]
-}
+  suite?: string;
+  file?: readonly string[];
+};
 
 type E2ePlanRun = {
-  suiteId: string
-  batchKey: string
-  runner: 'command'
-  logName: string
-  command: string
-  args: string[]
-}
+  suiteId: string;
+  batchKey: string;
+  runner: "command";
+  logName: string;
+  command: string;
+  args: string[];
+};
 
 type E2eExecutionBatch = {
-  batchKey: string
-  runs: E2ePlanRun[]
-}
+  batchKey: string;
+  runs: E2ePlanRun[];
+};
 
 function rootifySuites(): readonly E2ESuiteDefinition[] {
   return listE2ESuites().map((suite) => ({
@@ -34,37 +34,37 @@ function rootifySuites(): readonly E2ESuiteDefinition[] {
       configPath: step.configPath ? normalizeE2EPath(step.configPath) : undefined,
       fixedFiles: step.fixedFiles?.map(normalizeE2EPath),
     })),
-  }))
+  }));
 }
 
 export function buildExecutionPlan(request: E2eExecutionRequest): E2eExecutionBatch[] {
-  const suiteId = request.suite ? resolveE2ESuiteId(request.suite) : null
+  const suiteId = request.suite ? resolveE2ESuiteId(request.suite) : null;
   if (request.suite && !suiteId) {
-    throw new Error(`Unknown e2e suite: ${request.suite}`)
+    throw new Error(`Unknown e2e suite: ${request.suite}`);
   }
 
   const suites = suiteId
     ? rootifySuites().filter((suite) => suite.id === suiteId)
-    : rootifySuites()
+    : rootifySuites();
 
   return suites.map((suite) => ({
     batchKey: suite.batchKey,
     runs: suite.steps.map((step) => ({
       suiteId: suite.id,
       batchKey: step.batchKey ?? suite.batchKey,
-      runner: 'command' as const,
+      runner: "command" as const,
       logName: step.logName,
-      command: 'pnpm',
+      command: "pnpm",
       args: [
-        'exec',
-        'vitest',
-        'run',
-        '--config',
-        step.configPath ?? 'vitest.config.ts',
-        ...(step.fixedFiles?.map((file) => file.replace(/^apps\/e2e\//u, '')) ?? []),
+        "exec",
+        "vitest",
+        "run",
+        "--config",
+        step.configPath ?? "vitest.config.ts",
+        ...(step.fixedFiles?.map((file) => file.replace(/^apps\/e2e\//u, "")) ?? []),
       ],
     })),
-  }))
+  }));
 }
 
 export const agentKitHostAdapter = {
@@ -72,13 +72,13 @@ export const agentKitHostAdapter = {
   resolveSuiteId: resolveE2ESuiteId,
   normalizeFilePath: normalizeE2EPath,
   resolveSuiteForFile: (filePath: string) => {
-    const normalizedPath = normalizeE2EPath(filePath)
+    const normalizedPath = normalizeE2EPath(filePath);
     const suite = rootifySuites().find((candidate) =>
       candidate.fileMatchers.some((matcher) => normalizedPath.endsWith(matcher)),
-    )
-    return suite ? { normalizedPath, suiteId: suite.id } : null
+    );
+    return suite ? { normalizedPath, suiteId: suite.id } : null;
   },
   buildExecutionPlan,
-}
+};
 
-export default agentKitHostAdapter
+export default agentKitHostAdapter;

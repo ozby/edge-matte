@@ -1,7 +1,7 @@
 export const agentKitConfig = {
   e2e: {
-    hostAdapterModule: './apps/e2e/src/agent-kit-host-adapter.ts',
+    hostAdapterModule: "./apps/e2e/src/agent-kit-host-adapter.ts",
   },
-} as const
+} as const;
 
-export default agentKitConfig
+export default agentKitConfig;

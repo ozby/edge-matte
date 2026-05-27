@@ -20,30 +20,30 @@ Secret ownership: [`docs/secrets.md`](./secrets.md).
 EdgeMatte follows the IngestLens boundary: **Pulumi owns durable Cloudflare
 resources; Wrangler owns Worker-scoped deployment.**
 
-| Surface | Owner | What it manages |
-| --- | --- | --- |
-| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`) | Bucket creation, lifecycle cleanup rules, optional CORS |
-| Worker runtime | **Wrangler** (`wrangler.toml`) | Worker script, `env.production` route, bindings, non-secret vars |
-| Static SPA shell | **Wrangler** (`wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding |
-| R2 runtime binding | **Wrangler** | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first) |
-| Images transform binding | **Wrangler** | `IMAGES` binding for horizontal flip via Cloudflare Images |
-| Provider secret names | **Wrangler** | Secret *names* declared in config; values never in repo |
-| Provider secret values | **Cloudflare** | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put` |
-| Deploy credentials | **GitHub + Cloudflare** | CI uses short-lived tokens from GitHub Secrets; see secrets doc |
-| Local/dev secret injection | **Doppler (or selected manager)** | Via `wp config secrets set`; never `.dev.vars` / `.env` on disk |
+| Surface                       | Owner                                     | What it manages                                                  |
+| ----------------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
+| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                   | Bucket creation, lifecycle cleanup rules, optional CORS          |
+| Worker runtime                | **Wrangler** (`wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars |
+| Static SPA shell              | **Wrangler** (`wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                   |
+| R2 runtime binding            | **Wrangler**                              | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)  |
+| Images transform binding      | **Wrangler**                              | `IMAGES` binding for horizontal flip via Cloudflare Images       |
+| Provider secret names         | **Wrangler**                              | Secret _names_ declared in config; values never in repo          |
+| Provider secret values        | **Cloudflare**                            | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put`          |
+| Deploy credentials            | **GitHub + Cloudflare**                   | CI uses short-lived tokens from GitHub Secrets; see secrets doc  |
+| Local/dev secret injection    | **Doppler (or selected manager)**         | Via `wp config secrets set`; never `.dev.vars` / `.env` on disk  |
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
 
 ## Production target
 
-| Item | Value |
-| --- | --- |
-| Public URL | `https://edge-matte.ozby.dev` |
-| Worker name | `edge-matte` |
-| Wrangler env | `production` |
-| R2 bucket | `edge-matte-images` |
-| Health check | `GET /health` |
+| Item         | Value                                                                 |
+| ------------ | --------------------------------------------------------------------- |
+| Public URL   | `https://edge-matte.ozby.dev`                                         |
+| Worker name  | `edge-matte`                                                          |
+| Wrangler env | `production`                                                          |
+| R2 bucket    | `edge-matte-images`                                                   |
+| Health check | `GET /health`                                                         |
 | Smoke suites | `smoke`, `upload-delete` (CI/local), `production-smoke` (post-deploy) |
 
 A deployment is **not healthy** until `production-smoke` passes against the

@@ -134,26 +134,26 @@ Exact stop condition:
 
 ### Wave 1 — independent red tests
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| UI-1 | Add failing client tests for preview/progress/result/delete/error states | none | `apps/client/**tests**` |
-| UI-2 | Add failing E2E journey definitions for `smoke` and `upload-delete` | none | `apps/e2e/**` |
-| UI-3 | Add failing tests for suite manifest/host-adapter discovery | none | `apps/e2e/src/**tests**`, `agent-kit.config.ts` |
+| Task ID | Task                                                                     | Depends on | Write scope                                     |
+| ------- | ------------------------------------------------------------------------ | ---------- | ----------------------------------------------- |
+| UI-1    | Add failing client tests for preview/progress/result/delete/error states | none       | `apps/client/**tests**`                         |
+| UI-2    | Add failing E2E journey definitions for `smoke` and `upload-delete`      | none       | `apps/e2e/**`                                   |
+| UI-3    | Add failing tests for suite manifest/host-adapter discovery              | none       | `apps/e2e/src/**tests**`, `agent-kit.config.ts` |
 
 ### Wave 2 — independent implementation lanes
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| UI-4 | Implement client upload/result/delete UI and local state handling | UI-1 | `apps/client/**` |
-| UI-5 | Implement E2E manifest + host adapter plumbing | UI-3 | `apps/e2e/src/**`, `agent-kit.config.ts` |
-| UI-6 | Implement browser journeys and fixtures for `smoke` / `upload-delete` | UI-2, UI-5 | `apps/e2e/journeys/**`, Playwright config |
+| Task ID | Task                                                                  | Depends on | Write scope                               |
+| ------- | --------------------------------------------------------------------- | ---------- | ----------------------------------------- |
+| UI-4    | Implement client upload/result/delete UI and local state handling     | UI-1       | `apps/client/**`                          |
+| UI-5    | Implement E2E manifest + host adapter plumbing                        | UI-3       | `apps/e2e/src/**`, `agent-kit.config.ts`  |
+| UI-6    | Implement browser journeys and fixtures for `smoke` / `upload-delete` | UI-2, UI-5 | `apps/e2e/journeys/**`, Playwright config |
 
 ### Wave 3 — merge and harden
 
-| Task ID | Task | Depends on | Write scope |
-|---|---|---|---|
-| UI-7 | Bind UI to stable backend route contract and finalize error/status UX | UI-4, core pipeline complete | `apps/client/**` |
-| UI-8 | Run local browser/public-HTTP contract suites and fix drift between UI and E2E | UI-6, UI-7 | client + E2E verification |
+| Task ID | Task                                                                           | Depends on                   | Write scope               |
+| ------- | ------------------------------------------------------------------------------ | ---------------------------- | ------------------------- |
+| UI-7    | Bind UI to stable backend route contract and finalize error/status UX          | UI-4, core pipeline complete | `apps/client/**`          |
+| UI-8    | Run local browser/public-HTTP contract suites and fix drift between UI and E2E | UI-6, UI-7                   | client + E2E verification |
 
 Parallelization notes:
 
@@ -175,4 +175,3 @@ python3 scripts/check_architecture_drift.py
 ## Completion notes
 
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
-

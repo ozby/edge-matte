@@ -31,13 +31,13 @@ repo scripts instead of the provider-neutral wrapper).
 
 ## GitHub vs Cloudflare vs Doppler
 
-| Secret / credential | Where the value lives | Who sets it | Used by |
-| --- | --- | --- | --- |
-| `PHOTOROOM_API_KEY` | **Cloudflare Worker secret** (production) | Maintainer via `wrangler secret put` | Worker at runtime |
-| `CLOUDFLARE_API_TOKEN` | **GitHub Actions secret** | Repo admin | CI deploy job only |
-| `CLOUDFLARE_ACCOUNT_ID` | **GitHub Actions secret** (or workflow env) | Repo admin | CI deploy job |
-| Local dev provider keys | **Doppler** (or manager selected in `wp config`) | Each developer | Local `wrangler dev`, tests, e2e |
-| `GH_PACKAGES_TOKEN` | **Environment at runtime** | Developer/CI when needed | Private `@webpresso/*` installs — **not** required for this repo's public `pnpm install` |
+| Secret / credential     | Where the value lives                            | Who sets it                          | Used by                                                                                  |
+| ----------------------- | ------------------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `PHOTOROOM_API_KEY`     | **Cloudflare Worker secret** (production)        | Maintainer via `wrangler secret put` | Worker at runtime                                                                        |
+| `CLOUDFLARE_API_TOKEN`  | **GitHub Actions secret**                        | Repo admin                           | CI deploy job only                                                                       |
+| `CLOUDFLARE_ACCOUNT_ID` | **GitHub Actions secret** (or workflow env)      | Repo admin                           | CI deploy job                                                                            |
+| Local dev provider keys | **Doppler** (or manager selected in `wp config`) | Each developer                       | Local `wrangler dev`, tests, e2e                                                         |
+| `GH_PACKAGES_TOKEN`     | **Environment at runtime**                       | Developer/CI when needed             | Private `@webpresso/*` installs — **not** required for this repo's public `pnpm install` |
 
 ### Rules
 
@@ -59,12 +59,12 @@ repo scripts instead of the provider-neutral wrapper).
 
 Production Worker runtime expects (names stable; values out-of-band):
 
-| Name | Kind | Purpose |
-| --- | --- | --- |
-| `PHOTOROOM_API_KEY` | Secret | Background removal provider |
-| `IMAGES_BUCKET` | R2 binding | Job metadata and image objects |
-| `IMAGES` | Images binding | Horizontal flip transform |
-| `ASSETS` | Assets binding | SPA static shell |
+| Name                | Kind           | Purpose                        |
+| ------------------- | -------------- | ------------------------------ |
+| `PHOTOROOM_API_KEY` | Secret         | Background removal provider    |
+| `IMAGES_BUCKET`     | R2 binding     | Job metadata and image objects |
+| `IMAGES`            | Images binding | Horizontal flip transform      |
+| `ASSETS`            | Assets binding | SPA static shell               |
 
 Non-secret vars (e.g. `APP_ORIGIN`) live in `wrangler.toml` `[vars]` /
 `[env.production.vars]`.
@@ -86,10 +86,10 @@ wrangler secret list --env production
 
 Repository secrets required for automated deploy (blueprint `IR-6`):
 
-| GitHub secret | Purpose |
-| --- | --- |
-| `CLOUDFLARE_API_TOKEN` | API token scoped to Workers deploy + account access |
-| `CLOUDFLARE_ACCOUNT_ID` | Target Cloudflare account |
+| GitHub secret           | Purpose                                             |
+| ----------------------- | --------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | API token scoped to Workers deploy + account access |
+| `CLOUDFLARE_ACCOUNT_ID` | Target Cloudflare account                           |
 
 Create a Cloudflare API token with minimal scope: Workers Scripts edit, Account
 read, and any R2 permissions Wrangler needs for binding validation. Do **not**
@@ -128,11 +128,11 @@ See [README.md](../README.md) for the full local verification surface and
 
 ## Rotation
 
-| Secret | Rotation path |
-| --- | --- |
-| `PHOTOROOM_API_KEY` | Update in Cloudflare (`wrangler secret put`), redeploy not required for secret-only updates; verify with smoke e2e |
-| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update GitHub secret, trigger deploy workflow |
-| Doppler/local keys | Rotate in Doppler; developers refresh local sessions |
+| Secret                 | Rotation path                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `PHOTOROOM_API_KEY`    | Update in Cloudflare (`wrangler secret put`), redeploy not required for secret-only updates; verify with smoke e2e |
+| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update GitHub secret, trigger deploy workflow                                      |
+| Doppler/local keys     | Rotate in Doppler; developers refresh local sessions                                                               |
 
 ## Related
 

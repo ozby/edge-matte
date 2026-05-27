@@ -1,7 +1,7 @@
 {
   "name": "@edge-matte/worker",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
@@ -11,6 +11,9 @@
     "check-types": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
+  "dependencies": {
+    "hono": "^4.12.23"
+  },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.10.11",
     "@cloudflare/workers-types": "^4.20250425.0",
@@ -18,8 +21,5 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "wrangler": "^4.56.0"
-  },
-  "dependencies": {
-    "hono": "^4.12.23"
   }
 }

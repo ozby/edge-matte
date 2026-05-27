@@ -4,15 +4,8 @@
     "tier3Skills": []
   },
   "hosts": {
-    "selected": [
-      "codex",
-      "claude",
-      "opencode"
-    ],
-    "requiredCapabilities": [
-      "verify",
-      "plan-refine"
-    ],
+    "selected": ["codex", "claude", "opencode"],
+    "requiredCapabilities": ["verify", "plan-refine"],
     "visibility": {
       "codex": {
         "verify": "visible-after-restart",

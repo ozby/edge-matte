@@ -70,10 +70,10 @@ EdgeMatte reuses the same **quality and governance rails** as IngestLens instead
 inventing parallel lint hooks, blueprint checks, or commit conventions. That work
 is handled by global CLI tools on your `PATH`, not by npm dependencies in this repo.
 
-| Tool | Role | What it solves |
-|---|---|---|
-| **`wp`** | Webpresso / agent-kit CLI | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
-| **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package. |
+| Tool     | Role                       | What it solves                                                                                                                                                                                                                                                     |
+| -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`wp`** | Webpresso / agent-kit CLI  | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
+| **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package.                                                        |
 
 Install `@webpresso/agent-kit` globally (or use a sibling Webpresso checkout with `wp`/`vp` on `PATH`). This repo does **not** pin `@webpresso/agent-kit` in `devDependencies` — reviewers can `pnpm install` without GitHub Packages tokens; maintainers install `wp`/`vp` once on their machine (and CI must provide `wp` for audit jobs).
 

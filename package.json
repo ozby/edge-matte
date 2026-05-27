@@ -1,7 +1,7 @@
 {
   "name": "edge-matte",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "setup:agent": "wp setup",
@@ -25,10 +25,10 @@
     "typescript": "^5.9.3",
     "vite-plus": "^0.1.22"
   },
-  "packageManager": "pnpm@11.1.1",
   "engines": {
     "node": ">=24"
   },
+  "packageManager": "pnpm@11.1.1",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild@0.27.0",
