@@ -32,11 +32,18 @@ pnpm install
 cd infra
 pulumi login
 pulumi stack init production   # once
-pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
-pulumi config set artifactMaxAgeDays 30
-pulumi preview
-pulumi up
+with-secrets -- pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
+with-secrets -- pulumi config set artifactMaxAgeDays 30
+pnpm run pulumi:preview        # from repo root, or: with-secrets -- pulumi preview
+pnpm run pulumi:up
 ```
+
+Or run Pulumi commands from `infra/` with `with-secrets --` so
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` load from Doppler
+`ozby-shell` (configure: `wp config secrets set doppler ozby-shell`).
+
+Account ID can also be set once in Pulumi stack config instead of relying on
+Doppler env vars (ingest-lens pattern).
 
 Then deploy the Worker with Wrangler (bucket must exist before production traffic).
 

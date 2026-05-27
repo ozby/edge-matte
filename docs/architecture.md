@@ -281,7 +281,7 @@ flowchart LR
     GH[GitHub repo] --> CI[GitHub Actions]
     CI --> CHECKS[agent-kit/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
     CHECKS --> DRY[wrangler deploy --dry-run]
-    DRY --> DEPLOY[cloudflare/wrangler-action@v3<br/>deploy --env production]
+    DRY --> DEPLOY[Doppler-injected credentials<br/>pnpm wrangler deploy --env production]
     DEPLOY --> URL[edge-matte.ozby.dev]
     URL --> SMOKE[post-deploy smoke<br/>GET /health + GET /]
 

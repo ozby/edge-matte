@@ -3,14 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#repo-root": "./src/repo-root.ts"
+  },
   "scripts": {
     "pretest": "pnpm --filter @edge-matte/client run build",
     "test": "vitest run --config vitest.config.ts",
+    "test:journeys": "vitest run --config vitest.journeys.config.ts",
+    "test:browser": "playwright test --config playwright.config.mjs",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "node -e \"console.log('e2e lint: manifest + journeys (oxlint deferred)')\"",
+    "lint": "vp lint src/e2e-suite-manifest.ts src/e2e-suite-manifest.test.ts journeys global-setup.ts src/cli/start-local-e2e-server.ts src/repo-root.ts src/ensure-client-dist.ts --tsconfig tsconfig.json --type-aware",
     "e2e:run": "bun src/cli/run-e2e.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

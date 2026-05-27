@@ -1,3 +1,4 @@
+import { AppError } from "../../core/errors";
 import type { ImageTransformer } from "../../ports";
 
 interface ImagesBinding {
@@ -15,9 +16,7 @@ export class CloudflareImagesTransformer implements ImageTransformer {
 
   async flipHorizontal(input: Blob, _outputType: string): Promise<Response> {
     if (!this.images) {
-      return new Response(input.stream(), {
-        headers: { "content-type": "image/png" },
-      });
+      throw new AppError(502, "image_transform_failed", "missing IMAGES binding");
     }
     return this.images
       .input(input.stream())

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createImageJob, toPublicImageJob, verifyDeleteToken } from "../src/core/image-job";
+import { createImageJob, toPublicImageJob, verifyDeleteToken, type ImageJob } from "../src/core/image-job";
 import { deriveObjectKeys } from "../src/core/object-keys";
 import {
   AppError,
@@ -9,7 +9,7 @@ import {
   invalidDeleteTokenError,
   unsupportedMediaTypeError,
 } from "../src/core/errors";
-import { processImageJob } from "../src/core/process-image-job";
+import { MAX_UPLOAD_BYTES, processImageJob } from "../src/core/process-image-job";
 import type {
   BackgroundRemovalProvider,
   ImageObjectStore,
@@ -17,14 +17,35 @@ import type {
   JobRepository,
 } from "../src/ports";
 
-class InMemoryJobRepository implements JobRepository {
-  private readonly jobs = new Map<string, ReturnType<typeof createImageJob>>();
+const PNG_BYTES = Uint8Array.of(
+  0x89,
+  0x50,
+  0x4e,
+  0x47,
+  0x0d,
+  0x0a,
+  0x1a,
+  0x0a,
+  0x00,
+  0x00,
+  0x00,
+  0x0d,
+);
 
-  async create(job: ReturnType<typeof createImageJob>) {
+const createPngFile = (size = PNG_BYTES.length): File => {
+  const bytes = new Uint8Array(Math.max(size, PNG_BYTES.length));
+  bytes.set(PNG_BYTES);
+  return new File([bytes], "test.png", { type: "image/png" });
+};
+
+class InMemoryJobRepository implements JobRepository {
+  private readonly jobs = new Map<string, ImageJob>();
+
+  async create(job: ImageJob) {
     this.jobs.set(job.id, job);
   }
 
-  async update(job: ReturnType<typeof createImageJob>) {
+  async update(job: ImageJob) {
     this.jobs.set(job.id, job);
   }
 
@@ -35,23 +56,23 @@ class InMemoryJobRepository implements JobRepository {
   async delete(id: string) {
     this.jobs.delete(id);
   }
+
+  list(): ImageJob[] {
+    return Array.from(this.jobs.values());
+  }
 }
 
 class InMemoryObjectStore implements ImageObjectStore {
   private readonly objects = new Map<string, { body: Uint8Array; contentType: string }>();
 
-  async putOriginal(job: ReturnType<typeof createImageJob>, file: File) {
+  async putOriginal(job: ImageJob, file: File) {
     this.objects.set(job.originalObjectKey, {
       body: new Uint8Array(await file.arrayBuffer()),
       contentType: file.type,
     });
   }
 
-  async putProcessed(
-    job: ReturnType<typeof createImageJob>,
-    body: ReadableStream | Blob,
-    contentType: string,
-  ) {
+  async putProcessed(job: ImageJob, body: ReadableStream | Blob, contentType: string) {
     const blob = body instanceof Blob ? body : await new Response(body).blob();
     this.objects.set(job.processedObjectKey, {
       body: new Uint8Array(await blob.arrayBuffer()),
@@ -69,9 +90,13 @@ class InMemoryObjectStore implements ImageObjectStore {
     });
   }
 
-  async deleteAll(job: ReturnType<typeof createImageJob>) {
+  async deleteAll(job: ImageJob) {
     this.objects.delete(job.originalObjectKey);
     this.objects.delete(job.processedObjectKey);
+  }
+
+  storedKeys(): string[] {
+    return Array.from(this.objects.keys()).sort();
   }
 }
 
@@ -106,6 +131,10 @@ describe("core pipeline", () => {
     expect(errorResponse(unsupportedMediaTypeError()).status).toBe(415);
   });
 
+  it("enforces the 8 MiB upload contract", () => {
+    expect(MAX_UPLOAD_BYTES).toBe(8 * 1024 * 1024);
+  });
+
   it("executes upload -> background removal -> flip -> ready", async () => {
     const transitions: string[] = [];
     const repository = new InMemoryJobRepository();
@@ -129,17 +158,124 @@ describe("core pipeline", () => {
       },
     };
 
-    const file = new File([Uint8Array.of(0x89, 0x50, 0x4e, 0x47)], "test.png", {
-      type: "image/png",
-    });
-
     const result = await processImageJob(
-      { file, appOrigin: "https://edge-matte.ozby.dev" },
+      { file: createPngFile(), appOrigin: "https://edge-matte.ozby.dev" },
       { repository, objectStore, provider, transformer },
     );
 
     expect(transitions).toEqual(["removing_background", "flipping"]);
     expect(result.status).toBe("ready");
     expect(result.errorCode).toBeNull();
+    expect(objectStore.storedKeys()).toEqual([
+      result.originalObjectKey,
+      result.processedObjectKey,
+    ]);
+  });
+
+  it("fails loudly on provider deadline, cleans blobs, and preserves failed job metadata", async () => {
+    const repository = new InMemoryJobRepository();
+    const objectStore = new InMemoryObjectStore();
+
+    const provider: BackgroundRemovalProvider = {
+      async removeBackground(_input, signal) {
+        return await new Promise<Blob>((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => reject(signal.reason),
+            { once: true },
+          );
+        });
+      },
+    };
+
+    const transformer: ImageTransformer = {
+      async flipHorizontal() {
+        throw new Error("transform should not run after provider timeout");
+      },
+    };
+
+    await expect(
+      processImageJob(
+        { file: createPngFile(), appOrigin: "https://edge-matte.ozby.dev" },
+        {
+          repository,
+          objectStore,
+          provider,
+          transformer,
+          backgroundRemovalDeadlineMs: 1,
+        },
+      ),
+    ).rejects.toMatchObject({ code: "background_provider_failed", status: 502 });
+
+    const [job] = repository.list();
+    expect(job).toMatchObject({
+      status: "failed",
+      errorCode: "background_provider_failed",
+    });
+    expect(await repository.get(job.id)).toMatchObject({ id: job.id, status: "failed" });
+    expect(objectStore.storedKeys()).toEqual([]);
+  });
+
+  it("cleans orphaned blobs but keeps failed metadata when transform fails", async () => {
+    const repository = new InMemoryJobRepository();
+    const objectStore = new InMemoryObjectStore();
+
+    const provider: BackgroundRemovalProvider = {
+      async removeBackground(input) {
+        return new Blob([await input.arrayBuffer()], { type: "image/png" });
+      },
+    };
+
+    const transformer: ImageTransformer = {
+      async flipHorizontal() {
+        throw new Error("transform exploded");
+      },
+    };
+
+    await expect(
+      processImageJob(
+        { file: createPngFile(), appOrigin: "https://edge-matte.ozby.dev" },
+        { repository, objectStore, provider, transformer },
+      ),
+    ).rejects.toThrow("transform exploded");
+
+    const [job] = repository.list();
+    expect(job).toMatchObject({
+      status: "failed",
+      errorCode: "image_transform_failed",
+    });
+    expect(await repository.get(job.id)).toMatchObject({ id: job.id, status: "failed" });
+    expect(await objectStore.getProcessed(job.id)).toBeNull();
+    expect(objectStore.storedKeys()).toEqual([]);
+  });
+
+  it("rejects oversized uploads before any storage side effects", async () => {
+    const repository = new InMemoryJobRepository();
+    const objectStore = new InMemoryObjectStore();
+
+    const provider: BackgroundRemovalProvider = {
+      async removeBackground(input) {
+        return input;
+      },
+    };
+
+    const transformer: ImageTransformer = {
+      async flipHorizontal(input) {
+        return new Response(input.stream());
+      },
+    };
+
+    await expect(
+      processImageJob(
+        {
+          file: createPngFile(MAX_UPLOAD_BYTES + 1),
+          appOrigin: "https://edge-matte.ozby.dev",
+        },
+        { repository, objectStore, provider, transformer },
+      ),
+    ).rejects.toMatchObject({ code: "file_too_large" });
+
+    expect(repository.list()).toEqual([]);
+    expect(objectStore.storedKeys()).toEqual([]);
   });
 });

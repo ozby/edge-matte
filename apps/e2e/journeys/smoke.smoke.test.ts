@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { getE2EBaseUrlOrThrow } from "../src/journeys/env";
 
-const baseUrl = getE2EBaseUrlOrThrow("apps/e2e/journeys/smoke.e2e.ts");
+const baseUrl = getE2EBaseUrlOrThrow("apps/e2e/journeys/smoke.smoke.test.ts");
 
-describe("smoke journey", () => {
+describe("local smoke coverage", () => {
   it("returns ok from /health", async () => {
     const response = await fetch(new URL("/health", baseUrl));
     expect(response.status).toBe(200);

@@ -10,6 +10,7 @@ import type { ProcessImageJobDeps } from "./core/process-image-job";
 type WorkerEnv = Env & {
   PHOTOROOM_API_KEY?: string;
   IMAGES?: unknown;
+  E2E_MOCK_PIPELINE?: string;
 };
 
 const createInMemoryDeps = (appOrigin: string): ProcessImageJobDeps & { appOrigin: string } => {
@@ -60,12 +61,19 @@ export const createWorkerApp = (env?: WorkerEnv) => {
   if (!env) {
     return createApp(createInMemoryDeps("https://edge-matte.ozby.dev"));
   }
+
+  const useExplicitMockPipeline = env.E2E_MOCK_PIPELINE === "1";
+
   return createApp({
     appOrigin: env.APP_ORIGIN,
     repository: new R2JobRepository(env.IMAGES_BUCKET),
     objectStore: new R2ImageObjectStore(env.IMAGES_BUCKET),
-    provider: new PhotoroomProvider(env.PHOTOROOM_API_KEY),
-    transformer: new CloudflareImagesTransformer((env.IMAGES ?? null) as never),
+    provider: useExplicitMockPipeline
+      ? new MockBackgroundRemovalProvider()
+      : new PhotoroomProvider(env.PHOTOROOM_API_KEY),
+    transformer: useExplicitMockPipeline
+      ? new MockTransformer()
+      : new CloudflareImagesTransformer((env.IMAGES ?? null) as never),
   });
 };
 

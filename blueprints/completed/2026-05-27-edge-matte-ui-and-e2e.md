@@ -174,4 +174,10 @@ python3 scripts/check_architecture_drift.py
 
 ## Completion notes
 
+Superseding note (2026-05-27): subsequent audit found that the local
+`upload-delete` / smoke coverage was still using an internal-import Worker
+harness rather than a true browser/runtime reviewer path. See
+`blueprints/planned/2026-05-27-edge-matte-audit-remediation.md` for the
+corrective blueprint that hardens this boundary.
+
 Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.

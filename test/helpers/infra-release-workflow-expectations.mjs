@@ -26,9 +26,17 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
   { label: "deploy concurrency", pattern: /concurrency:/u },
   { label: "wrangler deploy", pattern: /wrangler deploy --env production/u },
   { label: "production domain target", pattern: /edge-matte\.ozby\.dev/u },
-  { label: "post-deploy /health smoke", pattern: /\/health/u },
-  { label: "post-deploy root smoke", pattern: /edge-matte\.ozby\.dev\/["'\s]|curl[^\n]*\/["'\s]/u },
+  { label: "post-deploy /health smoke", pattern: /wait-for-http\.sh.*\/health|\/health/u },
+  {
+    label: "post-deploy root smoke",
+    pattern: /wait-for-http\.sh|edge-matte\.ozby\.dev\/["'\s]|curl[^\n]*\/["'\s]/u,
+  },
+  { label: "verify paths policy", pattern: /verify:paths/u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
+  {
+    label: "doppler deploy credential injection",
+    pattern: /dopplerhq\/secrets-fetch-action|DOPPLER_SERVICE_TOKEN|DOPPLER_TOKEN/u,
+  },
 ]);
 
 /**

@@ -55,6 +55,9 @@ When that upstream audit exists, prefer it over the local checker.
 - Add ports only at real side-effect boundaries.
 - Reuse agent-kit/Webpresso quality rails instead of bespoke wrappers.
 - Prefer deleting duplication over adding abstraction.
+- Never use hardcoded relative filesystem paths in executable code or config.
+  Use absolute paths derived from an explicit anchor (repo root finder, package
+  root finder, or runtime-provided absolute base path).
 
 ## Quality surface
 
@@ -78,7 +81,9 @@ Do not invent parallel local QA workflows when agent-kit already owns the lane.
 
 Enforced checks:
 
-- Pre-commit runs `bun scripts/check-no-dev-vars.ts` via `.husky/pre-commit`.
-- Pre-commit runs `bun scripts/audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
-- `pnpm verify:secrets` runs the same check in development and CI contexts.
+- Pre-commit runs `verify-secrets-policy.ts`, `wp audit absolute-path-policy --root .`,
+  `sync-webpresso-config.ts --check-only`, and
+  `audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
+- `pnpm verify:secrets` runs the policy verifier and wp metadata validation.
+- `pnpm verify:paths` blocks hardcoded relative repo traversal in scripts (CI + pre-commit).
 - `pnpm audit:secret-provider-quarantine` enforces provider-neutral secret execution.

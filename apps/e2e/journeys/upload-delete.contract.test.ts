@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getE2EBaseUrlOrThrow } from "../src/journeys/env";
 
-const baseUrl = getE2EBaseUrlOrThrow("apps/e2e/journeys/upload-delete.e2e.ts");
+const baseUrl = getE2EBaseUrlOrThrow("apps/e2e/journeys/upload-delete.contract.test.ts");
 
 const PNG_BYTES = Uint8Array.of(
   0x89,
@@ -73,7 +73,7 @@ const PNG_BYTES = Uint8Array.of(
   0x82,
 );
 
-describe("upload-delete contract journey", () => {
+describe("upload-delete API contract coverage", () => {
   it("uploads one image, serves hosted URL, then deletes to 404", async () => {
     const form = new FormData();
     form.set("file", new File([PNG_BYTES], "contract.png", { type: "image/png" }));

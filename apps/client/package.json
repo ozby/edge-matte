@@ -8,7 +8,7 @@
     "build": "vite build",
     "test": "vitest run",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "node -e \"console.log('client lint: oxlint deferred')\""
+    "lint": "vp lint src test --tsconfig tsconfig.json --type-aware"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

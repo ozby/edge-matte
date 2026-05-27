@@ -29,6 +29,15 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
+## Active work (2026-05-27)
+
+| Blueprint | Path | Purpose |
+| --------- | ---- | ------- |
+| Audit remediation | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; closes production deploy smoke gap |
+
+Wave 0 (secrets governance) is complete in the working tree — see the remediation
+blueprint for lane boundaries if multiple agents edit concurrently.
+
 ## Completed EdgeMatte blueprints (2026-05-27)
 
 | Blueprint          | Path                                                                                                               |
@@ -39,8 +48,9 @@ Move files with `git mv` so history follows the spec through its lifecycle.
 | UI + E2E           | [`completed/2026-05-27-edge-matte-ui-and-e2e.md`](./completed/2026-05-27-edge-matte-ui-and-e2e.md)                 |
 | Infra + release    | [`completed/2026-05-27-edge-matte-infra-and-release.md`](./completed/2026-05-27-edge-matte-infra-and-release.md)   |
 
-Production deploy to `https://edge-matte.ozby.dev` remains pending a CI fix;
-local verification passed on 2026-05-27.
+The parent roadmap retains one open acceptance item (manual production smoke)
+until [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)
+closes the deploy CI lane.
 
 ## Governance
 

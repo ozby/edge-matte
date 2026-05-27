@@ -1,7 +1,6 @@
-import type { ErrorCode } from "./types";
+export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-
+const MAX_UPLOAD_LABEL = "8 MiB";
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 
 export const formatFileSize = (bytes: number): string => {
@@ -15,15 +14,15 @@ export const validateSelectedFile = (file: File): string | null => {
     return "Choose a PNG, JPEG, or WebP image.";
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    return `Image must be ${formatFileSize(MAX_UPLOAD_BYTES)} or smaller.`;
+    return `Image must be ${MAX_UPLOAD_LABEL} or smaller.`;
   }
   return null;
 };
 
-export const errorCodeToMessage = (code: ErrorCode | string | null): string => {
+export const errorCodeToMessage = (code: string | null): string => {
   switch (code) {
     case "file_too_large":
-      return "That file is too large. Use an image up to 10 MB.";
+      return `That file is too large. Use an image up to ${MAX_UPLOAD_LABEL}.`;
     case "unsupported_media_type":
       return "Unsupported image type. Use PNG, JPEG, or WebP.";
     case "invalid_delete_token":

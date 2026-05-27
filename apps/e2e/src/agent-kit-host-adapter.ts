@@ -1,9 +1,9 @@
 import {
   listE2ESuites,
   normalizeE2EPath,
-  resolveE2ESuiteForFile,
   resolveE2ESuiteId,
   type E2ESuiteDefinition,
+  type E2ESuiteStep,
 } from "./e2e-suite-manifest";
 
 type E2eExecutionRequest = {
@@ -14,7 +14,7 @@ type E2eExecutionRequest = {
 type E2ePlanRun = {
   suiteId: string;
   batchKey: string;
-  runner: "command";
+  runner: E2ESuiteStep["runner"];
   logName: string;
   command: string;
   args: string[];
@@ -37,6 +37,43 @@ function rootifySuites(): readonly E2ESuiteDefinition[] {
   }));
 }
 
+function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
+  const files = step.fixedFiles?.map((file) => file.replace(/^apps\/e2e\//u, "")) ?? [];
+
+  switch (step.runner) {
+    case "vitest":
+      return {
+        command: "pnpm",
+        args: [
+          "exec",
+          "vitest",
+          "run",
+          "--config",
+          step.configPath ?? "vitest.config.ts",
+          ...files,
+        ],
+      };
+    case "playwright":
+      return {
+        command: "pnpm",
+        args: [
+          "exec",
+          "playwright",
+          "test",
+          "--config",
+          step.configPath ?? "playwright.config.mjs",
+          ...files,
+        ],
+      };
+    case "command":
+      throw new Error("Manifest command steps are not supported by the host adapter.");
+    default: {
+      const _exhaustive: never = step.runner;
+      throw new Error(`Unsupported e2e runner: ${_exhaustive}`);
+    }
+  }
+}
+
 export function buildExecutionPlan(request: E2eExecutionRequest): E2eExecutionBatch[] {
   const suiteId = request.suite ? resolveE2ESuiteId(request.suite) : null;
   if (request.suite && !suiteId) {
@@ -49,21 +86,16 @@ export function buildExecutionPlan(request: E2eExecutionRequest): E2eExecutionBa
 
   return suites.map((suite) => ({
     batchKey: suite.batchKey,
-    runs: suite.steps.map((step) => ({
-      suiteId: suite.id,
-      batchKey: step.batchKey ?? suite.batchKey,
-      runner: "command" as const,
-      logName: step.logName,
-      command: "pnpm",
-      args: [
-        "exec",
-        "vitest",
-        "run",
-        "--config",
-        step.configPath ?? "vitest.config.ts",
-        ...(step.fixedFiles?.map((file) => file.replace(/^apps\/e2e\//u, "")) ?? []),
-      ],
-    })),
+    runs: suite.steps.map((step) => {
+      const command = buildCommand(step);
+      return {
+        suiteId: suite.id,
+        batchKey: step.batchKey ?? suite.batchKey,
+        runner: step.runner,
+        logName: step.logName,
+        ...command,
+      };
+    }),
   }));
 }
 

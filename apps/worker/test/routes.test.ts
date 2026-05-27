@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MAX_UPLOAD_BYTES } from "../src/core/process-image-job";
 import { createWorkerApp } from "../src/index";
 
 const PNG_BYTES = Uint8Array.of(
@@ -29,7 +30,7 @@ const PNG_BYTES = Uint8Array.of(
 );
 
 describe("worker routes", () => {
-  it("handles create, status, image, and delete routes", async () => {
+  it("handles create, status, image, and delete routes in explicit local/mock mode", async () => {
     const app = createWorkerApp();
 
     const form = new FormData();
@@ -83,7 +84,7 @@ describe("worker routes", () => {
   it("returns contract errors for invalid upload and delete token", async () => {
     const app = createWorkerApp();
 
-    const oversized = new Uint8Array(10 * 1024 * 1024 + 1);
+    const oversized = new Uint8Array(MAX_UPLOAD_BYTES + 1);
     const form = new FormData();
     form.set("file", new File([oversized], "big.png", { type: "image/png" }));
     const tooLarge = await app.fetch(

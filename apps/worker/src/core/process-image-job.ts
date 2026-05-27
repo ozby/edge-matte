@@ -17,9 +17,11 @@ export interface ProcessImageJobDeps {
   objectStore: ImageObjectStore;
   provider: BackgroundRemovalProvider;
   transformer: ImageTransformer;
+  backgroundRemovalDeadlineMs?: number;
 }
 
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+export const BACKGROUND_REMOVAL_DEADLINE_MS = 10_000;
 
 const assertSupportedFile = async (file: File): Promise<void> => {
   if (file.size > MAX_UPLOAD_BYTES) {
@@ -48,6 +50,36 @@ const withStatus = (
   updatedAt: new Date().toISOString(),
 });
 
+const shouldCleanupArtifacts = (status: ImageJob["status"]): boolean =>
+  status === "removing_background" || status === "flipping";
+
+const removeBackgroundWithDeadline = async (
+  file: File,
+  provider: BackgroundRemovalProvider,
+  deadlineMs: number,
+): Promise<Blob> => {
+  const controller = new AbortController();
+  const deadlineError = new AppError(502, "background_provider_failed", "background provider timed out");
+  const timeoutId = setTimeout(() => controller.abort(deadlineError), deadlineMs);
+
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    controller.signal.addEventListener(
+      "abort",
+      () => reject(controller.signal.reason ?? deadlineError),
+      { once: true },
+    );
+  });
+
+  try {
+    return await Promise.race([
+      provider.removeBackground(file, controller.signal),
+      timeoutPromise,
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const processImageJob = async (
   command: ProcessImageJobCommand,
   deps: ProcessImageJobDeps,
@@ -63,7 +95,11 @@ export const processImageJob = async (
 
     job = withStatus(job, "removing_background");
     await deps.repository.update(job);
-    const cutout = await deps.provider.removeBackground(command.file);
+    const cutout = await removeBackgroundWithDeadline(
+      command.file,
+      deps.provider,
+      deps.backgroundRemovalDeadlineMs ?? BACKGROUND_REMOVAL_DEADLINE_MS,
+    );
 
     job = withStatus(job, "flipping");
     await deps.repository.update(job);
@@ -74,16 +110,22 @@ export const processImageJob = async (
     await deps.repository.update(job);
     return job;
   } catch (error) {
+    const failedStage = job.status;
     const code =
       error instanceof AppError
         ? error.code
-        : job.status === "flipping"
+        : failedStage === "flipping"
           ? "image_transform_failed"
-          : job.status === "removing_background"
+          : failedStage === "removing_background"
             ? "background_provider_failed"
             : "storage_failed";
     job = withStatus(job, "failed", code);
     await deps.repository.update(job);
+
+    if (shouldCleanupArtifacts(failedStage)) {
+      await deps.objectStore.deleteAll(job);
+    }
+
     throw error;
   }
 };

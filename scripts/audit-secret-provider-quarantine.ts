@@ -36,6 +36,18 @@ const BANNED_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
     pattern: /runtime\/process\/secret-runner/,
     message: "use `@webpresso/webpresso/runtime/env` instead of secret-runner",
   },
+  {
+    pattern: /\bfrom\s+['"]dotenv(?:\/config)?['"]/,
+    message: "do not load secrets from dotenv files — use `with-secrets -- <cmd>`",
+  },
+  {
+    pattern: /\brequire\(\s*['"]dotenv(?:\/config)?['"]\s*\)/,
+    message: "do not load secrets from dotenv files — use `with-secrets -- <cmd>`",
+  },
+  {
+    pattern: /\bimport\s+['"]dotenv\/config['"]/,
+    message: "do not load secrets from dotenv files — use `with-secrets -- <cmd>`",
+  },
 ];
 
 const violations: string[] = [];

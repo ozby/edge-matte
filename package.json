@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#scripts/*": "./scripts/*"
+  },
   "scripts": {
     "setup:agent": "wp setup",
     "build": "vp run -r build",
@@ -14,11 +17,17 @@
     "lint": "vp run -r lint",
     "test": "node --test \"test/**/*.test.mjs\" && vp run -r test",
     "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
-    "verify:secrets": "bun scripts/check-no-dev-vars.ts",
+    "deploy:production": "bun scripts/deploy-production.ts",
+    "deploy:production:wrangler": "with-secrets -- pnpm --filter @edge-matte/worker exec wrangler deploy --env production",
+    "pulumi:preview": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi preview",
+    "pulumi:up": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi up",
+    "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
+    "verify:paths": "WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root .",
+    "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
     "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
     "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
-    "prepare": "husky"
+    "prepare": "husky && bun scripts/sync-webpresso-config.ts"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

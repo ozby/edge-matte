@@ -25,6 +25,11 @@ apps/e2e/.e2e-base-url
 !.env.example
 .dev.vars
 .dev.vars.*
+.webpresso/secrets.json
+.wrangler/
+*.pem
+*.p12
+credentials.json
 
 # OS/editor noise
 .DS_Store

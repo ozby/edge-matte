@@ -10,6 +10,10 @@ verdict: refine
 
 # EdgeMatte Architecture Refinement
 
+> **Historical note:** Deploy and CI credential paths in this research doc predate the
+> Doppler-only workflows. For current behavior, see [`docs/release.md`](../release.md)
+> and [`docs/secrets.md`](../secrets.md).
+
 ## Direct answer
 
 The current architecture is close, but **not yet the most elegant** if queue/status

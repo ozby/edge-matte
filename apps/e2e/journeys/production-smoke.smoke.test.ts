@@ -3,7 +3,7 @@ import { getProductionBaseUrl, shouldRunProductionSmoke } from "../src/journeys/
 
 const describeProduction = shouldRunProductionSmoke() ? describe : describe.skip;
 
-describeProduction("production-smoke journey", () => {
+describeProduction("production smoke coverage", () => {
   const baseUrl = getProductionBaseUrl();
 
   it("returns ok from production /health", async () => {

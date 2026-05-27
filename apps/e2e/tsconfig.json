@@ -4,12 +4,16 @@
     "noEmit": true
   },
   "include": [
+    "../../worker-configuration.d.ts",
+    "../worker/node_modules/@cloudflare/workers-types/index.d.ts",
     "src/e2e-suite-manifest.ts",
     "src/e2e-suite-manifest.test.ts",
     "src/agent-kit-host-adapter.ts",
+    "src/repo-root.ts",
     "src/journeys/env.ts",
-    "src/cli/run-e2e.ts",
+    "src/cli/**/*.ts",
     "journeys/**/*.ts",
+    "journeys/**/*.test.ts",
     "vitest.config.ts",
     "vitest.journeys.config.ts"
   ]

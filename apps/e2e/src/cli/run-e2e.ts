@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
 import { buildExecutionPlan } from "../agent-kit-host-adapter";
+import { findRepoRoot } from "#repo-root";
 
 const resolveSuiteArg = (): string | undefined => {
   const argv = process.argv.slice(2);
@@ -20,12 +20,14 @@ if (batches.length === 0) {
   process.exit(1);
 }
 
-const e2eRoot = resolve(import.meta.dirname, "../..");
+const e2eRoot = `${findRepoRoot(import.meta.dirname)}/apps/e2e`;
 
 for (const batch of batches) {
   console.log(`e2e batch: ${batch.batchKey}`);
   for (const run of batch.runs) {
-    console.log(`  ${run.suiteId}/${run.logName}: ${run.command} ${run.args.join(" ")}`);
+    console.log(
+      `  ${run.suiteId}/${run.logName} [${run.runner}]: ${run.command} ${run.args.join(" ")}`,
+    );
     const result = spawnSync(run.command, run.args, {
       cwd: e2eRoot,
       stdio: "inherit",

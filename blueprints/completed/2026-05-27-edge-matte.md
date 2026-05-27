@@ -609,7 +609,8 @@ manifest. Do not fork a second QA framework; expose suites through agent-kit so
 - [x] Workers-pool tests for R2 binding behavior where practical.
 - [x] React/jsdom tests for client state transitions.
 - [x] Agent-kit e2e suites: `smoke`, `upload-delete`, `production-smoke` (local harness verified; `full` deferred).
-- [ ] Manual smoke on deployed URL: upload -> ready -> image loads -> delete -> 404 (blocked: production deploy pending CI `pnpm install` fix).
+- [ ] Manual smoke on deployed URL: upload -> ready -> image loads -> delete -> 404
+      (tracked in [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](../in-progress/2026-05-27-edge-matte-audit-remediation.md) — deploy CI post-smoke propagation fix in progress).
 
 ## Test contract by feature
 
@@ -751,7 +752,10 @@ CI gates
 
 Secrets:
 
-- GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+> **Superseded:** CI now uses Doppler-only bootstrap (`DOPPLER_SERVICE_TOKEN`). See
+> [`docs/secrets.md`](../../docs/secrets.md).
+
+- GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (historical blueprint text).
 - Cloudflare Worker secret: `PHOTOROOM_API_KEY` via `wrangler secret put PHOTOROOM_API_KEY --env production`.
 - Keep provider secret values in Cloudflare (secret provider), not in GitHub or
   on-disk files (`.dev.vars*` / `.env*`, except `.env.example`).
@@ -793,4 +797,7 @@ Secrets:
 
 ## Completion notes
 
-Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+Completed 2026-05-27 for the v1 implementation wave. Local verification passed
+(build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift).
+Production truth and CI closure continue under
+[`in-progress/2026-05-27-edge-matte-audit-remediation.md`](../in-progress/2026-05-27-edge-matte-audit-remediation.md).

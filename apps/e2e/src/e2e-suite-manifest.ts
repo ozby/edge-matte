@@ -14,9 +14,10 @@ export interface E2ESuiteDefinition {
   steps: readonly E2ESuiteStep[];
 }
 
-const SMOKE_FILES = ["journeys/smoke.e2e.ts"] as const;
-const UPLOAD_DELETE_FILES = ["journeys/upload-delete.e2e.ts"] as const;
-const PRODUCTION_SMOKE_FILES = ["journeys/production-smoke.e2e.ts"] as const;
+const SMOKE_FILES = ["journeys/smoke.smoke.test.ts"] as const;
+const UPLOAD_DELETE_BROWSER_FILES = ["journeys/upload-delete.spec.mjs"] as const;
+const UPLOAD_DELETE_CONTRACT_FILES = ["journeys/upload-delete.contract.test.ts"] as const;
+const PRODUCTION_SMOKE_FILES = ["journeys/production-smoke.smoke.test.ts"] as const;
 
 const E2E_SUITES: readonly E2ESuiteDefinition[] = [
   {
@@ -36,16 +37,31 @@ const E2E_SUITES: readonly E2ESuiteDefinition[] = [
   },
   {
     id: "upload-delete",
-    aliases: ["contract", "upload"],
-    fileMatchers: UPLOAD_DELETE_FILES,
+    aliases: ["browser", "upload"],
+    fileMatchers: UPLOAD_DELETE_BROWSER_FILES,
     batchKey: "upload-delete",
     steps: [
       {
-        runner: "vitest",
-        logName: "upload-delete",
-        configPath: "vitest.journeys.config.ts",
-        fixedFiles: UPLOAD_DELETE_FILES,
+        runner: "playwright",
+        logName: "upload-delete-browser",
+        configPath: "playwright.config.mjs",
+        fixedFiles: UPLOAD_DELETE_BROWSER_FILES,
         batchKey: "upload-delete",
+      },
+    ],
+  },
+  {
+    id: "upload-delete-contract",
+    aliases: ["contract", "api-upload"],
+    fileMatchers: UPLOAD_DELETE_CONTRACT_FILES,
+    batchKey: "upload-delete-contract",
+    steps: [
+      {
+        runner: "vitest",
+        logName: "upload-delete-contract",
+        configPath: "vitest.journeys.config.ts",
+        fixedFiles: UPLOAD_DELETE_CONTRACT_FILES,
+        batchKey: "upload-delete-contract",
       },
     ],
   },

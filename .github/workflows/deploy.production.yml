@@ -11,6 +11,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   PRODUCTION_URL: https://edge-matte.ozby.dev
+  HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
 
 jobs:
   deploy:
@@ -27,21 +28,38 @@ jobs:
           bun-version: latest
       - run: pnpm install --frozen-lockfile
       - run: pnpm run verify:secrets
+      - run: pnpm run verify:paths
       - run: pnpm run audit:secret-provider-quarantine
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run lint
       - run: pnpm run build
       - run: pnpm run test
+
+      - name: Inject deploy credentials from Doppler
+        if: env.HAS_DOPPLER_TOKEN == '1'
+        uses: dopplerhq/secrets-fetch-action@v2.0.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+          inject-env-vars: true
+
+      - name: Verify Cloudflare deploy credentials
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID."
+            echo "Configure DOPPLER_SERVICE_TOKEN scoped to ozby-shell (secrets stay in Doppler, not git or repo files)."
+            exit 1
+          fi
+
       - name: Deploy Worker to edge-matte.ozby.dev
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: pnpm --filter @edge-matte/worker exec wrangler deploy --env production
+
       - name: Post-deploy smoke /health
-        run: curl -sf "${PRODUCTION_URL}/health"
+        run: bash scripts/wait-for-http.sh "${PRODUCTION_URL}/health" 24 5
+
       - name: Post-deploy smoke app shell
-        run: curl -sf "${PRODUCTION_URL}/"
+        run: bash scripts/wait-for-http.sh "${PRODUCTION_URL}/" 12 5
+
       - name: Post-deploy production-smoke e2e
         env:
           E2E_RUN_PRODUCTION: "1"

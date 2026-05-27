@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { join } from "node:path";
+import { findRepoRoot } from "#repo-root";
 
-const PORT_FILE = resolve(import.meta.dirname, "../../.e2e-base-url");
+const PORT_FILE = join(findRepoRoot(import.meta.dirname), "apps/e2e/.e2e-base-url");
 
 export const PRODUCTION_BASE_URL = "https://edge-matte.ozby.dev";
 

@@ -29,8 +29,8 @@ resources; Wrangler owns Worker-scoped deployment.**
 | Images transform binding      | **Wrangler**                              | `IMAGES` binding for horizontal flip via Cloudflare Images       |
 | Provider secret names         | **Wrangler**                              | Secret _names_ declared in config; values never in repo          |
 | Provider secret values        | **Cloudflare**                            | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put`          |
-| Deploy credentials            | **GitHub + Cloudflare**                   | CI uses short-lived tokens from GitHub Secrets; see secrets doc  |
-| Local/dev secret injection    | **Doppler (or selected manager)**         | Via `wp config secrets set`; never `.dev.vars` / `.env` on disk  |
+| Deploy credentials            | **Doppler `ozby-shell`**                  | CI via `DOPPLER_SERVICE_TOKEN`; local via `with-secrets` |
+| Local/dev secret injection    | **Doppler (or selected manager)**         | `wp config secrets set doppler ozby-shell`; never `.dev.vars` on disk |
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
@@ -66,20 +66,21 @@ pnpm install --frozen-lockfile
 
 # Agent surfaces + policy (no secrets written to disk)
 wp setup --yes
-wp config secrets set doppler edge-matte   # or your team's manager
+wp config secrets show   # should report ozby-shell after pnpm install
 
 # Quality gates (same surface CI uses)
 vp install
 pnpm run verify:secrets
+pnpm run verify:paths   # wraps: wp audit absolute-path-policy --root .
 pnpm run audit:secret-provider-quarantine
-pnpm run typecheck
-pnpm run lint
+vp run -r check-types
+vp run -r lint
 pnpm run test
-pnpm run build
+vp run -r build
 
 # Local journey verification
-pnpm e2e -- --suite smoke
-pnpm e2e -- --suite upload-delete
+pnpm run e2e -- --suite smoke
+pnpm run e2e -- --suite upload-delete
 
 # Architecture + docs governance
 pnpm run docs:check
@@ -96,63 +97,71 @@ One-time platform setup (before first production deploy):
 
    ```bash
    cd apps/worker
-   wrangler secret put PHOTOROOM_API_KEY --env production
+   with-secrets -- wrangler secret put PHOTOROOM_API_KEY --env production
    ```
 
-3. **GitHub Actions** — configure repository secrets for deploy only (see
-   [secrets](./secrets.md#github-vs-cloudflare-vs-doppler)).
+3. **GitHub Actions** — add `DOPPLER_SERVICE_TOKEN` scoped to `ozby-shell`
+   (see [secrets](./secrets.md#github-actions-bootstrap)). Do not add raw
+   `CLOUDFLARE_API_TOKEN` or `PHOTOROOM_API_KEY` as GitHub repository secrets.
 4. **Images binding** — ensure `IMAGES` is bound in production Wrangler config
    when IR-5 lands.
 
 There are no hidden manual deploy steps beyond provider setup documented here
 and in [`docs/secrets.md`](./secrets.md).
 
-## Local deploy dry-run
+## Local deploy
 
-PR CI and maintainers prove deployability without mutating production:
+Operator-local production deploy (mirrors ingest-lens `deploy.ts` + Doppler):
+
+```bash
+pnpm run deploy:production
+```
+
+This builds the workspace, runs `with-secrets -- wrangler deploy --env production`
+(loading `CLOUDFLARE_*` from `ozby-shell`), then curls `/health` and runs
+`production-smoke` e2e.
+
+Wrangler-only (no smoke):
+
+```bash
+pnpm run deploy:production:wrangler
+```
+
+Dry-run without mutating production (PR CI uses the same shape):
 
 ```bash
 pnpm --filter @edge-matte/worker build
-# equivalent: wrangler deploy --dry-run --env production
+pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
 ```
-
-This validates Worker bundle, asset wiring, and production env config without
-changing live traffic.
 
 ## CI and release path
 
 ### Pull requests
 
-Target workflow shape (blueprint `IR-6`):
+Implemented in [`.github/workflows/ci.webpresso.yml`](../.github/workflows/ci.webpresso.yml):
 
-1. Install dependencies (`pnpm install --frozen-lockfile`)
-2. Secret policy checks (`verify:secrets`, `audit:secret-provider-quarantine`)
-3. Quality gates: format, lint, typecheck, test, build
-4. Docs and blueprint audits
-5. **Dry-run deploy** — `wrangler deploy --dry-run --env production`
-6. E2E `smoke` suite (and optionally `upload-delete` on main-bound PRs)
+1. **check** job — install, `verify:secrets`, `verify:paths`,
+   `audit:secret-provider-quarantine`, format, typecheck, lint, docs/blueprint audits
+2. **test** job — `pnpm run test`
+3. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
+
+E2E (`smoke`, `upload-delete`) runs locally or in maintainer bootstrap — not in PR CI yet.
 
 PRs must not write production secrets or deploy to `edge-matte.ozby.dev`.
 
 ### `main` branch deploy
 
-Target workflow shape (blueprint `IR-6`):
+Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
-1. Run the same quality gates as PR CI
-2. Deploy with `cloudflare/wrangler-action@v3`:
-
-   ```yaml
-   # illustrative — final workflow lives in .github/workflows/
-   wrangler deploy --env production
-   ```
-
-3. **Serialize deploys** — use a GitHub Actions concurrency group so
-   overlapping production deploys cannot run (e.g.
-   `group: edge-matte-production-deploy`, `cancel-in-progress: false`).
-4. **Post-deploy smoke** — after deploy succeeds:
+1. Run quality gates (`verify:secrets`, `verify:paths`, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
+2. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
+3. Deploy with `pnpm --filter @edge-matte/worker exec wrangler deploy --env production`
+4. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
+   (`cancel-in-progress: false`)
+5. **Post-deploy smoke** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
-   - `E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke`
+   - `E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke`
 
 If post-deploy smoke fails, treat the release as unhealthy and investigate
 before declaring success.
@@ -163,7 +172,7 @@ After any deploy (CI or emergency manual):
 
 ```bash
 curl -sf https://edge-matte.ozby.dev/health
-E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 ```
 
 ## Release checklist
@@ -186,7 +195,7 @@ v1 rollback is redeploy of the last known-good Worker revision:
 
 1. Identify last green commit on `main` (CI + `production-smoke` green)
 2. Re-run deploy workflow on that commit, or:
-   `wrangler deploy --env production` from that checkout
+   `pnpm run deploy:production` from that checkout
 3. Re-run post-deploy smoke
 
 R2 data is not rolled back with Worker deploys; job artifacts persist until

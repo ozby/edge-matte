@@ -4,9 +4,9 @@ import type { BackgroundRemovalProvider } from "../../ports";
 export class PhotoroomProvider implements BackgroundRemovalProvider {
   constructor(private readonly apiKey?: string) {}
 
-  async removeBackground(input: Blob): Promise<Blob> {
+  async removeBackground(input: Blob, signal?: AbortSignal): Promise<Blob> {
     if (!this.apiKey) {
-      return input;
+      throw new AppError(502, "background_provider_failed", "missing PHOTOROOM_API_KEY");
     }
 
     const formData = new FormData();
@@ -19,6 +19,7 @@ export class PhotoroomProvider implements BackgroundRemovalProvider {
       method: "POST",
       headers: { "x-api-key": this.apiKey },
       body: formData,
+      signal,
     });
     if (!response.ok) {
       throw new AppError(502, "background_provider_failed");

@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
 
-export const root = resolve(import.meta.dirname, "../..");
+export const root = findRepoRoot(import.meta.dirname);
 export const PRODUCTION_DOMAIN = "edge-matte.ozby.dev";
 export const PRODUCTION_ORIGIN = `https://${PRODUCTION_DOMAIN}`;
 export const R2_BUCKET_NAME = "edge-matte-images";

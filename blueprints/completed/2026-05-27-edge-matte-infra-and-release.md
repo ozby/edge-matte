@@ -71,6 +71,8 @@ codified. This blueprint closes the production-readiness gap.
 4. Bind Cloudflare Images in Wrangler as the Worker-side transform surface (`IMAGES`).
 5. Add PR CI: install, format, lint, typecheck, test, build, docs/blueprints check, dry-run deploy.
 6. Add `main` deploy workflow using `cloudflare/wrangler-action@v3`.
+   (Superseded: production deploy uses inline `wrangler deploy` + Doppler injection —
+   see `.github/workflows/deploy.production.yml` and `docs/release.md`.)
 7. Add post-deploy smoke checks for `/health`, `/`, and `production-smoke` E2E.
 8. Document GitHub-vs-Cloudflare secret ownership and setup.
 9. Add concurrency/serialization so production deploys do not overlap.
@@ -174,4 +176,13 @@ python3 scripts/check_architecture_drift.py
 
 ## Completion notes
 
-Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+Superseding note (2026-05-27): subsequent audit found that the production truth
+surface was weaker than this blueprint's stop condition because
+`https://edge-matte.ozby.dev` was not healthy on 2026-05-27 and additional
+truthfulness / verification remediation was required. See
+`blueprints/planned/2026-05-27-edge-matte-audit-remediation.md`.
+
+Completed 2026-05-27 for infra/release automation. Local verification passed.
+Deploy workflow post-smoke propagation and green `production-smoke` are tracked in
+[`in-progress/2026-05-27-edge-matte-audit-remediation.md`](../in-progress/2026-05-27-edge-matte-audit-remediation.md)
+(Wave 0.5).

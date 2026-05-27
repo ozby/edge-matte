@@ -9,7 +9,7 @@ edge, host the result in R2, and delete every artifact with a capability token.
 - [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth and Mermaid charts.
 - [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
 - [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership, post-deploy smoke.
-- [`docs/secrets.md`](./docs/secrets.md) — secret ownership (GitHub vs Cloudflare vs Doppler).
+- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` + Cloudflare Worker secret ownership.
 - [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — governed implementation blueprint with architecture before/after.
 - [`docs/research/2026-05-27-edge-matte-architecture-refinement.md`](./docs/research/2026-05-27-edge-matte-architecture-refinement.md) — DRY/SOLID/KISS refinement and CI/deploy rationale.
 - [`docs/research/2026-05-27-cloudflare-native-image-transform-service.md`](./docs/research/2026-05-27-cloudflare-native-image-transform-service.md) — naming and platform research.
@@ -46,13 +46,19 @@ python3 scripts/check_architecture_drift.py
 Production target: `https://edge-matte.ozby.dev`.
 
 - [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap
-- [`docs/secrets.md`](./docs/secrets.md) — GitHub vs Cloudflare vs Doppler secret ownership (provider keys in Cloudflare, not GitHub)
+- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` for deploy creds; provider keys in Cloudflare, not GitHub
+
+Operator-local production deploy:
+
+```bash
+pnpm run deploy:production
+```
 
 Quick verification after deploy:
 
 ```bash
 curl -sf https://edge-matte.ozby.dev/health
-E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 ```
 
 ## Local bootstrap surface
@@ -80,18 +86,19 @@ Install `@webpresso/agent-kit` globally (or use a sibling Webpresso checkout wit
 Verify bootstrap posture with:
 
 ```bash
-vp install
-wp config secrets set doppler edge-matte
+pnpm install --frozen-lockfile   # prepare hook syncs wp secrets default (seed-only)
+wp config secrets show
 wp init --dry-run
 vp run -r build
 vp run -r lint
 vp run -r check-types
 pnpm run test
-pnpm e2e -- --suite smoke
-pnpm e2e -- --suite upload-delete
-E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke
-vp run verify:secrets
-vp run audit:secret-provider-quarantine
+pnpm run e2e -- --suite smoke
+pnpm run e2e -- --suite upload-delete
+E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+pnpm run verify:secrets
+pnpm run verify:paths                # wraps: wp audit absolute-path-policy --root .
+pnpm run audit:secret-provider-quarantine
 python3 scripts/check_architecture_drift.py
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```

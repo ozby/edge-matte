@@ -6,9 +6,9 @@
  * deploy workflow match docs/architecture.md and
  * blueprints/completed/2026-05-27-edge-matte-infra-and-release.md.
  */
-import { resolve } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
 import {
   PR_CI_WORKFLOW,
   PRODUCTION_DEPLOY_WORKFLOW,
@@ -22,7 +22,7 @@ import {
   listWorkflowFiles,
 } from "./helpers/infra-release-workflow-expectations.mjs";
 
-const root = resolve(import.meta.dirname, "..");
+const root = findRepoRoot(import.meta.dirname);
 
 test("workflow governance directory exists", () => {
   const workflows = listWorkflowFiles(root);
