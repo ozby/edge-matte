@@ -1,0 +1,30 @@
+# Local assessment/source material
+task.pdf
+
+# Agent/runtime state regenerated locally
+.agent/
+.agents/
+.gemini/
+.cursor/
+.windsurf/
+.omx/
+.codex/
+.opencode/
+
+# Dependencies and builds
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# OS/editor noise
+.DS_Store
+*.log
