@@ -17,7 +17,10 @@ export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
   { label: "typecheck", pattern: /pnpm run (?:typecheck|check-types)/u },
   { label: "test", pattern: /pnpm run test/u },
   { label: "build", pattern: /pnpm run build/u },
-  { label: "dry-run deploy", pattern: /deploy --dry-run|deploy:dry-run/u },
+  {
+    label: "deploy credential verify (dry-run or full probe)",
+    pattern: /verify-cloudflare-deploy-creds|deploy --dry-run|deploy:dry-run/u,
+  },
 ]);
 
 /** Main deploy must serialize production releases and verify smoke (IR-1 / blueprint tasks 6–7). */
@@ -36,6 +39,10 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
   {
     label: "doppler deploy credential injection",
     pattern: /dopplerhq\/secrets-fetch-action|DOPPLER_SERVICE_TOKEN|DOPPLER_TOKEN/u,
+  },
+  {
+    label: "pre-deploy credential verify",
+    pattern: /verify-cloudflare-deploy-creds/u,
   },
 ]);
 

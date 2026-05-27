@@ -149,22 +149,35 @@ only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` or
 `PHOTOROOM_API_KEY` as GitHub repository secrets.
 
 The deploy workflow runs `scripts/verify-cloudflare-deploy-creds.sh` after
-injection (`wrangler whoami` + `wrangler deploy --dry-run`) so auth/permission
-failures surface before a real deploy.
+injection:
+
+1. `wrangler whoami` — shows which account(s) the token can access
+2. **Workers Services API probe** — same `/workers/services/edge-matte` path
+   `wrangler deploy` uses (dry-run alone is not sufficient)
+3. `wrangler deploy --dry-run` — bundle validation only
 
 ### Required `CLOUDFLARE_API_TOKEN` permissions
 
-The token in Doppler `ozby-shell` / `prd` must be able to **edit** the
-`edge-matte` Worker on the account matching `CLOUDFLARE_ACCOUNT_ID`. Minimum
-Cloudflare API token permissions:
+`CLOUDFLARE_ACCOUNT_ID` in Doppler must be the **ozby** Cloudflare account
+(`e93986039ea9bd9729fa534a29e9e88f`, same as ingest-lens). The API token must
+be created **on that same account**, not on a different account (e.g. a
+Webpresso org token paired with the ozby account id will pass `whoami` and
+dry-run but fail deploy with `Authentication error [code: 10000]`).
+
+Minimum token permissions on the **ozby** account:
 
 - Account → Workers Scripts → **Edit**
 - Account → Workers Routes → **Edit** (custom domain on `edge-matte.ozby.dev`)
 - Account → Account Settings → **Read** (for `wrangler whoami`)
 
-If deploy fails with `Authentication error [code: 10000]`, rotate the token in
-the Cloudflare dashboard, update Doppler `ozby-shell`, and re-run **Deploy
-production** (workflow supports `workflow_dispatch` on `main`).
+**Fix checklist** when deploy fails with code `10000`:
+
+1. Cloudflare dashboard → **ozby** account → API Tokens → create token with the
+   permissions above (or use the same token that already deploys ingest-lens).
+2. `doppler secrets set CLOUDFLARE_API_TOKEN --project ozby-shell --config prd`
+3. Confirm `CLOUDFLARE_ACCOUNT_ID` stays `e93986039ea9bd9729fa534a29e9e88f`.
+4. Locally: `with-secrets -- bash scripts/verify-cloudflare-deploy-creds.sh`
+5. Re-run **Deploy production** (`workflow_dispatch` on `main` is fine).
 
 ## Local bootstrap
 

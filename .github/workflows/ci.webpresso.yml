@@ -73,13 +73,5 @@ jobs:
           doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
           inject-env-vars: true
 
-      - name: Verify Cloudflare dry-run credentials
-        run: |
-          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID."
-            echo "Configure DOPPLER_SERVICE_TOKEN scoped to ozby-shell (secrets stay in Doppler, not git or repo files)."
-            exit 1
-          fi
-
-      - name: Wrangler production deploy dry-run
-        run: pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
+      - name: Verify Cloudflare deploy credentials
+        run: bash scripts/verify-cloudflare-deploy-creds.sh

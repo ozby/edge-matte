@@ -1,4 +1,5 @@
 name = "edge-matte"
+account_id = "e93986039ea9bd9729fa534a29e9e88f" # ozby account — public identifier; matches ingest-lens
 main = "apps/worker/src/index.ts"
 compatibility_date = "2026-05-27"
 compatibility_flags = ["nodejs_compat"]
