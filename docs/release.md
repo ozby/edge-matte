@@ -196,4 +196,4 @@ delete TTL or lifecycle rules apply.
 
 - [`docs/architecture.md`](./architecture.md) — deployment ownership diagram
 - [`docs/secrets.md`](./secrets.md) — secret stores and bootstrap
-- [`blueprints/planned/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/planned/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint
+- [`blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/completed/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint

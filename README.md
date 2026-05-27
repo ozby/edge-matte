@@ -10,7 +10,7 @@ edge, host the result in R2, and delete every artifact with a capability token.
 - [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
 - [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership, post-deploy smoke.
 - [`docs/secrets.md`](./docs/secrets.md) — secret ownership (GitHub vs Cloudflare vs Doppler).
-- [`blueprints/planned/2026-05-27-edge-matte.md`](./blueprints/planned/2026-05-27-edge-matte.md) — governed implementation blueprint with architecture before/after.
+- [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — governed implementation blueprint with architecture before/after.
 - [`docs/research/2026-05-27-edge-matte-architecture-refinement.md`](./docs/research/2026-05-27-edge-matte-architecture-refinement.md) — DRY/SOLID/KISS refinement and CI/deploy rationale.
 - [`docs/research/2026-05-27-cloudflare-native-image-transform-service.md`](./docs/research/2026-05-27-cloudflare-native-image-transform-service.md) — naming and platform research.
 - [`docs/research/2026-05-27-image-transform-infra-best-practices.md`](./docs/research/2026-05-27-image-transform-infra-best-practices.md) — Cloudflare/Pulumi/Webpresso-aligned infra research.
@@ -33,7 +33,7 @@ Architecture is enforced as a living contract:
 
 - human-readable source: [`docs/architecture.md`](./docs/architecture.md)
 - machine-readable contract: [`docs/architecture.contract.json`](./docs/architecture.contract.json)
-- active blueprint linkage + before/after enforcement: [`blueprints/planned/2026-05-27-edge-matte.md`](./blueprints/planned/2026-05-27-edge-matte.md)
+- active blueprint linkage + before/after enforcement: [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md)
 
 Current local drift check:
 

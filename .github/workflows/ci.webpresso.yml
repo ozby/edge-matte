@@ -72,7 +72,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - name: Wrangler production deploy dry-run
-        run: pnpm exec wrangler deploy --dry-run --env production
+        run: pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
 
   wp-audits:
     runs-on: ubuntu-latest

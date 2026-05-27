@@ -1,7 +1,7 @@
 ---
 type: blueprint
 title: "EdgeMatte: infrastructure, CI, and production release"
-status: planned
+status: completed
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
@@ -92,14 +92,14 @@ codified. This blueprint closes the production-readiness gap.
 
 ## Execution checklist
 
-- [ ] Add failing verification expectations for dry-run deploy and smoke flow.
-- [ ] Codify R2/Pulumi/Wrangler ownership split.
-- [ ] Bind `IMAGES`, `ASSETS`, and R2 runtime surfaces correctly.
-- [ ] Make PR CI run quality gates, tests, and dry-run deploy.
-- [ ] Make `main` deploy route to `edge-matte.ozby.dev`.
-- [ ] Add post-deploy smoke and `production-smoke`.
-- [ ] Document secret ownership/bootstrap path.
-- [ ] Run architecture drift check.
+- [x] Add failing verification expectations for dry-run deploy and smoke flow.
+- [x] Codify R2/Pulumi/Wrangler ownership split.
+- [x] Bind `IMAGES`, `ASSETS`, and R2 runtime surfaces correctly.
+- [x] Make PR CI run quality gates, tests, and dry-run deploy.
+- [x] Make `main` deploy route to `edge-matte.ozby.dev`.
+- [x] Add post-deploy smoke and `production-smoke`.
+- [x] Document secret ownership/bootstrap path.
+- [x] Run architecture drift check.
 
 Exact stop condition:
 
@@ -171,3 +171,8 @@ vp run deploy:dry-run
 wp audit guardrails
 python3 scripts/check_architecture_drift.py
 ```
+
+## Completion notes
+
+Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+

@@ -82,7 +82,7 @@ location:
     - 'blueprints/*/*/_overview.md'
     - 'blueprints/*/*/*/_overview.md'
     - 'blueprints/completed/*/_overview.md'
-    - 'blueprints/planned/*/_overview.md'
+    - 'blueprints/completed/*/_overview.md'
     - 'blueprints/parked/*/_overview.md'
     - 'blueprints/in-progress/*/_overview.md'
     - 'blueprints/draft/*/_overview.md'

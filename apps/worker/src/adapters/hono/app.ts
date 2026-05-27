@@ -1,12 +1,18 @@
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import {
   errorResponse,
+  fileTooLargeError,
   imageNotFoundError,
   invalidDeleteTokenError,
   invalidRequestError,
 } from '../../core/errors'
 import { toPublicImageJob, verifyDeleteToken } from '../../core/image-job'
-import { processImageJob, type ProcessImageJobDeps } from '../../core/process-image-job'
+import {
+  MAX_UPLOAD_BYTES,
+  processImageJob,
+  type ProcessImageJobDeps,
+} from '../../core/process-image-job'
 
 const toJsonResponse = (body: unknown, status: number): Response =>
   new Response(JSON.stringify(body), {
@@ -23,29 +29,39 @@ export const createApp = (
 
   app.get('/health', (c) => c.json({ status: 'ok', version: '0.1.0' }))
 
-  app.post('/api/jobs', async (c) => {
-    try {
-      const body = await c.req.formData()
-      const files = body.getAll('file')
-      if (files.length !== 1 || !(files[0] instanceof File)) {
-        throw invalidRequestError()
+  app.post(
+    '/api/jobs',
+    bodyLimit({
+      maxSize: MAX_UPLOAD_BYTES,
+      onError: () => {
+        const mapped = errorResponse(fileTooLargeError())
+        return toJsonResponse(mapped.body, mapped.status)
+      },
+    }),
+    async (c) => {
+      try {
+        const body = await c.req.formData()
+        const files = body.getAll('file')
+        if (files.length !== 1 || !(files[0] instanceof File)) {
+          throw invalidRequestError()
+        }
+        const job = await processImageJob(
+          { file: files[0], appOrigin: deps.appOrigin },
+          deps,
+        )
+        return c.json(
+          {
+            ...toPublicImageJob(job),
+            deleteToken: job.deleteToken,
+          },
+          201,
+        )
+      } catch (error) {
+        const mapped = errorResponse(error)
+        return toJsonResponse(mapped.body, mapped.status)
       }
-      const job = await processImageJob(
-        { file: files[0], appOrigin: deps.appOrigin },
-        deps,
-      )
-      return c.json(
-        {
-          ...toPublicImageJob(job),
-          deleteToken: job.deleteToken,
-        },
-        201,
-      )
-    } catch (error) {
-      const mapped = errorResponse(error)
-      return toJsonResponse(mapped.body, mapped.status)
-    }
-  })
+    },
+  )
 
   app.get('/api/jobs/:id', async (c) => {
     const job = await deps.repository.get(c.req.param('id'))

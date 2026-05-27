@@ -4,7 +4,7 @@
  *
  * These tests are intentionally strict. They fail until PR CI and the production
  * deploy workflow match docs/architecture.md and
- * blueprints/planned/2026-05-27-edge-matte-infra-and-release.md.
+ * blueprints/completed/2026-05-27-edge-matte-infra-and-release.md.
  */
 import { resolve } from 'node:path'
 import test from 'node:test'

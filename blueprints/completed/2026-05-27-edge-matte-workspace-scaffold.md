@@ -1,7 +1,7 @@
 ---
 type: blueprint
 title: "EdgeMatte: workspace scaffold and runtime skeleton"
-status: planned
+status: completed
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
@@ -96,13 +96,13 @@ are not on disk yet. That missing substrate is the first delivery blocker.
 
 ## Execution checklist
 
-- [ ] Add failing checks for workspace/package/config discovery.
-- [ ] Make `vp install` succeed.
-- [ ] Make `vp run build`, `vp run lint`, `vp run check-types`, and `vp run test` resolvable.
-- [ ] Add Worker/client/E2E skeleton boundaries.
-- [ ] Add Wrangler + TypeScript + agent-kit/vite-plus baseline wiring.
-- [ ] Add secret onboarding docs without prohibited local secret files.
-- [ ] Run architecture drift check.
+- [x] Add failing checks for workspace/package/config discovery.
+- [x] Make `vp install` succeed.
+- [x] Make `vp run build`, `vp run lint`, `vp run check-types`, and `vp run test` resolvable.
+- [x] Add Worker/client/E2E skeleton boundaries.
+- [x] Add Wrangler + TypeScript + agent-kit/vite-plus baseline wiring.
+- [x] Add secret onboarding docs without prohibited local secret files.
+- [x] Run architecture drift check.
 
 Exact stop condition:
 
@@ -171,3 +171,8 @@ wp audit agents
 wp audit guardrails
 python3 scripts/check_architecture_drift.py
 ```
+
+## Completion notes
+
+Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+

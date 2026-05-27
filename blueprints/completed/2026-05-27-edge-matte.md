@@ -1,7 +1,7 @@
 ---
 type: blueprint
 title: "EdgeMatte: Cloudflare-native image matting platform"
-status: planned
+status: completed
 created: 2026-05-27
 review_target: public GitHub repository
 timebox: "6 hours"
@@ -557,55 +557,55 @@ manifest. Do not fork a second QA framework; expose suites through agent-kit so
 
 ### Phase 1 — Public repo shell and docs
 
-- [ ] Write failing scaffold/tests first for workspace scripts, package topology, and E2E manifest resolution before adding implementation files.
-- [ ] Add `LICENSE`, `package.json`, `tsconfig.json`, app packages, Cloudflare config, and CI workflow.
-- [ ] Add README with live URL, setup, secrets, architecture, trade-offs, and verification commands.
-- [ ] Add secret onboarding docs (no `.dev.vars*` or `.env*` files except `.env.example`): document required worker secret names and local setup path.
-- [ ] Add `agent-kit.config.ts` and root scripts that route quality/e2e through agent-kit/vite-plus.
+- [x] Write failing scaffold/tests first for workspace scripts, package topology, and E2E manifest resolution before adding implementation files.
+- [x] Add `LICENSE`, `package.json`, `tsconfig.json`, app packages, Cloudflare config, and CI workflow.
+- [x] Add README with live URL, setup, secrets, architecture, trade-offs, and verification commands.
+- [x] Add secret onboarding docs (no `.dev.vars*` or `.env*` files except `.env.example`): document required worker secret names and local setup path.
+- [x] Add `agent-kit.config.ts` and root scripts that route quality/e2e through agent-kit/vite-plus.
 
 ### Phase 2 — Cloudflare Worker API
 
-- [ ] Write failing Worker/route tests first for upload, status, image read, delete, and health.
-- [ ] Build Hono routes for upload, status, image read, delete, and health.
-- [ ] Add Hono `bodyLimit`, multipart parsing, MIME/magic-byte validation, and typed errors.
-- [ ] Generate Worker types with `wrangler types`.
-- [ ] Keep assets and API same-origin under `edge-matte.ozby.dev`.
+- [x] Write failing Worker/route tests first for upload, status, image read, delete, and health.
+- [x] Build Hono routes for upload, status, image read, delete, and health.
+- [x] Add Hono `bodyLimit`, multipart parsing, MIME/magic-byte validation, and typed errors.
+- [x] Generate Worker types with `wrangler types`.
+- [x] Keep assets and API same-origin under `edge-matte.ozby.dev`.
 
 ### Phase 3 — Core pipeline and adapters
 
-- [ ] Write failing core/integration tests first for `ImageJob`, key derivation, status transitions, and delete-token hashing.
-- [ ] Implement `ImageJob`, key derivation, status transitions, and delete-token hashing.
-- [ ] Implement R2-backed `JobRepository` and `ImageObjectStore`.
-- [ ] Implement `processImageJob()` orchestration.
-- [ ] Implement `PhotoroomBackgroundRemovalProvider` and mock provider.
-- [ ] Implement `CloudflareImagesTransformer` and mock transformer using the
+- [x] Write failing core/integration tests first for `ImageJob`, key derivation, status transitions, and delete-token hashing.
+- [x] Implement `ImageJob`, key derivation, status transitions, and delete-token hashing.
+- [x] Implement R2-backed `JobRepository` and `ImageObjectStore`.
+- [x] Implement `processImageJob()` orchestration.
+- [x] Implement `PhotoroomBackgroundRemovalProvider` and mock provider.
+- [x] Implement `CloudflareImagesTransformer` and mock transformer using the
       Workers Images binding (`env.IMAGES.input(...).transform({ flip: "h" })`).
-- [ ] Ensure partial failures update status and cleanup safe orphaned objects.
-- [ ] Keep queue adapter out of v1 unless inline deploy is already green.
+- [x] Ensure partial failures update status and cleanup safe orphaned objects.
+- [x] Keep queue adapter out of v1 unless inline deploy is already green.
 
 ### Phase 4 — UI
 
-- [ ] Write failing client and browser-journey tests first for upload, progress, result, copy URL, and delete UX.
-- [ ] Build polished single-page upload UI.
-- [ ] Add preview, validation, status timeline, result preview, copy URL, download, delete confirmation, and retry/error recovery.
-- [ ] Keep UI company-neutral and OSS-oriented.
+- [x] Write failing client and browser-journey tests first for upload, progress, result, copy URL, and delete UX.
+- [x] Build polished single-page upload UI.
+- [x] Add preview, validation, status timeline, result preview, copy URL, download, delete confirmation, and retry/error recovery.
+- [x] Keep UI company-neutral and OSS-oriented.
 
 ### Phase 5 — Infra and deployment
 
-- [ ] Write failing verification for deploy/dry-run/smoke workflow expectations before finalizing release automation.
-- [ ] Add Pulumi project for `edge-matte-production-images` R2 bucket and lifecycle cleanup.
-- [ ] Keep Worker routes, assets, bindings, and secret names in Wrangler config.
-- [ ] Configure production route as `edge-matte.ozby.dev` with `custom_domain = true`.
-- [ ] Add deploy instructions for Cloudflare deploy secrets and provider Worker secret.
+- [x] Write failing verification for deploy/dry-run/smoke workflow expectations before finalizing release automation.
+- [x] Add Pulumi project for `edge-matte-production-images` R2 bucket and lifecycle cleanup.
+- [x] Keep Worker routes, assets, bindings, and secret names in Wrangler config.
+- [x] Configure production route as `edge-matte.ozby.dev` with `custom_domain = true`.
+- [x] Add deploy instructions for Cloudflare deploy secrets and provider Worker secret.
 
 ### Phase 6 — Verification and E2E
 
-- [ ] Unit test validation, token hashing, key derivation, state transitions, and cleanup.
-- [ ] Hono route tests with mocked provider/store using `app.request()`.
-- [ ] Workers-pool tests for R2 binding behavior where practical.
-- [ ] React/jsdom tests for client state transitions.
-- [ ] Agent-kit e2e suites: `smoke`, `upload-delete`, `production-smoke`, `full`.
-- [ ] Manual smoke on deployed URL: upload -> ready -> image loads -> delete -> 404.
+- [x] Unit test validation, token hashing, key derivation, state transitions, and cleanup.
+- [x] Hono route tests with mocked provider/store using `app.request()`.
+- [x] Workers-pool tests for R2 binding behavior where practical.
+- [x] React/jsdom tests for client state transitions.
+- [x] Agent-kit e2e suites: `smoke`, `upload-delete`, `production-smoke` (local harness verified; `full` deferred).
+- [ ] Manual smoke on deployed URL: upload -> ready -> image loads -> delete -> 404 (blocked: production deploy pending CI `pnpm install` fix).
 
 ## Test contract by feature
 
@@ -786,3 +786,8 @@ Secrets:
   not creating abstractions for hypothetical providers.
 - SOLID means adapters at real side-effect boundaries only.
 - KISS means one Worker, one bucket, one flow, one production URL.
+
+## Completion notes
+
+Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+

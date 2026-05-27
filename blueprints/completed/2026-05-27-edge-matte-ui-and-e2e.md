@@ -1,7 +1,7 @@
 ---
 type: blueprint
 title: "EdgeMatte: UI flow and agent-kit E2E adoption"
-status: planned
+status: completed
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
@@ -93,15 +93,15 @@ the core flow visible and verifiable to reviewers.
 
 ## Execution checklist
 
-- [ ] Add failing client tests for preview/progress/result/delete/error states.
-- [ ] Add failing browser journeys for `smoke` and `upload-delete`.
-- [ ] Implement minimal UI to pass the targeted client tests.
-- [ ] Implement E2E manifest + host adapter plumbing.
-- [ ] Make `smoke` pass locally.
-- [ ] Make `upload-delete` pass locally through browser/public HTTP only.
-- [ ] Verify copy URL, open result URL, delete, and post-delete 404 behavior.
-- [ ] Refresh README/local run steps if the user journey changed.
-- [ ] Run architecture drift check.
+- [x] Add failing client tests for preview/progress/result/delete/error states.
+- [x] Add failing browser journeys for `smoke` and `upload-delete`.
+- [x] Implement minimal UI to pass the targeted client tests.
+- [x] Implement E2E manifest + host adapter plumbing.
+- [x] Make `smoke` pass locally.
+- [x] Make `upload-delete` pass locally through browser/public HTTP only.
+- [x] Verify copy URL, open result URL, delete, and post-delete 404 behavior.
+- [x] Refresh README/local run steps if the user journey changed.
+- [x] Run architecture drift check.
 
 Exact stop condition:
 
@@ -171,3 +171,8 @@ vp run e2e -- --suite smoke
 vp run e2e -- --suite upload-delete
 python3 scripts/check_architecture_drift.py
 ```
+
+## Completion notes
+
+Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+

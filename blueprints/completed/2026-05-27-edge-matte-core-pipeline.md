@@ -1,7 +1,7 @@
 ---
 type: blueprint
 title: "EdgeMatte: core pipeline and Worker API"
-status: planned
+status: completed
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
@@ -98,16 +98,16 @@ no executable backend that proves the documented request flow and lifecycle.
 
 ## Execution checklist
 
-- [ ] Add failing tests for domain model and error taxonomy.
-- [ ] Add failing tests for storage/repository port behavior.
-- [ ] Add failing tests for provider + transformer success/failure paths.
-- [ ] Add failing tests for orchestration state transitions and cleanup.
-- [ ] Add failing route tests for upload/status/image/delete/health.
-- [ ] Implement minimal code until targeted tests pass.
-- [ ] Verify exact public API contract and safe-field redaction.
-- [ ] Verify hosted URL and delete-token flows.
-- [ ] Run broader worker/backend suites plus `upload-delete`.
-- [ ] Run architecture drift check.
+- [x] Add failing tests for domain model and error taxonomy.
+- [x] Add failing tests for storage/repository port behavior.
+- [x] Add failing tests for provider + transformer success/failure paths.
+- [x] Add failing tests for orchestration state transitions and cleanup.
+- [x] Add failing route tests for upload/status/image/delete/health.
+- [x] Implement minimal code until targeted tests pass.
+- [x] Verify exact public API contract and safe-field redaction.
+- [x] Verify hosted URL and delete-token flows.
+- [x] Run broader worker/backend suites plus `upload-delete`.
+- [x] Run architecture drift check.
 
 Exact stop condition:
 
@@ -185,3 +185,8 @@ vp run e2e -- --suite upload-delete
 wp audit guardrails
 python3 scripts/check_architecture_drift.py
 ```
+
+## Completion notes
+
+Completed 2026-05-27. Local verification passed (build, lint, typecheck, tests, smoke, upload-delete E2E, architecture drift). Production deploy to `https://edge-matte.ozby.dev` and post-deploy `production-smoke` remain pending a CI fix.
+

@@ -19,7 +19,7 @@ export interface ProcessImageJobDeps {
   transformer: ImageTransformer
 }
 
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 const assertSupportedFile = async (file: File): Promise<void> => {
   if (file.size > MAX_UPLOAD_BYTES) {
