@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "build": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
-    "test": "vitest run",
+    "test": "pnpm --filter @edge-matte/client run build && vitest run",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
