@@ -81,9 +81,9 @@ Do not invent parallel local QA workflows when agent-kit already owns the lane.
 
 Enforced checks:
 
-- Pre-commit runs `verify-secrets-policy.ts`, `wp audit absolute-path-policy --root .`,
+- Pre-commit runs `verify-secrets-policy.ts`, `verify-absolute-path-policy.ts`,
   `sync-webpresso-config.ts --check-only`, and
   `audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
-- `pnpm verify:secrets` runs the policy verifier and wp metadata validation.
-- `pnpm verify:paths` blocks hardcoded relative repo traversal in scripts (CI + pre-commit).
+- `pnpm verify:secrets` runs the policy verifier and committed secrets metadata validation.
+- `pnpm verify:paths` blocks hardcoded relative repo traversal (CI + pre-commit; no wp required).
 - `pnpm audit:secret-provider-quarantine` enforces provider-neutral secret execution.
