@@ -198,12 +198,12 @@ is the corrective pass before any further feature expansion.
 - [x] Root cause (propagation): post-deploy `curl` ran before Workers route propagation
 - [x] `scripts/wait-for-http.sh` — shared polling for CI and `deploy-production.ts`
 - [x] Root cause (auth): `ozby-shell` / `prd` pairs **ozby** `CLOUDFLARE_ACCOUNT_ID`
-  (`e93986039…`) with a **Webpresso-scoped** `CLOUDFLARE_API_TOKEN` → deploy fails
-  `Authentication error [code: 10000]` while dry-run still passed
+      (`e93986039…`) with a **Webpresso-scoped** `CLOUDFLARE_API_TOKEN` → deploy fails
+      `Authentication error [code: 10000]` while dry-run still passed
 - [x] `scripts/lib/probe-cloudflare-workers-auth.ts` + verify script probes Workers
-  Services API before real deploy
+      Services API before real deploy
 - [ ] Operator: rotate `CLOUDFLARE_API_TOKEN` on the **ozby** account (same token that
-  deploys ingest-lens), update Doppler, re-run **Deploy production**
+      deploys ingest-lens), update Doppler, re-run **Deploy production**
 - [ ] Green `Deploy production` workflow on `main` (smoke + `production-smoke` e2e)
 - [ ] Record evidence in completion notes and close parent manual-smoke checkbox
 

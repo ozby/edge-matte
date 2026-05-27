@@ -20,7 +20,11 @@ export async function probeWorkersServiceAuth(input: {
   const { accountId, apiToken, serviceName = SERVICE_NAME, fetchImpl = fetch } = input;
 
   if (!accountId.trim() || !apiToken.trim()) {
-    return { ok: false, reason: "missing_env", detail: "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required" };
+    return {
+      ok: false,
+      reason: "missing_env",
+      detail: "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required",
+    };
   }
 
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/workers/services/${serviceName}`;
