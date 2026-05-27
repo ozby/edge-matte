@@ -41,13 +41,19 @@ Turn the documented deployment architecture into a reproducible release path.
 The architecture is not complete until infrastructure ownership and CI/CD are
 codified. This blueprint closes the production-readiness gap.
 
-## Scope
+## Write scope
 
 - `infra/*`
 - `.github/workflows/*`
 - `wrangler.toml`
 - release/deploy docs
 - smoke verification helpers if needed
+
+## Not in scope
+
+- new product behavior
+- non-release UI work
+- queue-mode runtime promotion
 
 ## Tasks
 
@@ -66,6 +72,7 @@ codified. This blueprint closes the production-readiness gap.
 - PRs prove deployability without mutating production.
 - `main` deploy targets `edge-matte.ozby.dev` and runs smoke verification.
 - Secret handling avoids provider-key sprawl into GitHub unless explicitly required.
+- Stop condition: PR and main deploy paths are codified and match the architecture docs without manual hidden steps.
 
 ## Verification
 

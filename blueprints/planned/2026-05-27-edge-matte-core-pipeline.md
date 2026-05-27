@@ -39,17 +39,24 @@ preserving the DRY/SOLID/KISS boundaries already chosen.
 This is the biggest functional hole: the architecture is credible, but there is
 no executable backend that proves the documented request flow and lifecycle.
 
-## Scope
+## Write scope
 
-- `src/core/image-job.ts`
-- `src/core/object-keys.ts`
-- `src/core/process-image-job.ts`
-- `src/core/errors.ts`
-- `src/ports/*`
-- `src/adapters/cloudflare/*`
-- `src/adapters/photoroom/*`
-- `src/adapters/hono/*`
-- Worker entrypoint and bindings
+- `apps/worker/src/core/image-job.ts`
+- `apps/worker/src/core/object-keys.ts`
+- `apps/worker/src/core/process-image-job.ts`
+- `apps/worker/src/core/errors.ts`
+- `apps/worker/src/ports/*`
+- `apps/worker/src/adapters/cloudflare/*`
+- `apps/worker/src/adapters/photoroom/*`
+- `apps/worker/src/adapters/hono/*`
+- `apps/worker/src/index.ts`
+- Worker test files for the same surfaces
+
+## Not in scope
+
+- polished browser UI
+- E2E harness plumbing beyond backend-facing tests
+- Pulumi resources or GitHub deploy workflows
 
 ## Tasks
 
@@ -69,6 +76,7 @@ no executable backend that proves the documented request flow and lifecycle.
 - Only safe public fields leave the Worker.
 - Partial failures produce explicit failed states and safe cleanup.
 - Queue execution remains out of scope for this blueprint.
+- Stop condition: a mock-backed backend demo path works end-to-end without requiring the client blueprint.
 
 ## Verification
 

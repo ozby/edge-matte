@@ -41,13 +41,19 @@ architecture with executable user journeys.
 Without UI + E2E, the repo only signals architecture taste. This blueprint makes
 the core flow visible and verifiable to reviewers.
 
-## Scope
+## Write scope
 
 - `apps/client/src/*`
 - `apps/e2e/*`
 - `agent-kit.config.ts`
 - client/worker Vitest configs
 - README verification snippets if needed
+
+## Not in scope
+
+- provider business logic
+- R2 repository internals
+- Pulumi resources or production deploy workflow
 
 ## Tasks
 
@@ -65,6 +71,7 @@ the core flow visible and verifiable to reviewers.
 - UI states match documented happy-path and failure-path transitions.
 - E2E suites are manifest-driven and agent-kit-compatible.
 - Client/testing config reuses agent-kit/vite-plus surfaces instead of local wrappers.
+- Stop condition: a reviewer-visible local flow is demonstrable and covered by manifest-driven suites.
 
 ## Verification
 

@@ -292,7 +292,7 @@ in clean vertical slices:
 
 These are implementation blueprints, not architecture rewrites. They exist to
 close the current gaps between the documented design and a deployable public
-repo.
+repo. Execute them in order: scaffold -> core pipeline -> UI/E2E -> infra/release.
 
 ## Quality DRY contract
 

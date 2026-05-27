@@ -41,7 +41,14 @@ start without revisiting repo structure decisions.
 Current architecture assumes package/app layout, scripts, and runtime config that
 are not on disk yet. That missing substrate is the first delivery blocker.
 
-## Files / surfaces
+## Primary outputs
+
+- root workspace metadata and scripts
+- Worker/client app directories with hello-world build surfaces
+- Wrangler + TypeScript baseline config
+- agent-kit/vite-plus quality surface wiring
+
+## Write scope
 
 - `package.json`
 - `pnpm-workspace.yaml`
@@ -52,6 +59,13 @@ are not on disk yet. That missing substrate is the first delivery blocker.
 - `apps/worker/*`
 - `.dev.vars.example`
 - quality/test config files
+
+## Not in scope
+
+- provider integration
+- image processing logic
+- polished UI states
+- production deploy workflow
 
 ## Tasks
 
@@ -69,6 +83,7 @@ are not on disk yet. That missing substrate is the first delivery blocker.
 - `wrangler.toml` declares `ASSETS` and production route shape for `edge-matte.ozby.dev`.
 - Workspace layout matches the architecture doc and does not force later file moves.
 - No private/company-specific identifiers are introduced.
+- Stop condition: the next blueprint can start without changing repo topology first.
 
 ## Verification
 
