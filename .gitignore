@@ -122,3 +122,5 @@ agent-rules/ts-coding-conventions.md
 .agent/.blueprints.snapshot.sql
 .agent/.tail-hint-history.jsonl
 # <<< managed by webpresso (generated)
+
+.claude/
