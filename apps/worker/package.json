@@ -4,6 +4,22 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "echo \"Worker app entrypoint stubbed at apps/worker/src/index.ts\""
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
+    "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
+    "test": "vitest run",
+    "check-types": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint src"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.10.11",
+    "@cloudflare/workers-types": "^4.20250425.0",
+    "oxlint": "^1.36.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.56.0"
+  },
+  "dependencies": {
+    "hono": "^4.12.23"
   }
 }

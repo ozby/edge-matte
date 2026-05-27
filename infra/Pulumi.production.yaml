@@ -1,0 +1,6 @@
+# Example production stack config. Copy or set via `pulumi config`.
+#   pulumi stack init production
+#   pulumi config set cloudflareAccountId <account-id> --secret
+#   pulumi config set artifactMaxAgeDays 30
+config:
+  edge-matte:artifactMaxAgeDays: "30"

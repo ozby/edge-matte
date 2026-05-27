@@ -1,0 +1,8 @@
+name: edge-matte
+main: src/main.ts
+runtime:
+  name: nodejs
+  options:
+    nodeargs: --import tsx
+    typescript: false
+description: Durable Cloudflare resources for EdgeMatte (R2 bucket and lifecycle)

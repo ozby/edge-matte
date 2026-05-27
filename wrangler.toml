@@ -5,13 +5,30 @@ compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "apps/client/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[images]
+binding = "IMAGES"
 
 [[r2_buckets]]
 binding = "IMAGES_BUCKET"
 bucket_name = "edge-matte-images"
 
-[triggers]
-crons = []
-
 [vars]
 APP_ORIGIN = "https://edge-matte.ozby.dev"
+
+[env.production]
+name = "edge-matte"
+workers_dev = false
+
+[[env.production.routes]]
+pattern = "edge-matte.ozby.dev"
+custom_domain = true
+
+[env.production.vars]
+APP_ORIGIN = "https://edge-matte.ozby.dev"
+
+[[env.production.r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "edge-matte-images"

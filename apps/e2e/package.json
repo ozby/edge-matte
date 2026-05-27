@@ -1,0 +1,17 @@
+{
+  "name": "@edge-matte/e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "pretest": "pnpm --filter @edge-matte/client run build",
+    "test": "vitest run --config vitest.config.ts",
+    "check-types": "tsc --noEmit -p tsconfig.json",
+    "lint": "node -e \"console.log('e2e lint: manifest + journeys (oxlint deferred)')\"",
+    "e2e:run": "bun src/cli/run-e2e.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

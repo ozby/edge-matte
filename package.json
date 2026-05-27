@@ -5,21 +5,39 @@
   "type": "module",
   "scripts": {
     "setup:agent": "wp setup",
-    "build": "echo \"Worker + client scaffold in place. Add concrete build/test tooling next.\"",
-    "typecheck": "tsc --noEmit",
-    "check-types": "tsc --noEmit",
+    "build": "vp run -r build",
+    "check": "vp check",
+    "check-types": "vp run -r check-types",
+    "typecheck": "vp run -r check-types",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
+    "lint": "vp run -r lint",
+    "test": "node --test \"test/**/*.test.mjs\" && vp run -r test",
+    "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
     "verify:secrets": "bun scripts/check-no-dev-vars.ts",
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
-    "prepare": "husky",
-    "lint": "echo \"Lint tooling not yet wired; wire via global wp/vp when ready.\"",
-    "test": "node --test"
+    "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
+    "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
+    "prepare": "husky"
   },
   "devDependencies": {
     "husky": "^9.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite-plus": "^0.1.22"
   },
   "packageManager": "pnpm@11.1.1",
   "engines": {
     "node": ">=24"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild@0.27.0",
+      "esbuild@0.27.3",
+      "esbuild@0.27.7",
+      "sharp@0.33.5",
+      "sharp@0.34.5",
+      "workerd@1.20251210.0",
+      "workerd@1.20260521.1"
+    ]
   }
 }

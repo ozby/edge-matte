@@ -4,6 +4,16 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && cp index.html dist/index.html"
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "check-types": "tsc --noEmit -p tsconfig.json",
+    "lint": "node -e \"console.log('client lint: oxlint deferred')\""
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -8,6 +8,8 @@ edge, host the result in R2, and delete every artifact with a capability token.
 
 - [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth and Mermaid charts.
 - [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
+- [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership, post-deploy smoke.
+- [`docs/secrets.md`](./docs/secrets.md) — secret ownership (GitHub vs Cloudflare vs Doppler).
 - [`blueprints/planned/2026-05-27-edge-matte.md`](./blueprints/planned/2026-05-27-edge-matte.md) — governed implementation blueprint with architecture before/after.
 - [`docs/research/2026-05-27-edge-matte-architecture-refinement.md`](./docs/research/2026-05-27-edge-matte-architecture-refinement.md) — DRY/SOLID/KISS refinement and CI/deploy rationale.
 - [`docs/research/2026-05-27-cloudflare-native-image-transform-service.md`](./docs/research/2026-05-27-cloudflare-native-image-transform-service.md) — naming and platform research.
@@ -39,6 +41,20 @@ Current local drift check:
 python3 scripts/check_architecture_drift.py
 ```
 
+## Release and deploy
+
+Production target: `https://edge-matte.ozby.dev`.
+
+- [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap
+- [`docs/secrets.md`](./docs/secrets.md) — GitHub vs Cloudflare vs Doppler secret ownership (provider keys in Cloudflare, not GitHub)
+
+Quick verification after deploy:
+
+```bash
+curl -sf https://edge-matte.ozby.dev/health
+E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke
+```
+
 ## Local bootstrap surface
 
 This repo includes starter project files for TypeScript/Workers development:
@@ -67,9 +83,17 @@ Verify bootstrap posture with:
 vp install
 wp config secrets set doppler edge-matte
 wp init --dry-run
+vp run -r build
+vp run -r lint
+vp run -r check-types
+pnpm run test
+pnpm e2e -- --suite smoke
+pnpm e2e -- --suite upload-delete
+E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke
 vp run verify:secrets
 vp run audit:secret-provider-quarantine
 python3 scripts/check_architecture_drift.py
+WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
 
 Target shared long-term surface across EdgeMatte, IngestLens, and sibling repos:

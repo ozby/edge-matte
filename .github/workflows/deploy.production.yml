@@ -1,0 +1,50 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: edge-matte-production-deploy
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  PRODUCTION_URL: https://edge-matte.ozby.dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.16.0'
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:secrets
+      - run: pnpm run audit:secret-provider-quarantine
+      - run: pnpm run format:check
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run test
+      - run: pnpm run build
+      - name: Deploy Worker to edge-matte.ozby.dev
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env production
+          environment: production
+      - name: Post-deploy smoke /health
+        run: curl -sf "${PRODUCTION_URL}/health"
+      - name: Post-deploy smoke app shell
+        run: curl -sf "${PRODUCTION_URL}/"
+      - name: Post-deploy production-smoke e2e
+        env:
+          E2E_RUN_PRODUCTION: '1'
+        run: pnpm e2e -- --suite production-smoke

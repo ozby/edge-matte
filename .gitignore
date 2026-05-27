@@ -17,6 +17,7 @@ dist/
 build/
 .next/
 coverage/
+apps/e2e/.e2e-base-url
 
 # Environment and secrets
 .env
