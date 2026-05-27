@@ -123,4 +123,8 @@ agent-rules/ts-coding-conventions.md
 .agent/.tail-hint-history.jsonl
 # <<< managed by webpresso (generated)
 
-.claude/
+# Local Claude runtime noise until this repo refreshes to the newer shared
+# generated ignore block from agent-kit (`wp setup` / `wp sync`).
+.claude/settings.json
+.claude/agents/
+.claude/hooks/
