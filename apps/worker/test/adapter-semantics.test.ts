@@ -21,9 +21,11 @@ describe("worker adapter semantics", () => {
   });
 
   it("passes the deadline signal through to the provider fetch", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(new Blob([PNG_BYTES], { type: "image/png" }), { status: 200 }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(new Blob([PNG_BYTES], { type: "image/png" }), { status: 200 }),
+      );
     vi.stubGlobal("fetch", fetchMock);
 
     const provider = new PhotoroomProvider("test-key");

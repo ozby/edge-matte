@@ -59,7 +59,11 @@ const removeBackgroundWithDeadline = async (
   deadlineMs: number,
 ): Promise<Blob> => {
   const controller = new AbortController();
-  const deadlineError = new AppError(502, "background_provider_failed", "background provider timed out");
+  const deadlineError = new AppError(
+    502,
+    "background_provider_failed",
+    "background provider timed out",
+  );
   const timeoutId = setTimeout(() => controller.abort(deadlineError), deadlineMs);
 
   const timeoutPromise = new Promise<never>((_resolve, reject) => {
@@ -71,10 +75,7 @@ const removeBackgroundWithDeadline = async (
   });
 
   try {
-    return await Promise.race([
-      provider.removeBackground(file, controller.signal),
-      timeoutPromise,
-    ]);
+    return await Promise.race([provider.removeBackground(file, controller.signal), timeoutPromise]);
   } finally {
     clearTimeout(timeoutId);
   }

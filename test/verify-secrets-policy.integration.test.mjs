@@ -40,7 +40,10 @@ test("passes when working tree has no forbidden secret files", () => {
   withTempDir((cwd) => {
     const result = runCheck(cwd);
     assert.equal(result.status, 0);
-    assert.match(result.stdout, /OK: no secret carriers or secret-like values in working tree or git/u);
+    assert.match(
+      result.stdout,
+      /OK: no secret carriers or secret-like values in working tree or git/u,
+    );
   });
 });
 
@@ -65,7 +68,10 @@ test("fails when .env file is present on disk", () => {
 test("fails when runtime secrets.json is copied into the repo tree", () => {
   withTempDir((cwd) => {
     mkdirSync(join(cwd, ".webpresso"), { recursive: true });
-    writeFileSync(join(cwd, ".webpresso", "secrets.json"), '{"manager":"doppler","projectId":"ozby-shell"}\n');
+    writeFileSync(
+      join(cwd, ".webpresso", "secrets.json"),
+      '{"manager":"doppler","projectId":"ozby-shell"}\n',
+    );
     const result = runCheck(cwd);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /forbidden secret carrier on disk: \.webpresso\/secrets\.json/u);

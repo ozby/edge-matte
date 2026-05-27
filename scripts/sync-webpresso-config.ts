@@ -99,7 +99,9 @@ function applyConfig(config: SecretsConfigMetadata, mode: Mode): void {
     return;
   }
   if (runtime && mode === "seed") {
-    console.log("preserving existing wp selection (use --force after updating the committed default)");
+    console.log(
+      "preserving existing wp selection (use --force after updating the committed default)",
+    );
     return;
   }
 
@@ -122,7 +124,10 @@ function main() {
     process.exit(1);
   }
 
-  const config = parseSecretsConfigMetadata(readFileSync(SOURCE, "utf8"), path.relative(ROOT, SOURCE));
+  const config = parseSecretsConfigMetadata(
+    readFileSync(SOURCE, "utf8"),
+    path.relative(ROOT, SOURCE),
+  );
   if (mode === "check-only") {
     console.log("webpresso secrets config valid (metadata-only, no secret values)");
     return;

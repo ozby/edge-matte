@@ -31,8 +31,8 @@ Move files with `git mv` so history follows the spec through its lifecycle.
 
 ## Active work (2026-05-27)
 
-| Blueprint | Path | Purpose |
-| --------- | ---- | ------- |
+| Blueprint         | Path                                                                                                                 | Purpose                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Audit remediation | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; closes production deploy smoke gap |
 
 Wave 0 (secrets governance) is complete in the working tree — see the remediation

@@ -20,16 +20,16 @@ Secret ownership: [`docs/secrets.md`](./secrets.md).
 EdgeMatte follows the IngestLens boundary: **Pulumi owns durable Cloudflare
 resources; Wrangler owns Worker-scoped deployment.**
 
-| Surface                       | Owner                                     | What it manages                                                  |
-| ----------------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
-| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                   | Bucket creation, lifecycle cleanup rules, optional CORS          |
-| Worker runtime                | **Wrangler** (`wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars |
-| Static SPA shell              | **Wrangler** (`wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                   |
-| R2 runtime binding            | **Wrangler**                              | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)  |
-| Images transform binding      | **Wrangler**                              | `IMAGES` binding for horizontal flip via Cloudflare Images       |
-| Provider secret names         | **Wrangler**                              | Secret _names_ declared in config; values never in repo          |
-| Provider secret values        | **Cloudflare**                            | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put`          |
-| Deploy credentials            | **Doppler `ozby-shell`**                  | CI via `DOPPLER_SERVICE_TOKEN`; local via `with-secrets` |
+| Surface                       | Owner                                     | What it manages                                                       |
+| ----------------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
+| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                   | Bucket creation, lifecycle cleanup rules, optional CORS               |
+| Worker runtime                | **Wrangler** (`wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars      |
+| Static SPA shell              | **Wrangler** (`wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                        |
+| R2 runtime binding            | **Wrangler**                              | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)       |
+| Images transform binding      | **Wrangler**                              | `IMAGES` binding for horizontal flip via Cloudflare Images            |
+| Provider secret names         | **Wrangler**                              | Secret _names_ declared in config; values never in repo               |
+| Provider secret values        | **Cloudflare**                            | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put`               |
+| Deploy credentials            | **Doppler `ozby-shell`**                  | CI via `DOPPLER_SERVICE_TOKEN`; local via `with-secrets`              |
 | Local/dev secret injection    | **Doppler (or selected manager)**         | `wp config secrets set doppler ozby-shell`; never `.dev.vars` on disk |
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not

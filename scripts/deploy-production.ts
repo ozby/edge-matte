@@ -75,10 +75,9 @@ run("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/health`, "24", "5"])
 run("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
 
 console.log("\n▶ production-smoke e2e…\n");
-run(
-  "pnpm",
-  ["e2e", "--", "--suite", "production-smoke"],
-  { ...process.env, E2E_RUN_PRODUCTION: "1" },
-);
+run("pnpm", ["e2e", "--", "--suite", "production-smoke"], {
+  ...process.env,
+  E2E_RUN_PRODUCTION: "1",
+});
 
 console.log(`\n✅ Production deploy healthy at ${PRODUCTION_URL}\n`);

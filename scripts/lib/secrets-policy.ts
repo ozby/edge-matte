@@ -86,7 +86,10 @@ export function shouldScanGitFileForSecretValues(relativePath: string): boolean 
   return /\.(?:md|ts|tsx|js|mjs|cjs|json|ya?ml|toml|txt|sh)$/iu.test(normalized);
 }
 
-export function parseSecretsConfigMetadata(raw: string, sourceLabel: string): SecretsConfigMetadata {
+export function parseSecretsConfigMetadata(
+  raw: string,
+  sourceLabel: string,
+): SecretsConfigMetadata {
   if (SECRET_VALUE_PATTERN.test(raw)) {
     throw new Error(`${sourceLabel} must not contain secret values`);
   }

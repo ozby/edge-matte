@@ -1,20 +1,20 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig } from "@playwright/test";
 
-const port = process.env.E2E_LOCAL_PORT?.trim() || '4173';
-const baseURL = process.env.E2E_BASE_URL?.trim().replace(/\/$/u, '') || `http://127.0.0.1:${port}`;
+const port = process.env.E2E_LOCAL_PORT?.trim() || "4173";
+const baseURL = process.env.E2E_BASE_URL?.trim().replace(/\/$/u, "") || `http://127.0.0.1:${port}`;
 
 export default defineConfig({
-  testDir: './journeys',
-  testMatch: ['**/*.spec.mjs'],
+  testDir: "./journeys",
+  testMatch: ["**/*.spec.mjs"],
   fullyParallel: false,
   workers: 1,
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
   use: {
     baseURL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   webServer: process.env.E2E_BASE_URL
     ? undefined

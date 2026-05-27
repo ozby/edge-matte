@@ -53,8 +53,8 @@ test("agent-kit.config.ts wires the e2e host adapter", () => {
 test("apps/e2e exposes smoke suite manifest wiring", () => {
   const manifest = readText("apps/e2e/src/e2e-suite-manifest.ts");
   assert.match(manifest, /id:\s*['"]smoke['"]/u);
-  assert.match(manifest, /journeys\/smoke\.smoke\.test\.ts/u);
-  assert.ok(existsSync(resolve(root, "apps/e2e/journeys/smoke.smoke.test.ts")));
+  assert.match(manifest, /journeys\/smoke\.e2e\.ts/u);
+  assert.ok(existsSync(resolve(root, "apps/e2e/journeys/smoke.e2e.ts")));
   assert.ok(existsSync(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")));
 });
 

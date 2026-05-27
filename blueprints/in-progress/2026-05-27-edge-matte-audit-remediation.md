@@ -23,13 +23,13 @@ truthfulness, CI green, and boundary-faithful verification.
 If multiple agents work this repo in parallel, treat these paths as **lane
 boundaries** — coordinate before crossing them:
 
-| Lane | Primary paths | Notes |
-| ---- | ------------- | ----- |
-| Secrets / policy | `scripts/verify-secrets-policy.ts`, `scripts/lib/secrets-policy.ts`, `scripts/sync-webpresso-config.ts`, `docs/secrets.md`, `.webpresso/secrets.config.json`, `.husky/pre-commit` | Wave 0 largely complete in working tree — avoid drive-by edits |
-| Production CI | `.github/workflows/deploy.production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts` | Wave 0.5 — health polling after wrangler deploy |
-| E2E boundaries | `apps/e2e/**`, `agent-kit.config.ts` | Playwright + renamed contract/smoke suites — Task 2.1 |
-| Worker runtime | `apps/worker/src/adapters/**`, `apps/worker/src/core/process-image-job.ts`, `apps/worker/test/**` | Adapter fail-loud tests landed — finish cleanup/timeout in Task 2.3 |
-| Docs truth | `README.md`, `docs/release.md`, `blueprints/README.md`, completion notes in `blueprints/completed/*.md` | Task 1.2 — supersede, do not rewrite history |
+| Lane             | Primary paths                                                                                                                                                                     | Notes                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Secrets / policy | `scripts/verify-secrets-policy.ts`, `scripts/lib/secrets-policy.ts`, `scripts/sync-webpresso-config.ts`, `docs/secrets.md`, `.webpresso/secrets.config.json`, `.husky/pre-commit` | Wave 0 largely complete in working tree — avoid drive-by edits      |
+| Production CI    | `.github/workflows/deploy.production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts`                                                                             | Wave 0.5 — health polling after wrangler deploy                     |
+| E2E boundaries   | `apps/e2e/**`, `agent-kit.config.ts`                                                                                                                                              | Playwright + renamed contract/smoke suites — Task 2.1               |
+| Worker runtime   | `apps/worker/src/adapters/**`, `apps/worker/src/core/process-image-job.ts`, `apps/worker/test/**`                                                                                 | Adapter fail-loud tests landed — finish cleanup/timeout in Task 2.3 |
+| Docs truth       | `README.md`, `docs/release.md`, `blueprints/README.md`, completion notes in `blueprints/completed/*.md`                                                                           | Task 1.2 — supersede, do not rewrite history                        |
 
 **Do not** move the parent roadmap out of `completed/` during this lane. Close
 gaps here, then update parent completion notes once evidence exists.
@@ -534,11 +534,11 @@ E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-| ---- | ------ | ---------- |
-| Browser-faithful E2E adds cost and latency | Slower CI and local runs | Keep non-browser contract tests, but name them honestly and reserve browser E2E for the reviewer-critical path |
-| Louder config failures may break local demos | Short-term friction | Keep explicit mock/test wiring separate from production-sensitive wiring |
-| Truthfulness updates may make the repo look less "done" | Social discomfort | Prefer accurate status now over compound rework later |
+| Risk                                                    | Impact                   | Mitigation                                                                                                     |
+| ------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Browser-faithful E2E adds cost and latency              | Slower CI and local runs | Keep non-browser contract tests, but name them honestly and reserve browser E2E for the reviewer-critical path |
+| Louder config failures may break local demos            | Short-term friction      | Keep explicit mock/test wiring separate from production-sensitive wiring                                       |
+| Truthfulness updates may make the repo look less "done" | Social discomfort        | Prefer accurate status now over compound rework later                                                          |
 
 ## ADR
 

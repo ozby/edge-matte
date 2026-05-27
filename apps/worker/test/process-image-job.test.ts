@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createImageJob, toPublicImageJob, verifyDeleteToken, type ImageJob } from "../src/core/image-job";
+import {
+  createImageJob,
+  toPublicImageJob,
+  verifyDeleteToken,
+  type ImageJob,
+} from "../src/core/image-job";
 import { deriveObjectKeys } from "../src/core/object-keys";
 import {
   AppError,
@@ -166,10 +171,7 @@ describe("core pipeline", () => {
     expect(transitions).toEqual(["removing_background", "flipping"]);
     expect(result.status).toBe("ready");
     expect(result.errorCode).toBeNull();
-    expect(objectStore.storedKeys()).toEqual([
-      result.originalObjectKey,
-      result.processedObjectKey,
-    ]);
+    expect(objectStore.storedKeys()).toEqual([result.originalObjectKey, result.processedObjectKey]);
   });
 
   it("fails loudly on provider deadline, cleans blobs, and preserves failed job metadata", async () => {
@@ -179,11 +181,7 @@ describe("core pipeline", () => {
     const provider: BackgroundRemovalProvider = {
       async removeBackground(_input, signal) {
         return await new Promise<Blob>((_resolve, reject) => {
-          signal?.addEventListener(
-            "abort",
-            () => reject(signal.reason),
-            { once: true },
-          );
+          signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
         });
       },
     };

@@ -31,12 +31,12 @@ Do not create or commit:
 
 Enforcement:
 
-| Check | What it guards |
-| ----- | -------------- |
-| `scripts/verify-secrets-policy.ts` | Working-tree secret carriers, tracked carriers, and secret-like values in git |
-| `scripts/sync-webpresso-config.ts --check-only` | Committed wp default is metadata-only |
-| `pnpm run audit:secret-provider-quarantine` | Direct provider CLI bypasses, dotenv imports, and secret downloads |
-| `pnpm run verify:paths` | Hardcoded relative repo traversal in scripts (CI + pre-commit) |
+| Check                                           | What it guards                                                                |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `scripts/verify-secrets-policy.ts`              | Working-tree secret carriers, tracked carriers, and secret-like values in git |
+| `scripts/sync-webpresso-config.ts --check-only` | Committed wp default is metadata-only                                         |
+| `pnpm run audit:secret-provider-quarantine`     | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
+| `pnpm run verify:paths`                         | Hardcoded relative repo traversal in scripts (CI + pre-commit)                |
 
 Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provider-quarantine`
 (both in CI). Pre-commit also runs `wp audit absolute-path-policy --root .` and
@@ -44,9 +44,9 @@ Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provi
 
 ## Two-project model (mirrors ingest-lens)
 
-| Doppler project | Holds                                                                 |
-| --------------- | --------------------------------------------------------------------- |
-| `edge-matte`    | App-local secrets when populated (e.g. `PHOTOROOM_API_KEY` for dev)   |
+| Doppler project | Holds                                                                       |
+| --------------- | --------------------------------------------------------------------------- |
+| `edge-matte`    | App-local secrets when populated (e.g. `PHOTOROOM_API_KEY` for dev)         |
 | `ozby-shell`    | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
 **Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points
@@ -83,12 +83,12 @@ Worker secrets**, not in GitHub or the app Doppler project.
 
 ## Where each credential lives
 
-| Secret / credential     | Where the value lives                            | Who sets it                          | Used by                                                                                  |
-| ----------------------- | ------------------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `PHOTOROOM_API_KEY`     | **Cloudflare Worker secret** (production)        | Maintainer via `wrangler secret put` | Worker at runtime                                                                        |
-| `CLOUDFLARE_API_TOKEN`  | **Doppler `ozby-shell`** (local + CI preferred)  | Operator / shared infra project      | `with-secrets`, Pulumi, `wrangler deploy`                                                |
-| `CLOUDFLARE_ACCOUNT_ID` | **Doppler `ozby-shell`** or **Pulumi config**    | Operator                           | Pulumi preview/up, `wrangler deploy`                                                     |
-| Local dev provider keys | **Doppler** via `with-secrets`                   | Each developer                       | Local `wrangler dev`, tests, e2e                                                         |
+| Secret / credential     | Where the value lives                           | Who sets it                          | Used by                                   |
+| ----------------------- | ----------------------------------------------- | ------------------------------------ | ----------------------------------------- |
+| `PHOTOROOM_API_KEY`     | **Cloudflare Worker secret** (production)       | Maintainer via `wrangler secret put` | Worker at runtime                         |
+| `CLOUDFLARE_API_TOKEN`  | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project      | `with-secrets`, Pulumi, `wrangler deploy` |
+| `CLOUDFLARE_ACCOUNT_ID` | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                             | Pulumi preview/up, `wrangler deploy`      |
+| Local dev provider keys | **Doppler** via `with-secrets`                  | Each developer                       | Local `wrangler dev`, tests, e2e          |
 
 ### Rules
 
@@ -159,6 +159,7 @@ only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` or
    pnpm install --frozen-lockfile
    wp config secrets show
    ```
+
 3. Run policy checks:
 
    ```bash
@@ -192,11 +193,11 @@ See [README.md](../README.md) for the full local verification surface and
 
 ## Rotation
 
-| Secret                 | Rotation path                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Secret                 | Rotation path                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `PHOTOROOM_API_KEY`    | Update in Cloudflare (`with-secrets -- wrangler secret put …`), redeploy not required for secret-only updates; verify with smoke e2e |
-| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy |
-| Doppler service token  | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub                                              |
+| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy                                                                   |
+| Doppler service token  | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub                                                                |
 
 ## Related
 
