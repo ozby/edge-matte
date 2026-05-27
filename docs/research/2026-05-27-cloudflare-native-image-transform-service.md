@@ -1,5 +1,6 @@
 ---
 type: research
+last_updated: 2026-05-27
 title: "Cloudflare-native image transformation service"
 subject: "Public OSS image upload, background-removal, flip, hosting, and deletion service"
 date: 2026-05-27

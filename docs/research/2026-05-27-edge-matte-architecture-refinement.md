@@ -1,5 +1,6 @@
 ---
 type: research
+last_updated: 2026-05-27
 title: "EdgeMatte architecture refinement"
 subject: "DRY/SOLID/KISS architecture and CI deployment refinement"
 date: 2026-05-27
@@ -168,7 +169,8 @@ Secrets:
 
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 - Cloudflare Worker secret: `PHOTOROOM_API_KEY`, set with `wrangler secret put PHOTOROOM_API_KEY --env production`.
-- Do not store provider secrets in GitHub unless the CI job must rotate them.
+- Keep provider secret values in Cloudflare (secret provider), not in GitHub or
+  on-disk files (`.dev.vars*` / `.env*`, except `.env.example`).
 
 ### Why this is elegant
 

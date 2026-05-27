@@ -1,0 +1,17 @@
+name = "edge-matte"
+main = "apps/worker/src/index.ts"
+compatibility_date = "2026-05-27"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "apps/client/dist"
+
+[[r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "edge-matte-images"
+
+[triggers]
+crons = []
+
+[vars]
+APP_ORIGIN = "https://edge-matte.ozby.dev"

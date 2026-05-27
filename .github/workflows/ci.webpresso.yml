@@ -1,0 +1,65 @@
+name: CI (webpresso baseline)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  # Opt the workflow's JavaScript actions into Node.js 24 ahead of the
+  # 2026-06-02 GitHub default switch (replaces the deprecation warning
+  # surfaced by actions/checkout@v4, actions/setup-node@v4, and
+  # pnpm/action-setup@v4 internally running on Node 20).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.16.0'
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify:secrets
+      - run: pnpm run audit:secret-provider-quarantine
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.16.0'
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test
+
+  wp-audits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.16.0'
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: pnpm install --frozen-lockfile
+      - name: Verify global wp
+        run: command -v wp
+      - name: Run wp audit guardrails
+        run: wp audit guardrails

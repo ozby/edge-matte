@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# webpresso audit hooks (staged mode — fast)
+if [ -f "$(pwd)/scripts/check-no-dev-vars.ts" ]; then
+  bun "$(pwd)/scripts/check-no-dev-vars.ts" || exit 1
+fi
+if [ -f "$(pwd)/scripts/audit-secret-provider-quarantine.ts" ]; then
+  bun "$(pwd)/scripts/audit-secret-provider-quarantine.ts" || exit 1
+fi

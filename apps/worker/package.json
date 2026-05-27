@@ -1,0 +1,9 @@
+{
+  "name": "@edge-matte/worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "echo \"Worker app entrypoint stubbed at apps/worker/src/index.ts\""
+  }
+}

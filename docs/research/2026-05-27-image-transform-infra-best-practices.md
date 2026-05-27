@@ -1,5 +1,6 @@
 ---
-type: best-practice-research
+type: research
+last_updated: 2026-05-27
 title: "Image transformation infra best practices"
 subject: "Cloudflare/Pulumi/Webpresso-aligned implementation guidance for EdgeMatte"
 date: 2026-05-27
@@ -132,11 +133,11 @@ interface ImageStore {
 
 Verification gates:
 
-- `pnpm lint`
-- `pnpm check-types`
-- `pnpm test`
-- `pnpm build`
-- `wrangler deploy --dry-run`
+- `vp run lint`
+- `vp run check-types`
+- `vp run test`
+- `vp run build`
+- `vp run deploy:dry-run`
 - manual smoke: upload -> processed URL loads -> delete -> URL returns 404
 
 Primary caveat:

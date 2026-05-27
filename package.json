@@ -1,0 +1,25 @@
+{
+  "name": "edge-matte",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "setup:agent": "wp setup",
+    "build": "echo \"Worker + client scaffold in place. Add concrete build/test tooling next.\"",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
+    "verify:secrets": "bun scripts/check-no-dev-vars.ts",
+    "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
+    "prepare": "husky",
+    "lint": "echo \"Lint tooling not yet wired; wire via global wp/vp when ready.\"",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@11.1.1",
+  "engines": {
+    "node": ">=24"
+  }
+}

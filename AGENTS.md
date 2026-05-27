@@ -66,3 +66,19 @@ scaffolded:
 - `ak_*` structured verification lanes when available
 
 Do not invent parallel local QA workflows when agent-kit already owns the lane.
+
+## Secret-handling policy
+
+- Never create or persist files like `.dev.vars` / `.dev.vars.example` or
+  `.env` / `.env.*` (except `.env.example`); keep secrets only in platform
+  secret stores and documented secret management paths.
+- Do not write provider keys, tokens, or credentials to disk.
+- Webpresso tooling (`wp`, `vp`, agent-kit audits) is expected on `PATH` via a
+  global install — not as a repo-local npm dependency.
+
+Enforced checks:
+
+- Pre-commit runs `bun scripts/check-no-dev-vars.ts` via `.husky/pre-commit`.
+- Pre-commit runs `bun scripts/audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
+- `pnpm verify:secrets` runs the same check in development and CI contexts.
+- `pnpm audit:secret-provider-quarantine` enforces provider-neutral secret execution.

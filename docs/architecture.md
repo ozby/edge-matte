@@ -1,8 +1,9 @@
 ---
-type: architecture
+type: guide
 title: EdgeMatte Architecture
 status: draft
 created: 2026-05-27
+last_updated: 2026-05-27
 ---
 
 # Architecture
@@ -35,7 +36,7 @@ flowchart LR
     CORE --> STOREPORT[ImageObjectStore port]
 
     BGPORT --> PHOTOROOM[Photoroom adapter]
-    IMGPORT --> CFIMG[Cloudflare Images adapter]
+    IMGPORT --> CFIMG[Cloudflare Images binding adapter<br/>env.IMAGES flip=h]
     JOBPORT --> R2[(R2 jobs/*.json)]
     STOREPORT --> R2BLOBS[(R2 image objects)]
     CFIMG --> R2BLOBS
@@ -58,7 +59,7 @@ flowchart TD
     STORE_ORIGINAL --> BG_STATUS[status=removing_background]
     BG_STATUS --> BG_CALL[Provider remove background<br/>deadline bounded]
     BG_CALL --> FLIP_STATUS[status=flipping]
-    FLIP_STATUS --> FLIP[Cloudflare Images flip=h]
+    FLIP_STATUS --> FLIP[Cloudflare Images binding<br/>env.IMAGES flip=h]
     FLIP --> STORE_PROCESSED[(R2 processed object)]
     STORE_PROCESSED --> READY[status=ready imageUrl available]
     READY --> RESPONSE[201 id/status/imageUrl/deleteToken/pollUrl]
@@ -117,6 +118,27 @@ classDiagram
 This is the DRY/SOLID boundary: HTTP, provider APIs, image transforms, and R2
 never leak into the pure pipeline core.
 
+The image-transform adapter is concrete at the principal level: the horizontal
+flip runs through the Cloudflare Images **Workers binding** rather than a vague
+remote-URL-only assumption. The adapter shape is:
+
+```ts
+const response = (
+  await env.IMAGES
+    .input(cutoutStream)
+    .transform({ flip: "h" })
+    .output({ format: "image/png" })
+).response();
+```
+
+That keeps the brief’s order exact:
+
+1. upload one image
+2. remove background through a third-party provider
+3. flip the cutout horizontally
+4. host the processed artifact at `https://edge-matte.ozby.dev/i/:id`
+5. delete original object, processed object, and metadata with the delete token
+
 ## Upload sequence
 
 ```mermaid
@@ -127,7 +149,7 @@ sequenceDiagram
     participant Core as processImageJob
     participant R2 as R2 bucket
     participant BG as Background provider
-    participant IMG as Cloudflare Images
+    participant IMG as Cloudflare Images binding
 
     U->>UI: Select image
     UI->>UI: Preview + client validation
@@ -138,7 +160,7 @@ sequenceDiagram
     Core->>R2: Put original + job metadata
     Core->>BG: Remove background with deadline
     BG-->>Core: Cutout image
-    Core->>IMG: Transform flip=h
+    Core->>IMG: Transform cutout via env.IMAGES flip=h
     IMG-->>Core: Flipped image stream
     Core->>R2: Put processed + update job ready
     Core-->>API: Public job + delete token
@@ -186,6 +208,19 @@ flowchart TD
 
 R2 is the only persistence layer in v1. This avoids a database while still making
 artifact lifecycle explicit and testable.
+
+## Principal requirement traceability
+
+| task.pdf requirement | Architecture contract |
+|---|---|
+| Upload a single image | `POST /api/jobs` accepts exactly one multipart file after client + server validation. |
+| Remove background via third-party service | `BackgroundRemovalProvider` port with Photoroom production adapter. |
+| Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`. |
+| Host processed image online at unique URL | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`. |
+| Delete uploaded and processed images | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata. |
+| Backend must be TypeScript | Worker/core/adapters are TypeScript-only surfaces. |
+| Full stack deployed online | Worker + static assets deploy together to `edge-matte.ozby.dev`. |
+| Code shared in GitHub repository | Blueprint/release flow assumes public GitHub review target. |
 
 ## Delete flow
 

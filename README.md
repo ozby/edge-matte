@@ -39,6 +39,39 @@ Current local drift check:
 python3 scripts/check_architecture_drift.py
 ```
 
+## Local bootstrap surface
+
+This repo includes starter project files for TypeScript/Workers development:
+
+- `tsconfig.json` and `wrangler.toml` for TypeScript/Workers compatibility
+- `pnpm-workspace.yaml` for monorepo package layout
+- `apps/client` and `apps/worker` shells for the EdgeMatte runtime
+- `package.json` for local onboarding (public deps only — no repo-local `@webpresso/*` packages)
+
+### Webpresso tooling (`wp` and `vp`)
+
+EdgeMatte reuses the same **quality and governance rails** as IngestLens instead of
+inventing parallel lint hooks, blueprint checks, or commit conventions. That work
+is handled by global CLI tools on your `PATH`, not by npm dependencies in this repo.
+
+| Tool | Role | What it solves |
+|---|---|---|
+| **`wp`** | Webpresso / agent-kit CLI | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
+| **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package. |
+
+Install `@webpresso/agent-kit` globally (or use a sibling Webpresso checkout with `wp`/`vp` on `PATH`). This repo does **not** pin `@webpresso/agent-kit` in `devDependencies` — reviewers can `pnpm install` without GitHub Packages tokens; maintainers install `wp`/`vp` once on their machine (and CI must provide `wp` for audit jobs).
+
+Verify bootstrap posture with:
+
+```bash
+vp install
+wp config secrets set doppler edge-matte
+wp init --dry-run
+vp run verify:secrets
+vp run audit:secret-provider-quarantine
+python3 scripts/check_architecture_drift.py
+```
+
 Target shared long-term surface across EdgeMatte, IngestLens, and sibling repos:
 
 ```bash
