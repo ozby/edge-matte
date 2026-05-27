@@ -71,7 +71,8 @@ wp config secrets show   # should report ozby-shell after pnpm install
 # Quality gates (same surface CI uses)
 vp install
 pnpm run verify:secrets
-pnpm run verify:paths   # wraps: wp audit absolute-path-policy --root .
+wp audit absolute-path-policy --root .  # canonical shared audit surface
+pnpm run verify:paths   # human/CI wrapper around the shared audit
 pnpm run audit:secret-provider-quarantine
 vp run -r check-types
 vp run -r lint
@@ -140,7 +141,7 @@ pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
 
 Implemented in [`.github/workflows/ci.webpresso.yml`](../.github/workflows/ci.webpresso.yml):
 
-1. **check** job — install, `verify:secrets`, `verify:paths`,
+1. **check** job — install, `verify:secrets`, `verify:paths`
    `audit:secret-provider-quarantine`, format, typecheck, lint, docs/blueprint audits
 2. **test** job — `pnpm run test`
 3. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
@@ -153,7 +154,7 @@ PRs must not write production secrets or deploy to `edge-matte.ozby.dev`.
 
 Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
-1. Run quality gates (`verify:secrets`, `verify:paths`, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
+1. Run quality gates (`verify:secrets`, `verify:paths` wrapper over shared path audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
 2. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
 3. Deploy with `pnpm --filter @edge-matte/worker exec wrangler deploy --env production`
 4. **Serialize deploys** — concurrency group `edge-matte-production-deploy`

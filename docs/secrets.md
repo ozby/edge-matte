@@ -36,7 +36,8 @@ Enforcement:
 | `scripts/verify-secrets-policy.ts`              | Working-tree secret carriers, tracked carriers, and secret-like values in git |
 | `scripts/sync-webpresso-config.ts --check-only` | Committed wp default is metadata-only                                         |
 | `pnpm run audit:secret-provider-quarantine`     | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
-| `pnpm run verify:paths`                         | Hardcoded relative repo traversal in scripts (CI + pre-commit)                |
+| `wp audit absolute-path-policy --root .`        | Canonical shared path-policy audit surface                                    |
+| `pnpm run verify:paths`                         | Human/CI wrapper around the shared path-policy audit                          |
 
 Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provider-quarantine`
 (both in CI). Pre-commit also runs `wp audit absolute-path-policy --root .` and

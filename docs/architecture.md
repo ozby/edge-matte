@@ -254,7 +254,7 @@ v1 has no user accounts.
 flowchart TD
     DEV[Developer / CI] --> VP[vite-plus scripts<br/>vp check / vp fmt / vp run test]
     DEV --> WP[agent-kit CLI<br/>wp setup / wp audit]
-    DEV --> AK[agent-kit MCP lanes<br/>ak_test ak_typecheck ak_lint ak_qa]
+    DEV --> MCP[agent-kit MCP tools<br/>wp_audit / structured verification lanes]
 
     VP --> UNIT[Unit + route tests]
     UNIT --> WORKERS[Cloudflare Workers pool tests]

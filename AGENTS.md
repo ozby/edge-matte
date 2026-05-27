@@ -66,7 +66,7 @@ scaffolded:
 
 - `vp` for package scripts
 - `wp` for setup/audits
-- `ak_*` structured verification lanes when available
+- agent-kit MCP tools first when available; otherwise use the repo-owned wrapper command
 
 Do not invent parallel local QA workflows when agent-kit already owns the lane.
 
@@ -81,9 +81,10 @@ Do not invent parallel local QA workflows when agent-kit already owns the lane.
 
 Enforced checks:
 
-- Pre-commit runs `verify-secrets-policy.ts`, `verify-absolute-path-policy.ts`,
+- Pre-commit runs `verify-secrets-policy.ts`, `wp audit absolute-path-policy --root .`,
   `sync-webpresso-config.ts --check-only`, and
   `audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
 - `pnpm verify:secrets` runs the policy verifier and committed secrets metadata validation.
-- `pnpm verify:paths` blocks hardcoded relative repo traversal (CI + pre-commit; no wp required).
+- Agents should prefer the shared `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` surface.
+- `pnpm verify:paths` is the human/CI wrapper around that shared audit.
 - `pnpm audit:secret-provider-quarantine` enforces provider-neutral secret execution.

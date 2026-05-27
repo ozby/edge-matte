@@ -97,7 +97,8 @@ pnpm run e2e -- --suite smoke
 pnpm run e2e -- --suite upload-delete
 E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 pnpm run verify:secrets
-pnpm run verify:paths                # wraps: wp audit absolute-path-policy --root .
+wp audit absolute-path-policy --root .  # canonical shared audit surface (agents/MCP should prefer this)
+pnpm run verify:paths                   # human/CI wrapper around the shared audit
 pnpm run audit:secret-provider-quarantine
 python3 scripts/check_architecture_drift.py
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails

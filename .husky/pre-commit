@@ -4,8 +4,11 @@
 if [ -f "$(pwd)/scripts/verify-secrets-policy.ts" ]; then
   bun "$(pwd)/scripts/verify-secrets-policy.ts" || exit 1
 fi
-if [ -f "$(pwd)/scripts/verify-absolute-path-policy.ts" ]; then
-  bun "$(pwd)/scripts/verify-absolute-path-policy.ts" || exit 1
+if command -v wp >/dev/null 2>&1; then
+  WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root . || exit 1
+else
+  echo "ERROR: wp is required on PATH for absolute-path-policy pre-commit enforcement." >&2
+  exit 1
 fi
 if [ -f "$(pwd)/scripts/sync-webpresso-config.ts" ]; then
   bun "$(pwd)/scripts/sync-webpresso-config.ts" --check-only || exit 1

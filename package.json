@@ -22,7 +22,7 @@
     "pulumi:preview": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi preview",
     "pulumi:up": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
-    "verify:paths": "bun scripts/verify-absolute-path-policy.ts",
+    "verify:paths": "WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root .",
     "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
     "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
