@@ -279,6 +279,21 @@ Behavior:
 - delete original, processed, and metadata keys;
 - return `204`.
 
+## Implementation gap map
+
+The architecture is now clear, but implementation is still missing in four
+concrete areas. These child blueprints split execution so the repo can be built
+in clean vertical slices:
+
+1. [`2026-05-27-edge-matte-workspace-scaffold.md`](./2026-05-27-edge-matte-workspace-scaffold.md)
+2. [`2026-05-27-edge-matte-core-pipeline.md`](./2026-05-27-edge-matte-core-pipeline.md)
+3. [`2026-05-27-edge-matte-ui-and-e2e.md`](./2026-05-27-edge-matte-ui-and-e2e.md)
+4. [`2026-05-27-edge-matte-infra-and-release.md`](./2026-05-27-edge-matte-infra-and-release.md)
+
+These are implementation blueprints, not architecture rewrites. They exist to
+close the current gaps between the documented design and a deployable public
+repo.
+
 ## Quality DRY contract
 
 Root scripts should follow the IngestLens/Webpresso shape:
