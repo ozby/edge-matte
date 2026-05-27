@@ -3,6 +3,7 @@ name: Deploy production
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: edge-matte-production-deploy
@@ -44,12 +45,7 @@ jobs:
           inject-env-vars: true
 
       - name: Verify Cloudflare deploy credentials
-        run: |
-          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID."
-            echo "Configure DOPPLER_SERVICE_TOKEN scoped to ozby-shell (secrets stay in Doppler, not git or repo files)."
-            exit 1
-          fi
+        run: bash scripts/verify-cloudflare-deploy-creds.sh
 
       - name: Deploy Worker to edge-matte.ozby.dev
         run: pnpm --filter @edge-matte/worker exec wrangler deploy --env production

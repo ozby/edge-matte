@@ -148,6 +148,24 @@ Workflows run `dopplerhq/secrets-fetch-action`, inject env vars for the job
 only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` or
 `PHOTOROOM_API_KEY` as GitHub repository secrets.
 
+The deploy workflow runs `scripts/verify-cloudflare-deploy-creds.sh` after
+injection (`wrangler whoami` + `wrangler deploy --dry-run`) so auth/permission
+failures surface before a real deploy.
+
+### Required `CLOUDFLARE_API_TOKEN` permissions
+
+The token in Doppler `ozby-shell` / `prd` must be able to **edit** the
+`edge-matte` Worker on the account matching `CLOUDFLARE_ACCOUNT_ID`. Minimum
+Cloudflare API token permissions:
+
+- Account → Workers Scripts → **Edit**
+- Account → Workers Routes → **Edit** (custom domain on `edge-matte.ozby.dev`)
+- Account → Account Settings → **Read** (for `wrangler whoami`)
+
+If deploy fails with `Authentication error [code: 10000]`, rotate the token in
+the Cloudflare dashboard, update Doppler `ozby-shell`, and re-run **Deploy
+production** (workflow supports `workflow_dispatch` on `main`).
+
 ## Local bootstrap
 
 1. Install global Webpresso CLIs: `wp`, `vp`, and ensure `with-secrets` is on
