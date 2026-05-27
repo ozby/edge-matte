@@ -9,212 +9,205 @@ timebox: "6 hours"
 
 # EdgeMatte: Cloudflare-native image matting platform
 
-## Office-Hours Decision
+## Decision
 
-`/office-hours` selected the **Full Edge Pipeline Platform** direction on 2026-05-27.
+Build **EdgeMatte** as a public, company-neutral OSS app and reference
+implementation for Cloudflare-native image cutout pipelines.
 
-Guardrail: the first shipped version is a thin platform slice, not a sprawling product. It processes one image end-to-end, but internally it has:
+The selected shape is a **thin full edge pipeline slice**: one polished upload
+flow and one production-minded backend path, with platform seams that can grow
+without forcing a v1 queue/database platform.
 
-- job/status metadata,
-- explicit processing phases,
-- artifact lifecycle,
-- provider/transform/store seams,
-- capability-token deletion.
+Guardrail: v1 runs image processing inline. Cloudflare Queue execution is a
+promotion path only after the inline path is green and deployed.
 
-Queue mode is optional and only lands if the inline processing path is already green and deployed.
+## Architecture governance
 
-Design doc: `/Users/ozby/.gstack/projects/ozby-repos/ozby-main-design-20260527-114304.md`
+Architecture docs:
+
+- [`docs/architecture.md`](../../docs/architecture.md)
+- [`docs/architecture.contract.json`](../../docs/architecture.contract.json)
+
+Every active blueprint must stay aligned with those files. Architecture-changing
+blueprints must record an explicit before/after delta.
+
+## Architecture before
+
+Before this refinement, the plan was close but still carried too much implied
+platform complexity: queue mode was documented too close to the v1 path,
+quality/e2e reuse from agent-kit was not explicit enough, and architecture
+governance was not codified.
+
+## Architecture after
+
+The governed v1 architecture is one Worker, Workers Static Assets, one R2
+bucket, one pure pipeline core, explicit ports/adapters, agent-kit/vite-plus
+quality reuse, and `edge-matte.ozby.dev` as the production contract. Queue mode
+remains a promotion path only.
 
 ## Objective
 
-Ship a public, company-neutral OSS app that lets a user upload one image, creates a processing job, removes the background through a third-party provider, flips the result horizontally, hosts the processed image online, exposes job status, and lets the user delete every stored artifact.
+Ship a live app at `https://edge-matte.ozby.dev` that lets a user upload one
+image, creates a job, removes the background through a provider adapter, flips
+the result horizontally, hosts the processed image online, exposes safe job
+status, and deletes every stored artifact with a capability token.
 
 Recommended public identity:
 
 - **Project name:** EdgeMatte
 - **Repository:** `edge-matte`
 - **Package/app slug:** `edge-matte`
-- **One-line OSS positioning:** Cloudflare-native TypeScript reference app for image cutout pipelines: upload, background removal, edge transform, R2 hosting, job status, and capability-based deletion.
+- **One-line OSS positioning:** Cloudflare-native TypeScript reference app for
+  image cutout pipelines: upload, background removal, edge transform, R2
+  hosting, job status, and capability-based deletion.
 
-Other viable names:
+## Success criteria
 
-1. `matteflow` — good pipeline feel, less Cloudflare-specific.
-2. `cutout-worker` — clear, but less distinctive.
-3. `maskshift` — strong transform language, slightly abstract.
-4. `alpha-turn` — image alpha channel + flip, clever but less searchable.
-5. `flipmatte` — exact to this task, but too narrow for OSS reuse.
+- Live production URL: `https://edge-matte.ozby.dev`.
+- Upload flow handles exactly one PNG/JPEG/WebP image under 8 MiB.
+- UI shows client validation, preview, loading/progress, success, recoverable
+  errors, result URL, download, and delete confirmation.
+- Backend is TypeScript on Cloudflare Workers with Hono route adapters.
+- Background removal uses one production provider behind a port and a mock
+  provider in tests.
+- Processed result is horizontally flipped after background removal.
+- Result is hosted at a unique URL served from R2 through the Worker.
+- `GET /api/jobs/:id` returns only safe public status fields.
+- Delete action removes original object, processed object, and job metadata.
+- Public artifacts are company-neutral and do not expose private brief language.
+- README includes setup, architecture, live demo URL, provider setup, and
+  verification commands.
+- CI uses agent-kit/vite-plus gates, deploy dry-run on PRs, and Wrangler deploy
+  to `edge-matte.ozby.dev` on `main`.
+- E2E uses the agent-kit host-adapter/suite-manifest pattern; no bespoke QA
+  harness when agent-kit already owns the lane.
 
-Decision: use **EdgeMatte** unless the repo name is unavailable.
+## Reuse decisions
 
-## Success Criteria
-
-- A live URL accepts a single image upload from a polished UI.
-- Upload flow shows validation, job timeline, progress/loading, success, and recoverable error states.
-- Backend is TypeScript.
-- Background removal goes through a third-party provider using an API key stored as a secret.
-- The processed result is horizontally flipped after background removal.
-- The result is hosted online at a unique URL.
-- Job status can be read without exposing secrets or provider internals.
-- A delete action removes original, processed, and metadata artifacts from storage.
-- GitHub repo is public and company-neutral.
-- README gives reviewer setup, architecture, live demo URL, provider setup, and verification commands.
-- CI runs lint, typecheck, tests, and deploy dry-run.
-
-## What Already Exists
-
-| Existing asset | Reuse decision |
+| Existing pattern | EdgeMatte decision |
 |---|---|
-| Private task brief | Source of product requirements only. Do not commit extracted company-specific language. |
-| Webpresso vision | Reuse product discipline: honest readiness, evidence provenance, rollback/recovery paths. |
-| IngestLens repo structure | Reuse public README/reviewer path style and Cloudflare app organization. |
-| IngestLens Worker patterns | Reuse Hono app, exact CORS, route grouping, rate limit posture, generated Worker types. |
-| IngestLens infra boundary | Reuse Pulumi-for-durable-resources and Wrangler-for-Worker-deployment boundary. |
-| Webpresso runtime patterns | Reuse deadline-bounded fetch, structured validation, and explicit error taxonomy where package install is public-friendly; otherwise mirror tiny local helpers. |
+| Webpresso vision | Reuse evidence-first readiness, explicit failure modes, rollback/recovery language. |
+| IngestLens repo structure | Reuse reviewer-friendly README, apps split, Cloudflare Worker organization, and docs/blueprint lifecycle. |
+| IngestLens quality surface | Reuse `vp` scripts, `wp` audits/setup, agent-kit Vitest presets, and `ak_*` lanes. |
+| IngestLens e2e surface | Reuse `agent-kit.config.ts` host adapter, `apps/e2e` suite manifest, suite/file resolution, and Playwright/Vitest runner split. |
+| IngestLens infra boundary | Pulumi owns durable resources; Wrangler owns Worker deployment, routes, bindings, and secret names. |
+| Webpresso runtime discipline | Use deadline-bounded provider fetches, structured validation, and explicit error taxonomy. |
 
-## NOT in Scope
+Public-install caveat: keep app runtime independent of private/internal packages.
+Quality tooling may use Webpresso/agent-kit directly in CI and local agent flows;
+if public package access blocks reviewer installs, document the access path rather
+than duplicating the tooling locally.
 
-- User accounts or auth: delete-token capability is enough for a one-image public demo.
-- Multi-image batch uploads: the first slice accepts one image.
-- Provider marketplace: implement one production provider and one mock provider for tests.
-- Database metadata: R2 metadata JSON is enough for job status, object keys, provider, timestamps, and delete-token hash.
-- Batch processing dashboard: future work after single-job flow is green.
-- WASM image processing: fallback only if Cloudflare Images binding and URL transformations are blocked.
-- Billing/credit tracking: document provider quotas, do not build account-level credit management.
+## Not in scope
 
-Conditional scope:
-
-- Cloudflare Queue execution may be added if the inline processing path is deployed and tested first. Otherwise the v1 still has job/status APIs with inline processing.
+- User accounts or auth; the delete token is the v1 capability.
+- Multi-image batch uploads.
+- Provider marketplace; one production provider and one mock provider are enough.
+- Database metadata; R2 `jobs/{id}.json` is the job source of truth.
+- Batch dashboard or admin UI.
+- WASM image processing unless Cloudflare Images transformation is blocked.
+- Queue-first architecture; queues are conditional promotion only.
+- Billing/credit tracking; provider quota caveats belong in docs.
 
 ## Architecture
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│ Browser                                                              │
-│ ┌──────────────────────────────┐                                     │
-│ │ Upload UI                    │                                     │
-│ │ - file picker/dropzone       │                                     │
-│ │ - validation + preview       │                                     │
-│ │ - job status timeline        │                                     │
-│ │ - result URL + delete button │                                     │
-│ └──────────────┬───────────────┘                                     │
-└────────────────┼─────────────────────────────────────────────────────┘
-                 │ multipart/form-data
-                 ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│ Cloudflare Worker                                                    │
-│ ┌──────────────────────────────────────────────────────────────────┐ │
-│ │ Hono API                                                         │ │
-│ │ POST /api/jobs                                                   │ │
-│ │   1 validate file size/type/magic bytes                          │ │
-│ │   2 create job + delete token                                    │ │
-│ │   3 store original in R2                                         │ │
-│ │   4 run processing inline for v1                                 │ │
-│ │   5 update job status at each phase                              │ │
-│ │   6 return imageUrl + deleteToken + pollUrl                      │ │
-│ │                                                                  │ │
-│ │ GET /api/jobs/:id      -> safe public job status                 │ │
-│ │ GET /i/:id             -> stream processed image                 │ │
-│ │ DELETE /api/jobs/:id   -> verify token hash, delete all objects  │ │
-│ └──────────────────────────────────────────────────────────────────┘ │
-│             │                │                   │                    │
-│             ▼                ▼                   ▼                    │
-│         JobStore         ImageStore        ProcessingRunner           │
-│         R2 meta          R2 blobs          provider + transform        │
-│                                              │             │          │
-│                                              ▼             ▼          │
-│                                  BackgroundRemovalProvider  Images     │
-│                                  - Photoroom default        flip=h     │
-│                                  - remove.bg seam                      │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-Optional queue mode, only after inline mode works:
+The elegant v1 architecture is:
 
 ```text
-POST /api/jobs
-  -> create job(status=queued)
-  -> store original
-  -> enqueue { jobId }
-  -> return 202 + pollUrl
-
-Queue consumer
-  -> ProcessingRunner.run(jobId)
-  -> update status -> ready | failed
+edge-matte.ozby.dev
+  -> Cloudflare Worker + Workers Static Assets
+  -> Hono route adapter
+  -> pure processImageJob(command, deps)
+  -> BackgroundRemovalProvider port
+  -> ImageTransformer port
+  -> JobRepository / ImageObjectStore ports
+  -> Photoroom + Cloudflare Images + R2 adapters
 ```
 
-## Domain Model
+```mermaid
+flowchart LR
+    UI[Browser SPA] --> API[Hono Worker routes]
+    API --> CORE[Pure processImageJob]
+    CORE --> BG[BackgroundRemovalProvider]
+    CORE --> IMG[ImageTransformer]
+    CORE --> JOBS[JobRepository]
+    CORE --> BLOBS[ImageObjectStore]
+    BG --> PHOTOROOM[Provider adapter]
+    IMG --> CFIMG[Cloudflare Images]
+    JOBS --> R2[(R2 metadata)]
+    BLOBS --> R2B[(R2 objects)]
+```
+
+Design principle: routes parse HTTP, the core orchestrates domain state, adapters
+perform side effects. This is enough structure for DRY/SOLID without adding a
+framework inside the framework.
+
+Full charts: [`docs/architecture.md`](../../docs/architecture.md). Drift contract: [`docs/architecture.contract.json`](../../docs/architecture.contract.json).
+
+## Domain model
 
 ```ts
+type ImageJobStatus =
+  | "validating"
+  | "uploading"
+  | "removing_background"
+  | "flipping"
+  | "ready"
+  | "deleted"
+  | "failed";
+
 type ImageJob = {
-  id: string
-  originalKey: string
-  processedKey: string
-  metadataKey: string
-  originalContentType: "image/png" | "image/jpeg" | "image/webp"
-  processedContentType: "image/png" | "image/webp"
-  provider: "photoroom"
-  createdAt: string
-  updatedAt: string
-  deleteTokenHash: string
-  status:
-    | "queued"
-    | "validating"
-    | "uploading"
-    | "removing_background"
-    | "flipping"
-    | "ready"
-    | "deleted"
-    | "failed"
-  errorCode?: string
-}
-```
+  id: string;
+  originalKey: string;
+  processedKey: string;
+  metadataKey: string;
+  originalContentType: "image/png" | "image/jpeg" | "image/webp";
+  processedContentType: "image/png" | "image/webp";
+  provider: "photoroom";
+  createdAt: string;
+  updatedAt: string;
+  deleteTokenHash: string;
+  status: ImageJobStatus;
+  errorCode?: string;
+};
 
-No database is needed. `jobs/{id}.json` in R2 is the job source of truth. Public reads only return safe fields:
-
-```ts
 type PublicJobResponse = {
-  id: string
-  status: ImageJob["status"]
-  imageUrl: string | null
-  createdAt: string
-  updatedAt: string
-  errorCode?: string
-}
+  id: string;
+  status: ImageJobStatus;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+  errorCode?: string;
+};
 ```
 
-## Provider and Platform Interfaces
-
-Keep DRY by putting orchestration in one runner and all external systems behind tiny adapters:
+## Ports and adapters
 
 ```ts
 interface BackgroundRemovalProvider {
-  removeBackground(input: File, signal: AbortSignal): Promise<Blob>
+  removeBackground(input: File, signal: AbortSignal): Promise<Blob>;
 }
 
 interface ImageTransformer {
-  flipHorizontal(input: ReadableStream, output: "image/png" | "image/webp"): Promise<Response>
+  flipHorizontal(input: ReadableStream, output: "image/png" | "image/webp"): Promise<Response>;
 }
 
-interface JobStore {
-  create(job: ImageJob): Promise<void>
-  update(job: ImageJob): Promise<void>
-  get(id: string): Promise<ImageJob | null>
-  delete(id: string): Promise<void>
+interface JobRepository {
+  create(job: ImageJob): Promise<void>;
+  update(job: ImageJob): Promise<void>;
+  get(id: string): Promise<ImageJob | null>;
+  delete(id: string): Promise<void>;
 }
 
-interface ImageStore {
-  putOriginal(job: ImageJob, file: File): Promise<void>
-  putProcessed(job: ImageJob, body: ReadableStream | ArrayBuffer, contentType: string): Promise<void>
-  getProcessed(id: string): Promise<Response | null>
-  deleteAll(job: ImageJob): Promise<void>
-}
-
-interface ProcessingRunner {
-  run(job: ImageJob, file: File, signal: AbortSignal): Promise<ImageJob>
+interface ImageObjectStore {
+  putOriginal(job: ImageJob, file: File): Promise<void>;
+  putProcessed(job: ImageJob, body: ReadableStream | ArrayBuffer, contentType: string): Promise<void>;
+  getProcessed(id: string): Promise<Response | null>;
+  deleteAll(job: ImageJob): Promise<void>;
 }
 ```
 
-The runner is the only place that knows the sequence:
+One runner owns the sequence:
 
 ```text
 validate -> create job -> store original -> status removing_background
@@ -223,7 +216,7 @@ validate -> create job -> store original -> status removing_background
   └──────── cleanup + status failed on unrecoverable failure ───────┘
 ```
 
-## API Contract
+## API contract
 
 ### `POST /api/jobs`
 
@@ -234,10 +227,10 @@ Request:
 
 Validation:
 
-- max size: 8 MiB
-- supported MIME: `image/png`, `image/jpeg`, `image/webp`
-- verify magic bytes, not MIME alone
-- reject multiple files
+- max size: 8 MiB;
+- supported MIME: `image/png`, `image/jpeg`, `image/webp`;
+- verify magic bytes, not MIME alone;
+- reject missing or multiple files.
 
 Inline-mode response `201`:
 
@@ -245,21 +238,9 @@ Inline-mode response `201`:
 {
   "id": "job_...",
   "status": "ready",
-  "imageUrl": "https://<host>/i/job_...",
+  "imageUrl": "https://edge-matte.ozby.dev/i/job_...",
   "deleteToken": "del_...",
-  "pollUrl": "https://<host>/api/jobs/job_..."
-}
-```
-
-Optional queue-mode response `202`:
-
-```json
-{
-  "id": "job_...",
-  "status": "queued",
-  "imageUrl": null,
-  "deleteToken": "del_...",
-  "pollUrl": "https://<host>/api/jobs/job_..."
+  "pollUrl": "https://edge-matte.ozby.dev/api/jobs/job_..."
 }
 ```
 
@@ -274,27 +255,14 @@ Errors:
 
 ### `GET /api/jobs/:id`
 
-Returns public job status:
-
-```json
-{
-  "id": "job_...",
-  "status": "removing_background",
-  "imageUrl": null,
-  "createdAt": "2026-05-27T00:00:00.000Z",
-  "updatedAt": "2026-05-27T00:00:01.000Z"
-}
-```
+Returns only public job status. Never return object keys, token hashes, provider
+payloads, stack traces, or secrets.
 
 ### `GET /i/:id`
 
-Streams the processed image from R2 with:
-
-- `Content-Type`
-- `Cache-Control: public, max-age=31536000, immutable`
-- `ETag` when available
-
-Returns `404` until ready and after deletion.
+Streams the processed image from R2 with `Content-Type`, long-lived immutable
+cache headers, and `ETag` when available. Returns `404` until ready and after
+deletion.
 
 ### `DELETE /api/jobs/:id`
 
@@ -308,208 +276,278 @@ Behavior:
 
 - hash token with Web Crypto SHA-256;
 - compare to `job.deleteTokenHash`;
-- delete original, processed, and job metadata keys;
+- delete original, processed, and metadata keys;
 - return `204`.
 
-Errors:
+## Quality DRY contract
 
-- `401 invalid_delete_token`
-- `404 image_not_found`
-- `500 delete_failed`
+Root scripts should follow the IngestLens/Webpresso shape:
 
-## Security and Privacy
-
-- API keys live in Wrangler secrets, not repo files.
-- Public repo includes `.dev.vars.example`, never `.dev.vars`.
-- Delete token is shown once and never stored in plaintext.
-- Metadata never exposes provider response details or secrets.
-- Exact CORS per environment if API and UI are on separate origins; same-origin is preferred.
-- Upload size limit prevents accidental memory exhaustion.
-- Log request IDs and failure classes, not image bytes or provider secrets.
-
-## UX Requirements
-
-```text
-Initial
-  └── Upload card: supported formats + size limit visible
-
-File selected
-  ├── client-side preview
-  ├── "Remove background + flip" button
-  └── validation errors before upload
-
-Processing
-  ├── disabled form
-  ├── status timeline
-  │   ├── validating
-  │   ├── uploading
-  │   ├── removing background
-  │   └── flipping
-  └── clear "this can take a few seconds" state
-
-Success
-  ├── processed image preview
-  ├── copyable image URL
-  ├── download link
-  └── delete button with confirmation
-
-Delete success
-  ├── result disabled
-  └── "image deleted" confirmation
-
-Error
-  ├── specific recoverable message
-  ├── failed phase visible
-  └── retry affordance
+```jsonc
+{
+  "scripts": {
+    "build": "vp run build",
+    "check": "vp check",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
+    "lint": "vp run lint",
+    "test": "vp run test",
+    "check-types": "vp run check-types",
+    "setup:agent": "wp setup",
+    "postinstall": "WP_SKIP_GSTACK=1 WP_SKIP_UPDATE_CHECK=1 wp setup --yes --overwrite",
+    "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
+    "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
+    "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts"
+  }
+}
 ```
 
-## Implementation Tasks
+Test config reuse:
+
+- Worker tests import `workersConfig` from `@webpresso/agent-kit/vitest/workers`.
+- Client tests import `reactConfig` from `@webpresso/agent-kit/vitest/react`.
+- Infra/node tests import `nodeConfig` from `@webpresso/agent-kit/vitest/node`.
+- Configs merge with `mergeConfig` from `vite-plus/test/config`.
+- Normal verification prefers `ak_test`, `ak_typecheck`, `ak_lint`, and `ak_qa`
+  when those structured lanes are available.
+
+Do not create local wrappers that duplicate `vp`, `wp`, `ak_*`, or agent-kit
+Vitest presets.
+
+## E2E DRY contract
+
+Adopt the IngestLens agent-kit pattern:
+
+```ts
+// agent-kit.config.ts
+export const agentKitConfig = {
+  e2e: {
+    hostAdapterModule: "./apps/e2e/src/agent-kit-host-adapter.ts",
+  },
+} as const;
+
+export default agentKitConfig;
+```
+
+`apps/e2e` owns only project-specific journeys and suite registration:
+
+```text
+apps/e2e/
+  journeys/
+    smoke.e2e.ts              # /health and app shell
+    upload-delete.e2e.ts      # mock provider: upload -> ready -> image -> delete -> 404
+    production-smoke.spec.ts  # edge-matte.ozby.dev read-only smoke
+  src/
+    e2e-suite-manifest.ts     # suite ids, aliases, file matchers, steps
+    agent-kit-host-adapter.ts # list/resolve/buildExecutionPlan for agent-kit
+    cli/run-e2e.ts            # thin command that dispatches manifest steps
+  playwright.config.ts        # uses agent-kit e2e preset + E2E_CLIENT_URL
+```
+
+Suites:
+
+| Suite | Runner | Purpose | CI use |
+|---|---|---|---|
+| `smoke` | Vitest or Playwright | `/health` and SPA shell boot | PR + main |
+| `upload-delete` | Playwright | mock provider full user flow | PR |
+| `production-smoke` | Playwright | `edge-matte.ozby.dev` read-only canary | post-deploy |
+| `full` | mixed | all non-destructive journeys | pre-release/manual |
+
+The local e2e runner may start `wrangler dev` on random ports and inject mock
+provider vars, but orchestration must stay small and generated from the suite
+manifest. Do not fork a second QA framework; expose suites through agent-kit so
+`ak_qa` can choose targeted runs by suite or file.
+
+## Implementation tasks
 
 ### Phase 1 — Public repo shell and docs
 
-- [ ] Create `README.md`, `LICENSE`, `.gitignore`, `package.json`, `tsconfig.json`, `wrangler.toml`, and CI workflow.
-- [ ] Document live URL placeholder, setup, secrets, architecture, trade-offs, and verification commands.
-- [ ] Add `.dev.vars.example` with `BACKGROUND_PROVIDER=photoroom` and `PHOTOROOM_API_KEY=...`.
+- [ ] Add `LICENSE`, `package.json`, `tsconfig.json`, app packages, Cloudflare config, and CI workflow.
+- [ ] Add README with live URL, setup, secrets, architecture, trade-offs, and verification commands.
+- [ ] Add `.dev.vars.example` with `BACKGROUND_PROVIDER=photoroom` and placeholder provider key.
+- [ ] Add `agent-kit.config.ts` and root scripts that route quality/e2e through agent-kit/vite-plus.
 
 ### Phase 2 — Cloudflare Worker API
 
-- [ ] Build Hono routes for job upload, job status read, image read, and delete.
-- [ ] Add upload validation with size, MIME, and magic-byte checks.
-- [ ] Add typed response/error helpers.
+- [ ] Build Hono routes for upload, status, image read, delete, and health.
+- [ ] Add Hono `bodyLimit`, multipart parsing, MIME/magic-byte validation, and typed errors.
 - [ ] Generate Worker types with `wrangler types`.
+- [ ] Keep assets and API same-origin under `edge-matte.ozby.dev`.
 
 ### Phase 3 — Core pipeline and adapters
 
-- [ ] Implement `ImageJob` key derivation, status transitions, and delete-token hashing.
-- [ ] Implement R2-backed `JobStore`.
-- [ ] Implement R2-backed `ImageStore`.
-- [ ] Implement `ProcessingRunner.run()` orchestration.
-- [ ] Implement `PhotoroomBackgroundRemovalProvider`.
-- [ ] Implement mock provider for tests.
-- [ ] Implement `CloudflareImagesTransformer`.
-- [ ] Ensure partial failures update status and delete orphaned image objects where safe.
-- [ ] Add optional queue-mode adapter only after inline processing is green.
+- [ ] Implement `ImageJob`, key derivation, status transitions, and delete-token hashing.
+- [ ] Implement R2-backed `JobRepository` and `ImageObjectStore`.
+- [ ] Implement `processImageJob()` orchestration.
+- [ ] Implement `PhotoroomBackgroundRemovalProvider` and mock provider.
+- [ ] Implement `CloudflareImagesTransformer` and mock transformer.
+- [ ] Ensure partial failures update status and cleanup safe orphaned objects.
+- [ ] Keep queue adapter out of v1 unless inline deploy is already green.
 
 ### Phase 4 — UI
 
 - [ ] Build polished single-page upload UI.
-- [ ] Add client-side validation, preview, status timeline, result preview, copy URL, download, delete confirmation, and error recovery.
-- [ ] Keep the UI company-neutral and OSS-oriented.
+- [ ] Add preview, validation, status timeline, result preview, copy URL, download, delete confirmation, and retry/error recovery.
+- [ ] Keep UI company-neutral and OSS-oriented.
 
 ### Phase 5 — Infra and deployment
 
-- [ ] Add `infra/Pulumi.yaml` and R2 bucket resource.
-- [ ] Keep Worker routes/bindings in `wrangler.toml`.
-- [ ] Add R2 lifecycle cleanup for stale failed/intermediate prefixes if supported in account.
-- [ ] Add deploy instructions for Cloudflare secrets and custom domain.
+- [ ] Add Pulumi project for `edge-matte-production-images` R2 bucket and lifecycle cleanup.
+- [ ] Keep Worker routes, assets, bindings, and secret names in Wrangler config.
+- [ ] Configure production route as `edge-matte.ozby.dev` with `custom_domain = true`.
+- [ ] Add deploy instructions for Cloudflare deploy secrets and provider Worker secret.
 
-### Phase 6 — Verification
+### Phase 6 — Verification and E2E
 
-- [ ] Unit test validation, token hashing, key derivation, status transitions, and pipeline cleanup.
-- [ ] Route test upload success/failure with mocked provider/store.
-- [ ] Workers-pool test for R2 binding behavior where practical.
-- [ ] Manual smoke on deployed URL: upload -> status ready -> URL loads -> delete -> URL 404.
+- [ ] Unit test validation, token hashing, key derivation, state transitions, and cleanup.
+- [ ] Hono route tests with mocked provider/store using `app.request()`.
+- [ ] Workers-pool tests for R2 binding behavior where practical.
+- [ ] React/jsdom tests for client state transitions.
+- [ ] Agent-kit e2e suites: `smoke`, `upload-delete`, `production-smoke`, `full`.
+- [ ] Manual smoke on deployed URL: upload -> ready -> image loads -> delete -> 404.
 
-## Testing Plan
+## Coverage map
 
 ```text
 CODE PATHS                                             USER FLOWS
 [+] POST /api/jobs                                     [+] Upload happy path
   ├── valid PNG/JPEG/WebP                                ├── preview before submit
-  ├── [GAP] missing file                                 ├── status timeline during provider call
-  ├── [GAP] multiple files                               ├── result preview after processing
-  ├── [GAP] unsupported MIME                             └── copy/download URL
-  ├── [GAP] MIME spoof / bad magic bytes
-  ├── [GAP] file > 8 MiB                               [+] Status flow
-  ├── provider success                                   ├── queued/processing/ready states
-  ├── [GAP] provider timeout/failure                     ├── failed state with safe error
-  ├── transform success                                  └── deleted state disappears
-  ├── [GAP] transform failure
-  └── [GAP] cleanup on partial failure                 [+] Delete flow
+  ├── missing file                                       ├── status timeline during provider call
+  ├── multiple files                                     ├── result preview after processing
+  ├── unsupported MIME                                   └── copy/download URL
+  ├── MIME spoof / bad magic bytes
+  ├── file > 8 MiB                                     [+] Status flow
+  ├── provider success                                   ├── processing/ready states
+  ├── provider timeout/failure                           ├── failed state with safe error
+  ├── transform success                                  └── deleted job returns gone
+  ├── transform failure
+  └── cleanup on partial failure                       [+] Delete flow
                                                            ├── confirmation before delete
 [+] GET /api/jobs/:id                                    ├── success clears UI state
-  ├── job exists/status public                           └── [GAP] second delete shows gone
-  ├── [GAP] failed job redacts internals
-  └── [GAP] deleted job returns 404                    [+] Error states
+  ├── job exists/status public                           └── second delete shows gone
+  ├── failed job redacts internals
+  └── deleted job returns 404                          [+] Error states
                                                            ├── validation error
 [+] GET /i/:id                                            ├── provider unavailable
   ├── processed exists                                    ├── transform unavailable
-  └── [GAP] deleted/missing image                         └── network retry
+  └── deleted/missing image                               └── network retry
 
 [+] DELETE /api/jobs/:id
   ├── valid token deletes all keys
-  ├── [GAP] invalid token returns 401
-  ├── [GAP] missing record returns 404
-  └── [GAP] partial delete failure reports 500
+  ├── invalid token returns 401
+  ├── missing record returns 404
+  └── partial delete failure reports 500
 ```
 
-Required tests:
+## Verification commands
 
-- `src/domain/image-job.test.ts`
-- `src/validation/upload.test.ts`
-- `src/pipeline/processing-runner.test.ts`
-- `src/routes/jobs.test.ts`
-- `src/platform/r2-job-store.workers.test.ts` if Workers pool can cover R2 cheaply
-- one Playwright or Vitest browser interaction smoke for the UI if time remains
-
-## Verification Commands
+Preferred local commands:
 
 ```bash
 pnpm install
+pnpm format:check
 pnpm lint
 pnpm check-types
 pnpm test
 pnpm build
+pnpm docs:check
+pnpm blueprints:check
+pnpm e2e -- --suite smoke
+pnpm e2e -- --suite upload-delete
 pnpm exec wrangler deploy --dry-run
 ```
 
-Manual deployed smoke:
+Preferred agent lanes when available:
 
 ```text
-1. Open live URL.
-2. Upload PNG/JPEG/WebP under 8 MiB.
-3. Confirm job status reaches ready.
-4. Confirm processed image has transparent background and horizontal flip.
-5. Open returned image URL in a new tab.
-6. Delete from UI.
-7. Reload image URL and confirm 404.
+ak_test        # tests
+ak_typecheck   # typecheck
+ak_lint        # lint
+ak_qa          # targeted/full QA, including e2e suites through host adapter
+ak_audit       # docs/blueprint lifecycle checks
 ```
 
-## 6-Hour Execution Plan
+Post-deploy smoke:
+
+```text
+1. Open https://edge-matte.ozby.dev.
+2. Confirm /health returns OK.
+3. Run production-smoke e2e against https://edge-matte.ozby.dev.
+4. Manually upload PNG/JPEG/WebP under 8 MiB.
+5. Confirm job reaches ready and returned image is background-removed + flipped.
+6. Open returned image URL in a new tab.
+7. Delete from UI.
+8. Reload image URL and confirm 404.
+```
+
+## CI/CD plan
+
+PR/push CI:
+
+```text
+checkout
+-> setup pnpm + package cache
+-> pnpm install --frozen-lockfile
+-> pnpm format:check
+-> pnpm lint
+-> pnpm check-types
+-> pnpm test
+-> pnpm e2e -- --suite smoke
+-> pnpm e2e -- --suite upload-delete
+-> pnpm build
+-> pnpm docs:check
+-> pnpm blueprints:check
+-> wrangler deploy --dry-run
+```
+
+Production deploy on `main`:
+
+```text
+CI gates
+-> cloudflare/wrangler-action@v3 deploy --env production
+-> GitHub environment: production
+-> environment URL: https://edge-matte.ozby.dev
+-> pnpm e2e -- --suite production-smoke
+-> curl -fsS https://edge-matte.ozby.dev/health
+```
+
+Secrets:
+
+- GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+- Cloudflare Worker secret: `PHOTOROOM_API_KEY` via `wrangler secret put PHOTOROOM_API_KEY --env production`.
+- Do not store provider secrets in GitHub unless a CI job explicitly rotates them.
+
+## 6-hour execution plan
 
 | Time | Work |
 |---|---|
-| 0:00-0:30 | Scaffold repo, configs, README skeleton, Cloudflare bindings. |
-| 0:30-1:30 | Job model, upload validation, R2 job/image stores, token hashing. |
-| 1:30-2:30 | Provider adapter, transform adapter, processing runner, status transitions. |
-| 2:30-3:30 | Hono job/image/delete routes and typed errors. |
+| 0:00-0:30 | Scaffold repo, package scripts, agent-kit config, Cloudflare config, README skeleton. |
+| 0:30-1:30 | Job model, validation, R2 repositories/stores, token hashing. |
+| 1:30-2:30 | Provider adapter, transform adapter, pure pipeline core, status transitions. |
+| 2:30-3:30 | Hono routes, typed errors, health route, route tests. |
 | 3:30-4:30 | Polished UI with status timeline and result/delete flows. |
-| 4:30-5:15 | Unit/route tests and deploy dry-run. |
-| 5:15-5:45 | Live deployment and smoke test. |
-| 5:45-6:00 | README final pass, architecture diagram, known caveats. |
+| 4:30-5:15 | Unit/route/worker/client tests plus agent-kit e2e smoke/upload-delete. |
+| 5:15-5:45 | Production deploy to `edge-matte.ozby.dev` and production-smoke e2e. |
+| 5:45-6:00 | README final pass, architecture docs, known caveats. |
 
-## Risks and Mitigations
+## Risks and mitigations
 
 | Risk | Mitigation |
 |---|---|
-| Full-platform scope blows the timebox | Ship inline runner first; queue mode is conditional. |
-| Cloudflare Images binding unavailable | Switch to URL-based `cf.image` flip with private raw route and loop guard. |
-| Provider quota/API friction | Keep adapter boundary; Photoroom default, remove.bg documented fallback. |
-| Worker memory pressure | 8 MiB cap, streaming where possible, no batch uploads. |
-| Public repo install friction from private packages | Avoid requiring Webpresso packages unless public install path is verified. |
-| Partial storage after failure | Runner updates failed status and deletes orphaned image objects where safe. |
-| Delete token lost by user | Document that token is shown once; no auth means no recovery. Acceptable for demo. |
+| Scope blows the timebox | Inline runner first; queue adapter stays conditional. |
+| Cloudflare Images binding unavailable | Switch to URL-based Cloudflare image transform behind the same `ImageTransformer` port. |
+| Provider quota/API friction | Keep mock provider for tests; document provider setup and quota caveat. |
+| Worker memory pressure | 8 MiB upload cap, no batch uploads, stream where practical. |
+| Public install friction from Webpresso packages | Keep runtime independent; document agent-kit access path instead of copying quality tooling. |
+| E2E harness drift | Use agent-kit host adapter and suite manifest; no second local QA framework. |
+| Partial storage after failure | Runner updates failed status and deletes safe orphaned objects. |
+| Delete token lost | Document one-time capability behavior; no recovery in v1. |
 
-## Distribution
+## Review notes
 
-- Public GitHub repo: `edge-matte`.
-- License: MIT.
-- Live deployment: Cloudflare custom domain or `workers.dev` URL.
-- CI: GitHub Actions with `pnpm install`, lint, typecheck, tests, build, and `wrangler deploy --dry-run`.
-- Deploy: manual `wrangler deploy --env prd` after setting Cloudflare secrets.
-
-## Review Notes
-
-- The plan intentionally spends complexity on visible job lifecycle and reliable artifact cleanup.
-- The provider/transform/store/job interfaces are the DRY seams. Do not add more abstractions unless implementation shows duplication.
-- The README should explicitly call out what is production-minded vs demo-scoped so the project looks honest, not overclaimed.
+- This is the most elegant architecture for v1: small runtime, explicit ports,
+  stable public contract, and no queue/database until evidence requires them.
+- DRY means reusing agent-kit/vite-plus/e2e rails and keeping one core pipeline,
+  not creating abstractions for hypothetical providers.
+- SOLID means adapters at real side-effect boundaries only.
+- KISS means one Worker, one bucket, one flow, one production URL.
