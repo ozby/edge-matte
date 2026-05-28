@@ -6,7 +6,7 @@ import {
   isTerminalStatus,
   statusLabel,
   validateSelectedFile,
-} from "../src/format";
+} from "#format";
 
 describe("format helpers", () => {
   it("formats file sizes for UI copy", () => {

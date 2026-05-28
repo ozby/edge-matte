@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createAppForTest } from "../src/app";
+import { createAppForTest, wireAppEvents } from "#app";
 
 const PNG_BYTES = Uint8Array.of(
   0x89,
@@ -100,5 +100,65 @@ describe("upload flow controller", () => {
     const bad = new File([Uint8Array.of(0x00)], "bad.bin", { type: "application/octet-stream" });
     app.selectFile(bad);
     expect(app.getState()).toMatchObject({ phase: "error", recoverable: true });
+  });
+
+  describe("wired event handlers", () => {
+    const makePngFile = () => new File([PNG_BYTES], "drop.png", { type: "image/png" });
+
+    it("drop event with an image file moves the app into preview", () => {
+      const mount = document.createElement("div");
+      const { app, ui } = createAppForTest(mount);
+      wireAppEvents(ui, app);
+
+      const dropEvent = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(dropEvent, "dataTransfer", {
+        value: { files: [makePngFile()] },
+      });
+      ui.dropZone.dispatchEvent(dropEvent);
+
+      expect(app.getState().phase).toBe("preview");
+    });
+
+    it("drop event without files is a safe no-op (does not crash on optional chain)", () => {
+      const mount = document.createElement("div");
+      const { app, ui } = createAppForTest(mount);
+      wireAppEvents(ui, app);
+
+      const dropEvent = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(dropEvent, "dataTransfer", { value: { files: [] } });
+      ui.dropZone.dispatchEvent(dropEvent);
+
+      expect(app.getState().phase).toBe("idle");
+    });
+
+    it("paste event with an image file moves the app into preview", () => {
+      const mount = document.createElement("div");
+      const { app, ui } = createAppForTest(mount);
+      wireAppEvents(ui, app);
+
+      const pasteEvent = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(pasteEvent, "clipboardData", {
+        value: { files: [makePngFile()] },
+      });
+      document.dispatchEvent(pasteEvent);
+
+      expect(app.getState().phase).toBe("preview");
+    });
+
+    it.each([
+      ["Enter", "Enter key"],
+      [" ", "Space key"],
+    ])("keydown %s on the drop target opens the file picker", (key) => {
+      const mount = document.createElement("div");
+      const { app, ui } = createAppForTest(mount);
+      wireAppEvents(ui, app);
+
+      const clickSpy = vi.spyOn(ui.fileInput, "click").mockImplementation(() => undefined);
+      const dropTarget = ui.dropZone.querySelector(".drop-target");
+      if (!(dropTarget instanceof HTMLElement)) throw new Error("drop-target missing");
+      dropTarget.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+
+      expect(clickSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

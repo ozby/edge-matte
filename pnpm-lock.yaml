@@ -25,6 +25,13 @@ importers:
         version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@26.1.0)(tsx@4.22.3)(typescript@5.9.3)(vite@7.3.3(@types/node@24.12.4)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))(yaml@2.9.0)
 
   apps/client:
+    dependencies:
+      '@fontsource-variable/dm-sans':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/dm-mono':
+        specifier: ^5.2.7
+        version: 5.2.7
     devDependencies:
       jsdom:
         specifier: ^26.1.0
@@ -865,6 +872,12 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/dm-sans@5.2.8':
+    resolution: {integrity: sha512-AxkvMTvNWgfrmlyjiV05vlHYJa+nRQCf1EfvIrQAPBpFJW0O9VTz7oAFr9S3lvbWdmnFoBk7yFqQL86u64nl2g==}
+
+  '@fontsource/dm-mono@5.2.7':
+    resolution: {integrity: sha512-Ma1az2atTVgQWuOWwjuxx26p/6A6CU9HBNKq1CFV6YKpKhpswnf9ry9Ql4+T6bTZzkdtSfS6tjJvqZOljVzIFQ==}
 
   '@gar/promise-retry@1.0.3':
     resolution: {integrity: sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==}
@@ -5371,6 +5384,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.0':
     optional: true
+
+  '@fontsource-variable/dm-sans@5.2.8': {}
+
+  '@fontsource/dm-mono@5.2.7': {}
 
   '@gar/promise-retry@1.0.3': {}
 

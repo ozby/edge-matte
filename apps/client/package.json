@@ -3,12 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "lint": "vp lint src test --tsconfig tsconfig.json --type-aware"
+  },
+  "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource/dm-mono": "^5.2.7"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

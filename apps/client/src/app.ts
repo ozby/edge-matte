@@ -190,4 +190,43 @@ export const wireAppEvents = (ui: UiElements, app: AppController): void => {
   ui.copyButton.addEventListener("click", () => {
     void app.copyResultUrl();
   });
+
+  // Drop zone — click on the visual target opens the file picker
+  const dropTarget = ui.dropZone.querySelector(".drop-target");
+  if (dropTarget instanceof HTMLElement) {
+    dropTarget.addEventListener("click", () => ui.fileInput.click());
+    dropTarget.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        ui.fileInput.click();
+      }
+    });
+  }
+
+  // Drag-and-drop
+  ui.dropZone.addEventListener("dragenter", (e: DragEvent) => {
+    e.preventDefault();
+    ui.dropZone.classList.add("drag-over");
+  });
+  ui.dropZone.addEventListener("dragover", (e: DragEvent) => {
+    e.preventDefault();
+    ui.dropZone.classList.add("drag-over");
+  });
+  ui.dropZone.addEventListener("dragleave", (e: DragEvent) => {
+    if (!ui.dropZone.contains(e.relatedTarget as Node | null)) {
+      ui.dropZone.classList.remove("drag-over");
+    }
+  });
+  ui.dropZone.addEventListener("drop", (e: DragEvent) => {
+    e.preventDefault();
+    ui.dropZone.classList.remove("drag-over");
+    const file = e.dataTransfer?.files[0];
+    if (file) app.selectFile(file);
+  });
+
+  // Paste from clipboard
+  document.addEventListener("paste", (e: ClipboardEvent) => {
+    const file = e.clipboardData?.files[0];
+    if (file) app.selectFile(file);
+  });
 };

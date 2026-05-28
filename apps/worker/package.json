@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "wrangler dev",
+    "dev:mock": "wrangler dev --var E2E_MOCK_PIPELINE:1",
     "build": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
     "test": "pnpm --filter @edge-matte/client run build && vitest run",

@@ -128,3 +128,4 @@ agent-rules/ts-coding-conventions.md
 .claude/settings.json
 .claude/agents/
 .claude/hooks/
+.gstack/

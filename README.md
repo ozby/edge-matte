@@ -38,12 +38,14 @@ pnpm install --frozen-lockfile
 
 ### No-setup path — mock pipeline (recommended for a quick look)
 
-Background removal uses the Cloudflare Images `IMAGES` binding (BiRefNet, native to the platform) — no external API key required. The mock pipeline swaps the real binding for in-memory mocks so the full upload → process → host → delete flow works without any Cloudflare account setup.
+Background removal in production uses Cloudflare's native `cf.image segment: "foreground"` CDN transform (BiRefNet) via a Worker sub-request — no external API key required. The mock pipeline swaps that path for in-memory mocks so the full upload → process → host → delete flow works without any Cloudflare account setup.
 
 ```
 cd apps/worker
-E2E_MOCK_PIPELINE=1 pnpm dev
+pnpm dev:mock
 ```
+
+(`dev:mock` is `wrangler dev --var E2E_MOCK_PIPELINE:1`; the shell-only `E2E_MOCK_PIPELINE=1` form does **not** propagate to Workers `env` and will land on the real cf.image path, which 502s in miniflare.)
 
 Then open the URL printed by `wrangler dev` and exercise the UI.
 

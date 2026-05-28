@@ -1,13 +1,16 @@
 name = "edge-matte"
 account_id = "e93986039ea9bd9729fa534a29e9e88f" # ozby account — public identifier; matches ingest-lens
 main = "apps/worker/src/index.ts"
-compatibility_date = "2026-05-27"
+compatibility_date = "2025-12-10"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "apps/client/dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+# Force every request through the Worker so the security-headers middleware
+# applies to SPA shell responses, not just /api routes.
+run_worker_first = true
 
 [images]
 binding = "IMAGES"
@@ -34,6 +37,7 @@ APP_ORIGIN = "https://edge-matte.ozby.dev"
 directory = "apps/client/dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+run_worker_first = true
 
 [env.production.images]
 binding = "IMAGES"

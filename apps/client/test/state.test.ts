@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  canSelectFile,
-  canSubmitUpload,
-  initialUiState,
-  showDeleteConfirmation,
-} from "../src/state";
+import { canSelectFile, canSubmitUpload, initialUiState, showDeleteConfirmation } from "#state";
 
 describe("ui state guards", () => {
   it("starts idle and only allows upload from preview or recoverable error", () => {

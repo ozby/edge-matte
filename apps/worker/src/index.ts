@@ -68,6 +68,7 @@ export const createWorkerApp = (env?: WorkerEnv) => {
     repository: new R2JobRepository(env.IMAGES_BUCKET),
     objectStore: new R2ImageObjectStore(env.IMAGES_BUCKET),
     rawBucket: env.IMAGES_BUCKET,
+    assets: env.ASSETS,
     provider: useExplicitMockPipeline
       ? new MockBackgroundRemovalProvider()
       : new CfImageSegmentProvider(env.IMAGES_BUCKET, env.APP_ORIGIN),

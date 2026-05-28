@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createUi, renderUi } from "../src/ui";
+import { createUi, renderUi } from "#ui";
 
 describe("ui rendering", () => {
   it("shows progress and disables upload while processing", () => {
@@ -18,6 +18,53 @@ describe("ui rendering", () => {
     expect(ui.spinner.hidden).toBe(false);
     // Preview shows the original during processing — result is not ready yet.
     expect(ui.previewImage.src).toBe("blob:preview");
+    // Drop zone must be hidden once a file is selected — two competing affordances are confusing.
+    expect(ui.dropZone.hidden).toBe(true);
+  });
+
+  it("hides the drop zone in every phase where a file or result already exists", () => {
+    const mount = document.createElement("div");
+    const ui = createUi(mount);
+    const job = {
+      id: "job_123",
+      status: "ready" as const,
+      imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+      pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
+      errorCode: null,
+      createdAt: "2026-05-27T00:00:00.000Z",
+      updatedAt: "2026-05-27T00:00:00.000Z",
+    };
+
+    renderUi(ui, { phase: "idle" });
+    expect(ui.dropZone.hidden).toBe(false);
+
+    renderUi(ui, {
+      phase: "preview",
+      previewUrl: "blob:preview",
+      fileName: "x.png",
+      fileSize: 1024,
+    });
+    expect(ui.dropZone.hidden).toBe(true);
+
+    renderUi(ui, { phase: "uploading", previewUrl: "blob:preview", fileName: "x.png" });
+    expect(ui.dropZone.hidden).toBe(true);
+
+    renderUi(ui, { phase: "ready", previewUrl: "blob:preview", job, deleteToken: "t" });
+    expect(ui.dropZone.hidden).toBe(true);
+
+    renderUi(ui, {
+      phase: "confirm-delete",
+      previewUrl: "blob:preview",
+      job,
+      deleteToken: "t",
+    });
+    expect(ui.dropZone.hidden).toBe(true);
+
+    renderUi(ui, { phase: "deleted" });
+    expect(ui.dropZone.hidden).toBe(false);
+
+    renderUi(ui, { phase: "error", message: "boom", recoverable: true });
+    expect(ui.dropZone.hidden).toBe(false);
   });
 
   it("reveals hosted URL actions when ready", () => {
