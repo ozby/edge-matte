@@ -82,6 +82,8 @@ describe("upload flow controller", () => {
     expect(app.getState().phase).toBe("ready");
     expect(ui.resultPanel.hidden).toBe(false);
     expect(ui.resultUrl.textContent).toContain("/i/job_test");
+    // Preview must swap to the PROCESSED result, not stay on the original blob URL.
+    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
 
     app.requestDelete();
     expect(app.getState().phase).toBe("confirm-delete");

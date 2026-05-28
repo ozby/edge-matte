@@ -100,6 +100,14 @@ describe("upload-delete API contract coverage", () => {
     expect(imageResponse.status).toBe(200);
     expect(imageResponse.headers.get("content-type")).toMatch(/image\//u);
 
+    // Validate the body is a non-empty PNG — not just a 200 with wrong content.
+    const imageBytes = new Uint8Array(await imageResponse.arrayBuffer());
+    expect(imageBytes.length).toBeGreaterThan(100);
+    // PNG magic bytes: \x89PNG\r\n\x1a\n
+    expect(Array.from(imageBytes.slice(0, 4))).toStrictEqual([0x89, 0x50, 0x4e, 0x47]);
+    // Output must differ from input (proves the pipeline transformed it, not a pass-through).
+    expect(imageBytes.length).not.toBe(PNG_BYTES.length);
+
     const deleteResponse = await fetch(new URL(`/api/jobs/${created.id}`, baseUrl), {
       method: "DELETE",
       headers: { "content-type": "application/json" },
