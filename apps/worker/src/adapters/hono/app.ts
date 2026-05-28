@@ -104,8 +104,8 @@ export const createApp = (
     }
   });
 
-  // PoC: serves raw R2 objects so cf.image can apply CDN transforms via sub-request.
-  app.get("/poc/raw/:key", async (c) => {
+  // Internal: serves raw R2 objects so cf.image can apply CDN transforms via sub-request.
+  app.get("/internal/raw/:key", async (c) => {
     if (!deps.rawBucket) return new Response("not available", { status: 404 });
     const key = decodeURIComponent(c.req.param("key"));
     const obj = await deps.rawBucket.get(key);

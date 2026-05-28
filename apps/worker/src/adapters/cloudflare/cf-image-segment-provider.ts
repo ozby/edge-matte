@@ -1,7 +1,7 @@
 import { AppError } from "#core/errors";
 import type { BackgroundRemovalProvider } from "#ports";
 
-const randomKey = () => `poc/tmp/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const randomKey = () => `segment-tmp/${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export class CfImageSegmentProvider implements BackgroundRemovalProvider {
   constructor(
@@ -20,7 +20,7 @@ export class CfImageSegmentProvider implements BackgroundRemovalProvider {
       // Sub-request to the Worker's own serving route triggers Cloudflare's
       // CDN image transform pipeline (cf.image), which is distinct from the
       // Workers Images binding and produces solid-mask background removal.
-      const response = await fetch(`${this.appOrigin}/poc/raw/${encodeURIComponent(key)}`, {
+      const response = await fetch(`${this.appOrigin}/internal/raw/${encodeURIComponent(key)}`, {
         cf: {
           image: { segment: "foreground" },
         } as RequestInitCfProperties,
