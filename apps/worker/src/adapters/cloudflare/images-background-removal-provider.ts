@@ -28,7 +28,11 @@ export class CloudflareImagesBackgroundRemovalProvider implements BackgroundRemo
       const response = await result.response();
       if (!response.ok) {
         const body = await response.text().catch(() => "");
-        throw new AppError(502, "background_provider_failed", `status=${response.status} body=${body}`);
+        throw new AppError(
+          502,
+          "background_provider_failed",
+          `status=${response.status} body=${body}`,
+        );
       }
       return response.blob();
     } catch (error) {
