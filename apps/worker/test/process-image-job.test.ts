@@ -4,8 +4,8 @@ import {
   toPublicImageJob,
   verifyDeleteToken,
   type ImageJob,
-} from "../src/core/image-job";
-import { deriveObjectKeys } from "../src/core/object-keys";
+} from "#core/image-job";
+import { deriveObjectKeys } from "#core/object-keys";
 import {
   AppError,
   errorResponse,
@@ -13,14 +13,14 @@ import {
   imageNotFoundError,
   invalidDeleteTokenError,
   unsupportedMediaTypeError,
-} from "../src/core/errors";
-import { MAX_UPLOAD_BYTES, processImageJob } from "../src/core/process-image-job";
+} from "#core/errors";
+import { MAX_UPLOAD_BYTES, processImageJob } from "#core/process-image-job";
 import type {
   BackgroundRemovalProvider,
   ImageObjectStore,
   ImageTransformer,
   JobRepository,
-} from "../src/ports";
+} from "#ports";
 
 const PNG_BYTES = Uint8Array.of(
   0x89,

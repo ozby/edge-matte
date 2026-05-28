@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAX_UPLOAD_BYTES } from "../src/core/process-image-job";
-import { createWorkerApp } from "../src/index";
+import { MAX_UPLOAD_BYTES } from "#core/process-image-job";
+import { createWorkerApp } from "#index";
 
 const PNG_BYTES = Uint8Array.of(
   0x89,

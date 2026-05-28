@@ -47,7 +47,7 @@ Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provi
 
 | Doppler project | Holds                                                                       |
 | --------------- | --------------------------------------------------------------------------- |
-| `edge-matte`    | App-local secrets when populated (e.g. `PHOTOROOM_API_KEY` for dev)         |
+| `edge-matte`    | App-local secrets when populated                                            |
 | `ozby-shell`    | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
 **Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points
@@ -57,20 +57,6 @@ applies that default through the canonical **`wp config secrets set`** surface
 execution still goes through **`with-secrets -- <cmd>`**, which reads the
 runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 
-For **app-local dev keys** (e.g. testing `PHOTOROOM_API_KEY` locally), switch
-the wp selection to Doppler project `edge-matte` once — deploy and CI still use
-`ozby-shell` via the committed default:
-
-```bash
-wp config secrets set doppler edge-matte --label "edge-matte (app dev keys)"
-```
-
-```bash
-pnpm run setup:secrets   # force re-apply after editing the committed default
-wp config secrets show
-with-secrets -- wrangler deploy --env production
-```
-
 ### Security rules for the committed config
 
 - Allowed keys: `manager`, `projectId`, `projectLabel` only — **no secret values**.
@@ -79,30 +65,20 @@ with-secrets -- wrangler deploy --env production
   `.git/webpresso/secrets.json` (untracked, written by `wp`, never committed).
 - CI validates metadata via `pnpm run verify:secrets`.
 
-Production provider keys (`PHOTOROOM_API_KEY`) still live in **Cloudflare
-Worker secrets**, not in GitHub or the app Doppler project.
-
 ## Where each credential lives
 
-| Secret / credential     | Where the value lives                           | Who sets it                          | Used by                                   |
-| ----------------------- | ----------------------------------------------- | ------------------------------------ | ----------------------------------------- |
-| `PHOTOROOM_API_KEY`     | **Cloudflare Worker secret** (production)       | Maintainer via `wrangler secret put` | Worker at runtime                         |
-| `CLOUDFLARE_API_TOKEN`  | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project      | `with-secrets`, Pulumi, `wrangler deploy` |
-| `CLOUDFLARE_ACCOUNT_ID` | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                             | Pulumi preview/up, `wrangler deploy`      |
-| Local dev provider keys | **Doppler** via `with-secrets`                  | Each developer                       | Local `wrangler dev`, tests, e2e          |
+| Secret / credential     | Where the value lives                           | Who sets it                     | Used by                                   |
+| ----------------------- | ----------------------------------------------- | ------------------------------- | ----------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy` |
+| `CLOUDFLARE_ACCOUNT_ID` | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`      |
 
 ### Rules
 
-1. **Provider keys never go to GitHub.** Photoroom and similar third-party API
-   keys are Cloudflare Worker secrets in production and secret-manager injected
-   locally — never repository or Actions secrets.
-2. **Deploy capability comes from `ozby-shell`.** Same split as ingest-lens:
-   infra credentials are shared across repos; EdgeMatte does not fork CF tokens
-   into an app-only Doppler project.
-3. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
+1. **Deploy capability comes from `ozby-shell`.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only Doppler project. No per-app Worker secrets required.
+2. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
    TypeScript `Env` types reference binding/secret names. Values are set with
    `wrangler secret put` or the Cloudflare dashboard.
-4. **Local bootstrap uses committed defaults through wp.** Edit
+3. **Local bootstrap uses committed defaults through wp.** Edit
    `.webpresso/secrets.config.json` (metadata only) in git. `pnpm install`
    runs `wp config secrets set` when no runtime selection exists; local overrides
    from an earlier `wp config secrets set` are preserved. Refresh after changing
@@ -112,28 +88,13 @@ Worker secrets**, not in GitHub or the app Doppler project.
 
 Production Worker runtime expects (names stable; values out-of-band):
 
-| Name                | Kind           | Purpose                        |
-| ------------------- | -------------- | ------------------------------ |
-| `PHOTOROOM_API_KEY` | Secret         | Background removal provider    |
-| `IMAGES_BUCKET`     | R2 binding     | Job metadata and image objects |
-| `IMAGES`            | Images binding | Horizontal flip transform      |
-| `ASSETS`            | Assets binding | SPA static shell               |
+| Name            | Kind           | Purpose                                             |
+| --------------- | -------------- | --------------------------------------------------- |
+| `IMAGES_BUCKET` | R2 binding     | Job metadata and image objects                      |
+| `IMAGES`        | Images binding | Background removal (`segment: "foreground"`) + flip |
+| `ASSETS`        | Assets binding | SPA static shell                                    |
 
-Non-secret vars (e.g. `APP_ORIGIN`) live in `wrangler.toml` `[vars]` /
-`[env.production.vars]`.
-
-### Set production provider secret
-
-```bash
-cd apps/worker
-with-secrets -- wrangler secret put PHOTOROOM_API_KEY --env production
-```
-
-Verify the secret is present (name only — Wrangler does not print values):
-
-```bash
-wrangler secret list --env production
-```
+No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudflare-native BiRefNet). Non-secret vars (e.g. `APP_ORIGIN`) live in `wrangler.toml` `[vars]` / `[env.production.vars]`.
 
 ## GitHub Actions bootstrap
 
@@ -146,8 +107,7 @@ never land in repo files. GitHub stores a single bootstrap token:
    `DOPPLER_TOKEN`).
 
 Workflows run `dopplerhq/secrets-fetch-action`, inject env vars for the job
-only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` or
-`PHOTOROOM_API_KEY` as GitHub repository secrets.
+only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` as a GitHub repository secret.
 
 The deploy workflow runs `scripts/verify-cloudflare-deploy-creds.sh` after
 injection:
@@ -225,11 +185,10 @@ See [README.md](../README.md) for the full local verification surface and
 
 ## Rotation
 
-| Secret                 | Rotation path                                                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `PHOTOROOM_API_KEY`    | Update in Cloudflare (`with-secrets -- wrangler secret put …`), redeploy not required for secret-only updates; verify with smoke e2e |
-| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy                                                                   |
-| Doppler service token  | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub                                                                |
+| Secret                 | Rotation path                                                         |
+| ---------------------- | --------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy    |
+| Doppler service token  | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub |
 
 ## Related
 

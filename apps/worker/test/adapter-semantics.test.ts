@@ -1,16 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { CloudflareImagesTransformer } from "../src/adapters/cloudflare/images-transformer";
-import { PhotoroomProvider } from "../src/adapters/photoroom/photoroom-provider";
+import { describe, expect, it } from "vitest";
+import { CloudflareImagesBackgroundRemovalProvider } from "#adapters/cloudflare/images-background-removal-provider";
+import { CloudflareImagesTransformer } from "#adapters/cloudflare/images-transformer";
 
 const PNG_BYTES = Uint8Array.of(0x89, 0x50, 0x4e, 0x47);
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
-
 describe("worker adapter semantics", () => {
-  it("fails loudly when the Photoroom API key is missing", async () => {
-    const provider = new PhotoroomProvider();
+  it("fails loudly when the IMAGES binding is missing (background removal)", async () => {
+    const provider = new CloudflareImagesBackgroundRemovalProvider(null);
 
     await expect(
       provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" })),
@@ -20,33 +16,46 @@ describe("worker adapter semantics", () => {
     });
   });
 
-  it("passes the deadline signal through to the provider fetch", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(new Blob([PNG_BYTES], { type: "image/png" }), { status: 200 }),
-      );
-    vi.stubGlobal("fetch", fetchMock);
-
-    const provider = new PhotoroomProvider("test-key");
-    const controller = new AbortController();
-
-    await provider.removeBackground(
-      new Blob([PNG_BYTES], { type: "image/png" }),
-      controller.signal,
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://sdk.photoroom.com/v1/segment",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "x-api-key": "test-key" },
-        signal: controller.signal,
+  it("returns a Blob when the IMAGES binding responds OK", async () => {
+    const blob = new Blob([PNG_BYTES], { type: "image/png" });
+    const binding = {
+      input: () => ({
+        transform: () => ({
+          output: () => ({
+            response: async () => new Response(blob, { status: 200 }),
+          }),
+        }),
       }),
-    );
+    };
+
+    const provider = new CloudflareImagesBackgroundRemovalProvider(binding as never);
+    const result = await provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" }));
+
+    expect(result).toBeInstanceOf(Blob);
   });
 
-  it("fails loudly when the Cloudflare Images binding is missing", async () => {
+  it("fails loudly when the IMAGES binding returns a non-OK response (background removal)", async () => {
+    const binding = {
+      input: () => ({
+        transform: () => ({
+          output: () => ({
+            response: async () => new Response(null, { status: 500 }),
+          }),
+        }),
+      }),
+    };
+
+    const provider = new CloudflareImagesBackgroundRemovalProvider(binding as never);
+
+    await expect(
+      provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" })),
+    ).rejects.toMatchObject({
+      code: "background_provider_failed",
+      status: 502,
+    });
+  });
+
+  it("fails loudly when the IMAGES binding is missing (flip transform)", async () => {
     const transformer = new CloudflareImagesTransformer(null);
 
     await expect(

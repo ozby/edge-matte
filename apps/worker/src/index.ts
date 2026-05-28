@@ -3,12 +3,11 @@ import { CloudflareImagesTransformer } from "./adapters/cloudflare/images-transf
 import { MockTransformer } from "./adapters/cloudflare/mock-transformer";
 import { R2ImageObjectStore } from "./adapters/cloudflare/r2-image-object-store";
 import { R2JobRepository } from "./adapters/cloudflare/r2-job-repository";
-import { MockBackgroundRemovalProvider } from "./adapters/photoroom/mock-provider";
-import { PhotoroomProvider } from "./adapters/photoroom/photoroom-provider";
+import { CloudflareImagesBackgroundRemovalProvider } from "./adapters/cloudflare/images-background-removal-provider";
+import { MockBackgroundRemovalProvider } from "./adapters/cloudflare/mock-background-removal-provider";
 import type { ProcessImageJobDeps } from "./core/process-image-job";
 
 type WorkerEnv = Env & {
-  PHOTOROOM_API_KEY?: string;
   IMAGES?: unknown;
   E2E_MOCK_PIPELINE?: string;
 };
@@ -70,7 +69,7 @@ export const createWorkerApp = (env?: WorkerEnv) => {
     objectStore: new R2ImageObjectStore(env.IMAGES_BUCKET),
     provider: useExplicitMockPipeline
       ? new MockBackgroundRemovalProvider()
-      : new PhotoroomProvider(env.PHOTOROOM_API_KEY),
+      : new CloudflareImagesBackgroundRemovalProvider((env.IMAGES ?? null) as never),
     transformer: useExplicitMockPipeline
       ? new MockTransformer()
       : new CloudflareImagesTransformer((env.IMAGES ?? null) as never),

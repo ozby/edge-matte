@@ -38,7 +38,7 @@ pnpm install --frozen-lockfile
 
 ### No-setup path — mock pipeline (recommended for a quick look)
 
-The Worker has a built-in `E2E_MOCK_PIPELINE=1` mode that swaps the Photoroom provider and the Cloudflare Images transformer for in-memory mocks. No API keys, no credentials — the full upload → process → host → delete flow still exercises the real Hono routes, R2 binding, and state machine.
+Background removal uses the Cloudflare Images `IMAGES` binding (BiRefNet, native to the platform) — no external API key required. The mock pipeline swaps the real binding for in-memory mocks so the full upload → process → host → delete flow works without any Cloudflare account setup.
 
 ```
 cd apps/worker
@@ -46,18 +46,6 @@ E2E_MOCK_PIPELINE=1 pnpm dev
 ```
 
 Then open the URL printed by `wrangler dev` and exercise the UI.
-
-### Real-key path — your own Photoroom key
-
-Production keys are managed via the repo's secret manager (Doppler) — never `.dev.vars` files. See [`docs/secrets.md`](./docs/secrets.md) for the two-project model.
-
-```
-wp config secrets set doppler edge-matte
-doppler secrets set PHOTOROOM_API_KEY --project edge-matte --config dev
-with-secrets -- pnpm --filter @edge-matte/worker dev
-```
-
-A free-trial Photoroom key is available at [https://app.photoroom.com](https://app.photoroom.com).
 
 ## Code tour
 
