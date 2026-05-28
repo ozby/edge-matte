@@ -1,19 +1,14 @@
 # EdgeMatte
 
-Cloudflare-native TypeScript reference app for image matting pipelines: upload
-one image, remove its background through a provider adapter, flip it at the
-edge, host the result in R2, and delete every artifact with a capability token.
+Cloudflare-native TypeScript reference app for image matting pipelines: upload one image, remove its background through a provider adapter, flip it at the edge, host the result in R2, and delete every artifact with a capability token.
 
-## Current artifacts
+## Live demo
 
-- [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth and Mermaid charts.
-- [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
-- [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership, post-deploy smoke.
-- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` + Cloudflare Worker secret ownership.
-- [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — governed implementation blueprint with architecture before/after.
-- [`docs/research/2026-05-27-edge-matte-architecture-refinement.md`](./docs/research/2026-05-27-edge-matte-architecture-refinement.md) — DRY/SOLID/KISS refinement and CI/deploy rationale.
-- [`docs/research/2026-05-27-cloudflare-native-image-transform-service.md`](./docs/research/2026-05-27-cloudflare-native-image-transform-service.md) — naming and platform research.
-- [`docs/research/2026-05-27-image-transform-infra-best-practices.md`](./docs/research/2026-05-27-image-transform-infra-best-practices.md) — Cloudflare/Pulumi/Webpresso-aligned infra research.
+**[https://edge-matte.ozby.dev](https://edge-matte.ozby.dev)** — drag an image in, watch the spinner cycle through the four processing phases, copy the hosted URL, then delete.
+
+```
+curl -sf https://edge-matte.ozby.dev/health
+```
 
 ## Architecture at a glance
 
@@ -27,71 +22,113 @@ flowchart LR
     CORE --> BLOBS[(R2 image objects)]
 ```
 
-## Governance
+- **Hono** routes inside one Cloudflare Worker.
+- **Photoroom** adapter for background removal (swap-friendly via the `BackgroundRemovalProvider` port).
+- **Cloudflare Images** binding for the horizontal flip (no library, no upload, native edge transform).
+- **R2** holds both the image bytes and the job metadata.
+- **Capability-token delete**: the create response returns a SHA-256-verified `deleteToken`; the server stores only the hash.
 
-Architecture is enforced as a living contract:
+## Run locally
 
-- human-readable source: [`docs/architecture.md`](./docs/architecture.md)
-- machine-readable contract: [`docs/architecture.contract.json`](./docs/architecture.contract.json)
-- active blueprint linkage + before/after enforcement: [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md)
+Node `>=24`, pnpm `11.1.1`.
 
-Current local drift check:
-
-```bash
-python3 scripts/check_architecture_drift.py
+```
+pnpm install --frozen-lockfile
 ```
 
-## Release and deploy
+### No-setup path — mock pipeline (recommended for a quick look)
 
-Production target: `https://edge-matte.ozby.dev`.
+The Worker has a built-in `E2E_MOCK_PIPELINE=1` mode that swaps the Photoroom provider and the Cloudflare Images transformer for in-memory mocks. No API keys, no credentials — the full upload → process → host → delete flow still exercises the real Hono routes, R2 binding, and state machine.
 
-- [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap
-- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` for deploy creds; provider keys in Cloudflare, not GitHub
-
-Operator-local production deploy:
-
-```bash
-pnpm run deploy:production
+```
+cd apps/worker
+E2E_MOCK_PIPELINE=1 pnpm dev
 ```
 
-Quick verification after deploy:
+Then open the URL printed by `wrangler dev` and exercise the UI.
 
-```bash
-curl -sf https://edge-matte.ozby.dev/health
+### Real-key path — your own Photoroom key
+
+Production keys are managed via the repo's secret manager (Doppler) — never `.dev.vars` files. See [`docs/secrets.md`](./docs/secrets.md) for the two-project model.
+
+```
+wp config secrets set doppler edge-matte
+doppler secrets set PHOTOROOM_API_KEY --project edge-matte --config dev
+with-secrets -- pnpm --filter @edge-matte/worker dev
+```
+
+A free-trial Photoroom key is available at [https://app.photoroom.com](https://app.photoroom.com).
+
+## Code tour
+
+Where to start if you want to read the actual implementation:
+
+| File                                                                                                                       | What it does                                                                                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`apps/worker/src/adapters/hono/app.ts`](./apps/worker/src/adapters/hono/app.ts)                                           | All five HTTP routes (`POST /api/jobs`, `GET /api/jobs/:id`, `GET /i/:id`, `DELETE /api/jobs/:id`, `GET /health`). Shared error envelope.          |
+| [`apps/worker/src/core/process-image-job.ts`](./apps/worker/src/core/process-image-job.ts)                                 | Pure pipeline: validate → upload → bg-removal → flip → store → respond. Adapters are dependency-injected; the core knows nothing about Cloudflare. |
+| [`apps/worker/src/core/image-job.ts`](./apps/worker/src/core/image-job.ts)                                                 | Job lifecycle, delete-token verification, URL derivation.                                                                                          |
+| [`apps/worker/src/core/errors.ts`](./apps/worker/src/core/errors.ts)                                                       | `AppError` + the closed set of error codes the frontend translates.                                                                                |
+| [`apps/worker/src/adapters/photoroom/photoroom-provider.ts`](./apps/worker/src/adapters/photoroom/photoroom-provider.ts)   | Photoroom HTTP integration, abortable, mapped to `AppError`.                                                                                       |
+| [`apps/worker/src/adapters/cloudflare/images-transformer.ts`](./apps/worker/src/adapters/cloudflare/images-transformer.ts) | One-call horizontal flip via the Workers Images binding.                                                                                           |
+| [`apps/client/src/state.ts`](./apps/client/src/state.ts)                                                                   | Eight-phase UI state machine — `idle → preview → uploading → processing → ready → confirm-delete → deleted`, plus `error`.                         |
+| [`apps/client/src/app.ts`](./apps/client/src/app.ts)                                                                       | Controller. Wires `selectFile / submitUpload / requestDelete / confirmDelete / reset / copyResultUrl`.                                             |
+| [`apps/client/src/ui.ts`](./apps/client/src/ui.ts)                                                                         | DOM template + render — semantic HTML, `aria-live` status, no framework.                                                                           |
+
+The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts) is the dependency-injection seam: production uses Photoroom + Cloudflare Images + R2; tests use in-memory mocks via the same port interfaces.
+
+## Tests
+
+```
+pnpm install --frozen-lockfile
+pnpm run test                        # unit + integration
+pnpm run e2e -- --suite smoke        # local smoke (boots wrangler dev)
+pnpm run e2e -- --suite upload-delete  # full contract: create → poll → serve → delete
+```
+
+Production smoke against the deployed URL:
+
+```
 E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 ```
 
-## Local bootstrap surface
+---
 
-This repo includes starter project files for TypeScript/Workers development:
+## Governance and deeper docs
 
-- `tsconfig.json` and `wrangler.toml` for TypeScript/Workers compatibility
-- `pnpm-workspace.yaml` for monorepo package layout
-- `apps/client` and `apps/worker` shells for the EdgeMatte runtime
-- `package.json` for local onboarding (public deps only — no repo-local `@webpresso/*` packages)
+The repo treats architecture as a living contract, not a snapshot. Reviewers can ignore this section — it's for maintainers.
+
+- [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth with Mermaid diagrams.
+- [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
+- [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership split, post-deploy smoke.
+- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` + Cloudflare Worker secret ownership.
+- [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — implementation blueprint with architecture before/after.
+- [`docs/research/`](./docs/research) — naming research, infra best-practices, refinement notes.
+
+The architecture drift check is local and fast:
+
+```
+python3 scripts/check_architecture_drift.py
+```
 
 ### Webpresso tooling (`wp` and `vp`)
 
-EdgeMatte reuses
-[`webpresso/agent-kit`](https://github.com/webpresso/agent-kit) for the same
-**quality and governance rails** as IngestLens instead of inventing parallel
-lint hooks, blueprint checks, or commit conventions. Agent Kit solves the
-cross-agent drift problem here: one maintained source owns repo instructions,
-generated hooks, blueprint/audit policy, and verification command routing while
-EdgeMatte stays focused on the Cloudflare image-matting product. That work is
-handled by global CLI tools on your `PATH`, not by npm dependencies in this repo.
+EdgeMatte reuses [`webpresso/agent-kit`](https://github.com/webpresso/agent-kit) for the same quality and governance rails as IngestLens instead of inventing parallel lint hooks, blueprint checks, or commit conventions. Agent Kit owns one maintained source for repo instructions, generated hooks, blueprint/audit policy, and verification command routing while EdgeMatte stays focused on the Cloudflare image-matting product. The CLIs are global tools on `PATH`, not npm dependencies in this repo.
 
 | Tool     | Role                       | What it solves                                                                                                                                                                                                                                                     |
 | -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`wp`** | Webpresso / agent-kit CLI  | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
 | **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package.                                                        |
 
-Install `@webpresso/agent-kit` globally (or use a sibling Webpresso checkout with `wp`/`vp` on `PATH`). This repo does **not** pin `@webpresso/agent-kit` in `devDependencies` — reviewers can `pnpm install` without GitHub Packages tokens; maintainers install `wp`/`vp` once on their machine (and CI must provide `wp` for audit jobs).
+Install `@webpresso/agent-kit` globally once on your machine (CI installs from public npm as part of the audit jobs). This repo does **not** pin `@webpresso/agent-kit` in `devDependencies` — reviewers can `pnpm install` without registry auth.
 
-Verify bootstrap posture with:
+### Full local verification surface (maintainer only)
+
+<details>
+<summary>Expand the long-form verification recipe</summary>
 
 ```bash
-pnpm install --frozen-lockfile   # prepare hook syncs wp secrets default (seed-only)
+pnpm install --frozen-lockfile
 wp config secrets show
 wp init --dry-run
 vp run -r build
@@ -102,15 +139,31 @@ pnpm run e2e -- --suite smoke
 pnpm run e2e -- --suite upload-delete
 E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 pnpm run verify:secrets
-wp audit absolute-path-policy --root .  # canonical shared audit surface (agents/MCP should prefer this)
-pnpm run verify:paths                   # human/CI wrapper around the shared audit
+wp audit absolute-path-policy --root .
+pnpm run verify:paths
 pnpm run audit:secret-provider-quarantine
 python3 scripts/check_architecture_drift.py
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
 
-Target shared long-term surface across EdgeMatte, IngestLens, and sibling repos:
+</details>
 
-```bash
-wp audit architecture-drift --root .
+## Release and deploy
+
+Production target: `https://edge-matte.ozby.dev`.
+
+- [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap.
+- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` for deploy creds; provider keys in Cloudflare, not GitHub.
+
+Operator-local production deploy:
+
+```
+pnpm run deploy:production
+```
+
+Post-deploy verification:
+
+```
+curl -sf https://edge-matte.ozby.dev/health
+E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
 ```

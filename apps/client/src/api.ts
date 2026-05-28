@@ -39,13 +39,20 @@ export const deleteJob = async (id: string, deleteToken: string): Promise<void> 
   }
 };
 
+export interface PollOptions {
+  intervalMs?: number;
+  maxAttempts?: number;
+  onAttempt?: (attempt: number, maxAttempts: number) => void;
+}
+
 export const pollJobUntilTerminal = async (
   id: string,
-  options: { intervalMs?: number; maxAttempts?: number } = {},
+  options: PollOptions = {},
 ): Promise<PublicImageJob> => {
   const intervalMs = options.intervalMs ?? 250;
   const maxAttempts = options.maxAttempts ?? 40;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    options.onAttempt?.(attempt, maxAttempts);
     const job = await fetchJob(id);
     if (job.status === "ready" || job.status === "failed") {
       return job;

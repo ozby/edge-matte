@@ -79,7 +79,13 @@ const buildApp = (ui: UiElements): AppController => {
         jobId: created.id,
         status: created.status,
       });
-      const job = await pollJobUntilTerminal(created.id);
+      const job = await pollJobUntilTerminal(created.id, {
+        onAttempt: (attempt, max) => {
+          if (attempt >= Math.floor(max * 0.75) && state.phase === "processing") {
+            setState({ ...state, status: "reconnecting" });
+          }
+        },
+      });
       if (job.status === "failed") {
         setState({
           phase: "error",

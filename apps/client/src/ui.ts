@@ -8,6 +8,8 @@ export interface UiElements {
   submitButton: HTMLButtonElement;
   resetButton: HTMLButtonElement;
   statusEl: HTMLElement;
+  statusText: HTMLElement;
+  spinner: HTMLElement;
   previewEl: HTMLElement;
   previewImage: HTMLImageElement;
   metaEl: HTMLElement;
@@ -35,7 +37,10 @@ export const createUi = (mount: HTMLElement): UiElements => {
           <button id="submit-upload" type="button" disabled>Upload &amp; process</button>
           <button id="reset-flow" type="button" hidden>Start over</button>
         </div>
-        <p id="status" class="status">Select a single image to begin.</p>
+        <p id="status" class="status">
+          <span id="spinner" class="spinner" aria-hidden="true" hidden></span>
+          <span id="status-text">Select a single image to begin.</span>
+        </p>
         <p id="error" class="error" hidden></p>
         <figure id="preview" class="preview" hidden>
           <img id="preview-image" alt="Selected upload preview" />
@@ -72,6 +77,8 @@ export const createUi = (mount: HTMLElement): UiElements => {
     submitButton: query("submit-upload"),
     resetButton: query("reset-flow"),
     statusEl: query("status"),
+    statusText: query("status-text"),
+    spinner: query("spinner"),
     previewEl: query("preview"),
     previewImage: query("preview-image"),
     metaEl: query("preview-meta"),
@@ -86,14 +93,17 @@ export const createUi = (mount: HTMLElement): UiElements => {
   };
 };
 
+const TRANSIENT_PHASES = new Set<UiPhase["phase"]>(["uploading", "processing"]);
+
 export const renderUi = (ui: UiElements, state: UiPhase): void => {
   ui.errorEl.hidden = true;
   ui.errorEl.textContent = "";
   ui.resetButton.hidden = state.phase === "idle";
+  ui.spinner.hidden = !TRANSIENT_PHASES.has(state.phase);
 
   switch (state.phase) {
     case "idle":
-      ui.statusEl.textContent = "Select a single image to begin.";
+      ui.statusText.textContent = "Select a single image to begin.";
       ui.previewEl.hidden = true;
       ui.resultPanel.hidden = true;
       ui.submitButton.disabled = true;
@@ -102,7 +112,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.confirmDeleteButton.parentElement!.hidden = true;
       break;
     case "preview":
-      ui.statusEl.textContent = `Ready to upload ${state.fileName} (${formatFileSize(state.fileSize)}).`;
+      ui.statusText.textContent = `Ready to upload ${state.fileName} (${formatFileSize(state.fileSize)}).`;
       ui.previewEl.hidden = false;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = state.fileName;
@@ -111,7 +121,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.pickButton.disabled = false;
       break;
     case "uploading":
-      ui.statusEl.textContent = "Uploading…";
+      ui.statusText.textContent = "Uploading…";
       ui.previewEl.hidden = false;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = state.fileName;
@@ -120,7 +130,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.pickButton.disabled = true;
       break;
     case "processing":
-      ui.statusEl.textContent = statusLabel(state.status);
+      ui.statusText.textContent = statusLabel(state.status);
       ui.previewEl.hidden = false;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = `Job ${state.jobId}`;
@@ -129,7 +139,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.pickButton.disabled = true;
       break;
     case "ready":
-      ui.statusEl.textContent = "Processing complete. Copy or open the hosted URL.";
+      ui.statusText.textContent = "Processing complete. Copy or open the hosted URL.";
       ui.previewEl.hidden = false;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = state.job.id;
@@ -144,7 +154,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.pickButton.disabled = true;
       break;
     case "confirm-delete":
-      ui.statusEl.textContent = "Confirm deletion to remove hosted artifacts.";
+      ui.statusText.textContent = "Confirm deletion to remove hosted artifacts.";
       ui.previewEl.hidden = false;
       ui.resultPanel.hidden = false;
       ui.deleteButton.hidden = true;
@@ -153,14 +163,14 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.pickButton.disabled = true;
       break;
     case "deleted":
-      ui.statusEl.textContent = "Artifacts deleted. The hosted URL should now return 404.";
+      ui.statusText.textContent = "Artifacts deleted. The hosted URL should now return 404.";
       ui.previewEl.hidden = true;
       ui.resultPanel.hidden = true;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = false;
       break;
     case "error":
-      ui.statusEl.textContent = "Upload could not complete.";
+      ui.statusText.textContent = "Upload could not complete.";
       ui.errorEl.hidden = false;
       ui.errorEl.textContent = state.message;
       ui.submitButton.disabled = !state.recoverable;

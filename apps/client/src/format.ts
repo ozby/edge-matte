@@ -52,6 +52,8 @@ export const statusLabel = (status: string): string => {
       return "Removing background…";
     case "flipping":
       return "Flipping image…";
+    case "reconnecting":
+      return "Still working — reconnecting…";
     case "ready":
       return "Ready";
     case "failed":
