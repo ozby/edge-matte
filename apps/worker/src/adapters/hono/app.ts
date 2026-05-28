@@ -46,14 +46,11 @@ export const createApp = (
         if (files.length !== 1 || !(files[0] instanceof File)) {
           throw invalidRequestError();
         }
-        const job = await processImageJob({ file: files[0], appOrigin: deps.appOrigin }, deps);
-        return c.json(
-          {
-            ...toPublicImageJob(job),
-            deleteToken: job.deleteToken,
-          },
-          201,
+        const { job, deleteToken } = await processImageJob(
+          { file: files[0], appOrigin: deps.appOrigin },
+          deps,
         );
+        return c.json({ ...toPublicImageJob(job), deleteToken }, 201);
       } catch (error) {
         const mapped = errorResponse(error);
         return toJsonResponse(mapped.body, mapped.status);
@@ -104,10 +101,16 @@ export const createApp = (
     }
   });
 
-  // Internal: serves raw R2 objects so cf.image can apply CDN transforms via sub-request.
+  // Internal: serves the transient segment-tmp/ prefix only, so cf.image can apply
+  // CDN transforms via sub-request. Any other key (jobs/*.json, images/*) is rejected
+  // — those R2 paths hold the persisted ImageJob and original uploads and must never
+  // be readable through this route.
   app.get("/internal/raw/:key", async (c) => {
     if (!deps.rawBucket) return new Response("not available", { status: 404 });
     const key = decodeURIComponent(c.req.param("key"));
+    if (!key.startsWith("segment-tmp/")) {
+      return new Response("not found", { status: 404 });
+    }
     const obj = await deps.rawBucket.get(key);
     if (!obj) return new Response("not found", { status: 404 });
     return new Response(obj.body, {

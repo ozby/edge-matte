@@ -81,12 +81,18 @@ const removeBackgroundWithDeadline = async (
   }
 };
 
+export interface ProcessImageJobResult {
+  job: ImageJob;
+  deleteToken: string;
+}
+
 export const processImageJob = async (
   command: ProcessImageJobCommand,
   deps: ProcessImageJobDeps,
-): Promise<ImageJob> => {
+): Promise<ProcessImageJobResult> => {
   await assertSupportedFile(command.file);
-  let job = await createImageJob({ appOrigin: command.appOrigin });
+  const { job: initialJob, deleteToken } = await createImageJob({ appOrigin: command.appOrigin });
+  let job = initialJob;
   await deps.repository.create(job);
 
   try {
@@ -109,7 +115,7 @@ export const processImageJob = async (
     await deps.objectStore.putProcessed(job, transformed.body ?? new Blob(), "image/png");
     job = withStatus(job, "ready");
     await deps.repository.update(job);
-    return job;
+    return { job, deleteToken };
   } catch (error) {
     const failedStage = job.status;
     const code =

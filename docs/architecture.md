@@ -3,7 +3,7 @@ type: guide
 title: EdgeMatte Architecture
 status: draft
 created: 2026-05-27
-last_updated: 2026-05-27
+last_updated: 2026-05-28
 ---
 
 # Architecture
@@ -24,7 +24,7 @@ flowchart LR
 
     subgraph WORKER[Cloudflare Worker + Static Assets]
         ASSETS[Workers Static Assets<br/>SPA shell]
-        ROUTES[Hono route adapter<br/>/api/jobs /i/:id /health]
+        ROUTES[Hono route adapter<br/>/api/jobs /i/:id /health<br/>/internal/raw/segment-tmp/*]
         CORE[Pure processImageJob core]
         ROUTES --> CORE
         ROUTES --> ASSETS
@@ -35,10 +35,12 @@ flowchart LR
     CORE --> JOBPORT[JobRepository port]
     CORE --> STOREPORT[ImageObjectStore port]
 
-    BGPORT --> PHOTOROOM[Photoroom adapter]
+    BGPORT --> CFSEG[CfImageSegmentProvider<br/>cf.image segment via sub-request]
+    CFSEG --> ROUTES
     IMGPORT --> CFIMG[Cloudflare Images binding adapter<br/>env.IMAGES flip=h]
     JOBPORT --> R2[(R2 jobs/*.json)]
     STOREPORT --> R2BLOBS[(R2 image objects)]
+    CFSEG --> R2BLOBS
     CFIMG --> R2BLOBS
 ```
 
@@ -107,7 +109,7 @@ classDiagram
     ProcessImageJob --> JobRepository
     ProcessImageJob --> ImageObjectStore
 
-    BackgroundRemovalProvider <|.. PhotoroomAdapter
+    BackgroundRemovalProvider <|.. CfImageSegmentProvider
     BackgroundRemovalProvider <|.. MockProvider
     ImageTransformer <|.. CloudflareImagesTransformer
     ImageTransformer <|.. MockTransformer
@@ -195,9 +197,10 @@ flowchart TD
     ID[job id job_...] --> META[jobs/{id}.json<br/>ImageJob metadata]
     ID --> ORIGINAL[images/{id}/original<br/>source upload]
     ID --> PROCESSED[images/{id}/processed<br/>background removed + flipped]
+    TMP[segment-tmp/{ts}-{rand}<br/>transient blob for cf.image sub-request<br/>deleted in CfImageSegmentProvider.finally]
 
     META --> SAFE[PublicJobResponse<br/>id status imageUrl timestamps errorCode]
-    META --> SECRET[Private fields<br/>deleteTokenHash object keys provider]
+    META --> SECRET[Private fields<br/>deleteTokenHash object keys]
     ORIGINAL --> CLEANUP[deleteAll]
     PROCESSED --> CLEANUP
     META --> CLEANUP
@@ -208,16 +211,16 @@ artifact lifecycle explicit and testable.
 
 ## Principal requirement traceability
 
-| task.pdf requirement                       | Architecture contract                                                                  |
-| ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Upload a single image                      | `POST /api/jobs` accepts exactly one multipart file after client + server validation.  |
-| Remove background via third-party service  | `BackgroundRemovalProvider` port with Photoroom production adapter.                    |
-| Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`. |
-| Host processed image online at unique URL  | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`.                           |
-| Delete uploaded and processed images       | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata.    |
-| Backend must be TypeScript                 | Worker/core/adapters are TypeScript-only surfaces.                                     |
-| Full stack deployed online                 | Worker + static assets deploy together to `edge-matte.ozby.dev`.                       |
-| Code shared in GitHub repository           | Blueprint/release flow assumes public GitHub review target.                            |
+| task.pdf requirement                       | Architecture contract                                                                                                                               |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Upload a single image                      | `POST /api/jobs` accepts exactly one multipart file after client + server validation.                                                               |
+| Remove background via third-party service  | `BackgroundRemovalProvider` port with `CfImageSegmentProvider` production adapter (Cloudflare's BiRefNet via the `cf.image segment` CDN transform). |
+| Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`.                                                              |
+| Host processed image online at unique URL  | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`.                                                                                        |
+| Delete uploaded and processed images       | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata.                                                                 |
+| Backend must be TypeScript                 | Worker/core/adapters are TypeScript-only surfaces.                                                                                                  |
+| Full stack deployed online                 | Worker + static assets deploy together to `edge-matte.ozby.dev`.                                                                                    |
+| Code shared in GitHub repository           | Blueprint/release flow assumes public GitHub review target.                                                                                         |
 
 ## Delete flow
 

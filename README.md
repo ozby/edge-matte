@@ -23,10 +23,10 @@ flowchart LR
 ```
 
 - **Hono** routes inside one Cloudflare Worker.
-- **Photoroom** adapter for background removal (swap-friendly via the `BackgroundRemovalProvider` port).
+- **Cloudflare-native background removal** via the `cf.image segment: "foreground"` CDN transform (BiRefNet under the hood). The provider issues a Worker sub-request to a prefix-gated `/internal/raw/segment-tmp/...` route so the CDN can apply the transform, then cleans the temp object. Swap-friendly via the `BackgroundRemovalProvider` port.
 - **Cloudflare Images** binding for the horizontal flip (no library, no upload, native edge transform).
 - **R2** holds both the image bytes and the job metadata.
-- **Capability-token delete**: the create response returns a SHA-256-verified `deleteToken`; the server stores only the hash.
+- **Capability-token delete**: the create response returns a SHA-256-verified `deleteToken`; only the hash is persisted in R2.
 
 ## Run locally
 
@@ -51,19 +51,19 @@ Then open the URL printed by `wrangler dev` and exercise the UI.
 
 Where to start if you want to read the actual implementation:
 
-| File                                                                                                                       | What it does                                                                                                                                       |
-| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`apps/worker/src/adapters/hono/app.ts`](./apps/worker/src/adapters/hono/app.ts)                                           | All five HTTP routes (`POST /api/jobs`, `GET /api/jobs/:id`, `GET /i/:id`, `DELETE /api/jobs/:id`, `GET /health`). Shared error envelope.          |
-| [`apps/worker/src/core/process-image-job.ts`](./apps/worker/src/core/process-image-job.ts)                                 | Pure pipeline: validate → upload → bg-removal → flip → store → respond. Adapters are dependency-injected; the core knows nothing about Cloudflare. |
-| [`apps/worker/src/core/image-job.ts`](./apps/worker/src/core/image-job.ts)                                                 | Job lifecycle, delete-token verification, URL derivation.                                                                                          |
-| [`apps/worker/src/core/errors.ts`](./apps/worker/src/core/errors.ts)                                                       | `AppError` + the closed set of error codes the frontend translates.                                                                                |
-| [`apps/worker/src/adapters/photoroom/photoroom-provider.ts`](./apps/worker/src/adapters/photoroom/photoroom-provider.ts)   | Photoroom HTTP integration, abortable, mapped to `AppError`.                                                                                       |
-| [`apps/worker/src/adapters/cloudflare/images-transformer.ts`](./apps/worker/src/adapters/cloudflare/images-transformer.ts) | One-call horizontal flip via the Workers Images binding.                                                                                           |
-| [`apps/client/src/state.ts`](./apps/client/src/state.ts)                                                                   | Eight-phase UI state machine — `idle → preview → uploading → processing → ready → confirm-delete → deleted`, plus `error`.                         |
-| [`apps/client/src/app.ts`](./apps/client/src/app.ts)                                                                       | Controller. Wires `selectFile / submitUpload / requestDelete / confirmDelete / reset / copyResultUrl`.                                             |
-| [`apps/client/src/ui.ts`](./apps/client/src/ui.ts)                                                                         | DOM template + render — semantic HTML, `aria-live` status, no framework.                                                                           |
+| File                                                                                                                                     | What it does                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`apps/worker/src/adapters/hono/app.ts`](./apps/worker/src/adapters/hono/app.ts)                                                         | All five HTTP routes (`POST /api/jobs`, `GET /api/jobs/:id`, `GET /i/:id`, `DELETE /api/jobs/:id`, `GET /health`). Shared error envelope.                         |
+| [`apps/worker/src/core/process-image-job.ts`](./apps/worker/src/core/process-image-job.ts)                                               | Pure pipeline: validate → upload → bg-removal → flip → store → respond. Adapters are dependency-injected; the core knows nothing about Cloudflare.                |
+| [`apps/worker/src/core/image-job.ts`](./apps/worker/src/core/image-job.ts)                                                               | Job lifecycle, delete-token verification, URL derivation.                                                                                                         |
+| [`apps/worker/src/core/errors.ts`](./apps/worker/src/core/errors.ts)                                                                     | `AppError` + the closed set of error codes the frontend translates.                                                                                               |
+| [`apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`](./apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts) | `cf.image segment: "foreground"` via a Worker sub-request. Stores a temp blob under `segment-tmp/`, applies the CDN transform, cleans up in `finally`. Abortable. |
+| [`apps/worker/src/adapters/cloudflare/images-transformer.ts`](./apps/worker/src/adapters/cloudflare/images-transformer.ts)               | One-call horizontal flip via the Workers Images binding.                                                                                                          |
+| [`apps/client/src/state.ts`](./apps/client/src/state.ts)                                                                                 | Eight-phase UI state machine — `idle → preview → uploading → processing → ready → confirm-delete → deleted`, plus `error`.                                        |
+| [`apps/client/src/app.ts`](./apps/client/src/app.ts)                                                                                     | Controller. Wires `selectFile / submitUpload / requestDelete / confirmDelete / reset / copyResultUrl`.                                                            |
+| [`apps/client/src/ui.ts`](./apps/client/src/ui.ts)                                                                                       | DOM template + render — semantic HTML, `aria-live` status, no framework.                                                                                          |
 
-The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts) is the dependency-injection seam: production uses Photoroom + Cloudflare Images + R2; tests use in-memory mocks via the same port interfaces.
+The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts) is the dependency-injection seam: production wires the `cf.image segment` provider + Cloudflare Images flip + R2; tests use in-memory mocks via the same port interfaces.
 
 ## Tests
 

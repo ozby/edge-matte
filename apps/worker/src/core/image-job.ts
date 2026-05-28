@@ -19,6 +19,10 @@ export interface ImageJob {
   errorCode: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreatedImageJob {
+  job: ImageJob;
   deleteToken: string;
 }
 
@@ -54,21 +58,23 @@ export const createImageJob = async ({
 }: {
   id?: string;
   appOrigin: string;
-}): Promise<ImageJob> => {
+}): Promise<CreatedImageJob> => {
   const now = new Date().toISOString();
   const deleteToken = createDeleteToken();
   const keys = deriveObjectKeys(id);
   return {
-    id,
-    status: "validating",
-    imageUrl: `${appOrigin}/i/${id}`,
-    pollUrl: `${appOrigin}/api/jobs/${id}`,
-    originalObjectKey: keys.original,
-    processedObjectKey: keys.processed,
-    deleteTokenHash: await hashToken(deleteToken),
-    errorCode: null,
-    createdAt: now,
-    updatedAt: now,
+    job: {
+      id,
+      status: "validating",
+      imageUrl: `${appOrigin}/i/${id}`,
+      pollUrl: `${appOrigin}/api/jobs/${id}`,
+      originalObjectKey: keys.original,
+      processedObjectKey: keys.processed,
+      deleteTokenHash: await hashToken(deleteToken),
+      errorCode: null,
+      createdAt: now,
+      updatedAt: now,
+    },
     deleteToken,
   };
 };

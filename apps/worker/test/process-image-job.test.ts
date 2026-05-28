@@ -114,8 +114,11 @@ describe("core pipeline", () => {
       processed: "images/job_1234/processed",
     });
 
-    const job = await createImageJob({ id, appOrigin: "https://edge-matte.ozby.dev" });
-    expect(await verifyDeleteToken(job.deleteTokenHash, job.deleteToken)).toBe(true);
+    const { job, deleteToken } = await createImageJob({
+      id,
+      appOrigin: "https://edge-matte.ozby.dev",
+    });
+    expect(await verifyDeleteToken(job.deleteTokenHash, deleteToken)).toBe(true);
     expect(toPublicImageJob(job)).toMatchObject({
       id,
       status: "validating",
@@ -169,9 +172,14 @@ describe("core pipeline", () => {
     );
 
     expect(transitions).toEqual(["removing_background", "flipping"]);
-    expect(result.status).toBe("ready");
-    expect(result.errorCode).toBeNull();
-    expect(objectStore.storedKeys()).toEqual([result.originalObjectKey, result.processedObjectKey]);
+    expect(result.job.status).toBe("ready");
+    expect(result.job.errorCode).toBeNull();
+    expect(typeof result.deleteToken).toBe("string");
+    expect(result.deleteToken.length).toBeGreaterThan(0);
+    expect(objectStore.storedKeys()).toEqual([
+      result.job.originalObjectKey,
+      result.job.processedObjectKey,
+    ]);
   });
 
   it("fails loudly on provider deadline, cleans blobs, and preserves failed job metadata", async () => {
