@@ -27,15 +27,17 @@ jobs:
         with:
           bun-version: latest
       - run: pnpm install --frozen-lockfile
+      - name: Install wp (agent-kit CLI)
+        run: pnpm add -g @webpresso/agent-kit@0.21.3
       - run: pnpm run verify:secrets
       - run: pnpm run verify:paths
       - run: pnpm run audit:secret-provider-quarantine
       - run: pnpm run audit:blueprint-links
-      # Public clone path: @webpresso/agent-kit is private; wp/docs/blueprint audits run locally.
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run lint
-      # docs:check and blueprints:check require private wp CLI — run locally on maintainer machines.
+      - run: pnpm run docs:check
+      - run: pnpm run blueprints:check
 
   test:
     runs-on: ubuntu-latest

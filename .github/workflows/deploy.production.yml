@@ -28,6 +28,8 @@ jobs:
         with:
           bun-version: latest
       - run: pnpm install --frozen-lockfile
+      - name: Install wp (agent-kit CLI)
+        run: pnpm add -g @webpresso/agent-kit@0.21.3
       - run: pnpm run verify:secrets
       - run: pnpm run verify:paths
       - run: pnpm run audit:secret-provider-quarantine
@@ -35,6 +37,8 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run typecheck
       - run: pnpm run lint
+      - run: pnpm run docs:check
+      - run: pnpm run blueprints:check
       - run: pnpm run build
       - run: pnpm run test
 
