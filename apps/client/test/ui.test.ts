@@ -36,5 +36,7 @@ describe("ui rendering", () => {
     expect(ui.resultPanel.hidden).toBe(false);
     expect(ui.resultUrl.href).toBe("https://edge-matte.ozby.dev/i/job_123");
     expect(ui.copyButton.disabled).toBe(false);
+    // The preview should show the PROCESSED result, not the original upload.
+    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
   });
 });

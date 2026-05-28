@@ -141,7 +141,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "ready":
       ui.statusText.textContent = "Processing complete. Copy or open the hosted URL.";
       ui.previewEl.hidden = false;
-      ui.previewImage.src = state.previewUrl;
+      ui.previewImage.src = state.job.imageUrl;
       ui.metaEl.textContent = state.job.id;
       ui.resultPanel.hidden = false;
       ui.resultUrl.href = state.job.imageUrl;
