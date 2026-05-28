@@ -3,7 +3,9 @@ packages:
   - "infra"
 
 allowBuilds:
+  better-sqlite3: true
   esbuild: true
   protobufjs: true
   sharp: true
+  tldjs: true
   workerd: true
