@@ -25,6 +25,7 @@
     "verify:paths": "WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root .",
     "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
+    "audit:blueprint-links": "bun scripts/audit-blueprint-link-policy.ts",
     "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
     "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
     "prepare": "husky && bun scripts/sync-webpresso-config.ts"

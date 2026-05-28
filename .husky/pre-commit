@@ -16,3 +16,6 @@ fi
 if [ -f "$(pwd)/scripts/audit-secret-provider-quarantine.ts" ]; then
   bun "$(pwd)/scripts/audit-secret-provider-quarantine.ts" || exit 1
 fi
+if [ -f "$(pwd)/scripts/audit-blueprint-link-policy.ts" ]; then
+  bun "$(pwd)/scripts/audit-blueprint-link-policy.ts" || exit 1
+fi

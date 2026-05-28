@@ -30,6 +30,7 @@ jobs:
       - run: pnpm run verify:secrets
       - run: pnpm run verify:paths
       - run: pnpm run audit:secret-provider-quarantine
+      - run: pnpm run audit:blueprint-links
       # Public clone path: @webpresso/agent-kit is private; wp/docs/blueprint audits run locally.
       - run: pnpm run format:check
       - run: pnpm run typecheck

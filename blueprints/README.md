@@ -14,15 +14,15 @@ Each subdirectory represents a lifecycle state:
 
 ## Authoring
 
-- Use `docs/templates/blueprint.md` as the starting point.
-- Blueprint YAML keys validated against `docs/templates/blueprint.yaml`.
+- Use [blueprint template](../docs/templates/blueprint.md) as the starting point.
+- Blueprint YAML keys validated against [blueprint schema](../docs/templates/blueprint.yaml).
 - For iterative refinement, load the `plan-refine` skill
-  (`.agent/skills/plan-refine/SKILL.md`).
+  ([plan-refine skill](https://github.com/webpresso/agent-kit/blob/main/skills/plan-refine/SKILL.md)).
 
 ## Moving between states
 
 - `draft → planned`: the spec passes the plan-audit checklist
-  (`.agent/guides/plan-audit-checklist.md`).
+  ([plan audit checklist](https://github.com/webpresso/agent-kit/blob/main/docs/guides/plan-audit-checklist.md)).
 - `planned → in-progress`: work has started in a worktree or a lane.
 - `in-progress → completed`: all acceptance criteria verified.
 - Any state → `archived`: when the work is dropped or replaced.
@@ -31,9 +31,10 @@ Move files with `git mv` so history follows the spec through its lifecycle.
 
 ## Active work (2026-05-27)
 
-| Blueprint         | Path                                                                                                                 | Purpose                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Audit remediation | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; closes production deploy smoke gap |
+| Blueprint          | Path                                                                                                                 | Purpose                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Audit remediation  | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; closes production deploy smoke gap |
+| Security hardening | [`planned/2026-05-28-edge-matte-security-hardening.md`](./planned/2026-05-28-edge-matte-security-hardening.md)       | Private-beta security controls: Access, Turnstile, WAF/rate limiting     |
 
 Wave 0 (secrets governance) is complete in the working tree — see the remediation
 blueprint for lane boundaries if multiple agents edit concurrently.
@@ -56,8 +57,14 @@ closes the deploy CI lane.
 
 Active blueprints must align with:
 
-- [`docs/architecture.md`](../docs/architecture.md)
-- [`docs/architecture.contract.json`](../docs/architecture.contract.json)
+- [Architecture](../docs/architecture.md)
+- [Architecture Contract](../docs/architecture.contract.json)
+
+## Link policy
+
+Blueprint docs must not reference local filesystem paths from a workstation.
+Use relative links for same-repo files and allow full URLs for cross-repo references.
+Enforced by `pnpm run audit:blueprint-links`.
 
 ## Architecture before
 
