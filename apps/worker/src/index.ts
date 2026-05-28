@@ -1,10 +1,10 @@
 import { createApp } from "./adapters/hono/app";
+import { CfImageSegmentProvider } from "./adapters/cloudflare/cf-image-segment-provider";
 import { CloudflareImagesTransformer } from "./adapters/cloudflare/images-transformer";
+import { MockBackgroundRemovalProvider } from "./adapters/cloudflare/mock-background-removal-provider";
 import { MockTransformer } from "./adapters/cloudflare/mock-transformer";
 import { R2ImageObjectStore } from "./adapters/cloudflare/r2-image-object-store";
 import { R2JobRepository } from "./adapters/cloudflare/r2-job-repository";
-import { CloudflareImagesBackgroundRemovalProvider } from "./adapters/cloudflare/images-background-removal-provider";
-import { MockBackgroundRemovalProvider } from "./adapters/cloudflare/mock-background-removal-provider";
 import type { ProcessImageJobDeps } from "./core/process-image-job";
 
 type WorkerEnv = Env & {
@@ -67,9 +67,10 @@ export const createWorkerApp = (env?: WorkerEnv) => {
     appOrigin: env.APP_ORIGIN,
     repository: new R2JobRepository(env.IMAGES_BUCKET),
     objectStore: new R2ImageObjectStore(env.IMAGES_BUCKET),
+    rawBucket: env.IMAGES_BUCKET,
     provider: useExplicitMockPipeline
       ? new MockBackgroundRemovalProvider()
-      : new CloudflareImagesBackgroundRemovalProvider((env.IMAGES ?? null) as never),
+      : new CfImageSegmentProvider(env.IMAGES_BUCKET, env.APP_ORIGIN),
     transformer: useExplicitMockPipeline
       ? new MockTransformer()
       : new CloudflareImagesTransformer((env.IMAGES ?? null) as never),

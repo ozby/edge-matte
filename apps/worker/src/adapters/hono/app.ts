@@ -23,6 +23,7 @@ const toJsonResponse = (body: unknown, status: number): Response =>
 export const createApp = (
   deps: ProcessImageJobDeps & {
     appOrigin: string;
+    rawBucket?: R2Bucket;
   },
 ) => {
   const app = new Hono();
@@ -101,6 +102,17 @@ export const createApp = (
       const mapped = errorResponse(error);
       return toJsonResponse(mapped.body, mapped.status);
     }
+  });
+
+  // PoC: serves raw R2 objects so cf.image can apply CDN transforms via sub-request.
+  app.get("/poc/raw/:key", async (c) => {
+    if (!deps.rawBucket) return new Response("not available", { status: 404 });
+    const key = decodeURIComponent(c.req.param("key"));
+    const obj = await deps.rawBucket.get(key);
+    if (!obj) return new Response("not found", { status: 404 });
+    return new Response(obj.body, {
+      headers: { "content-type": obj.httpMetadata?.contentType ?? "image/jpeg" },
+    });
   });
 
   app.get("/", (c) => c.text("EdgeMatte placeholder service"));
