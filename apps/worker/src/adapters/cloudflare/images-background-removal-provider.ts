@@ -1,12 +1,14 @@
 import { AppError } from "#core/errors";
 import type { BackgroundRemovalProvider } from "#ports";
 
+interface ImagesBindingResult {
+  response(): Promise<Response>;
+}
+
 interface ImagesBinding {
   input(stream: ReadableStream): {
     transform(options: { segment: "foreground" }): {
-      output(options: { format: "image/png" | "image/webp" }): {
-        response(): Promise<Response>;
-      };
+      output(options: { format: "image/png" | "image/webp" }): Promise<ImagesBindingResult>;
     };
   };
 }
@@ -19,18 +21,19 @@ export class CloudflareImagesBackgroundRemovalProvider implements BackgroundRemo
       throw new AppError(502, "background_provider_failed", "missing IMAGES binding");
     }
     try {
-      const response = await this.images
+      const result = await this.images
         .input(input.stream())
         .transform({ segment: "foreground" })
-        .output({ format: "image/png" })
-        .response();
+        .output({ format: "image/png" });
+      const response = await result.response();
       if (!response.ok) {
-        throw new AppError(502, "background_provider_failed");
+        const body = await response.text().catch(() => "");
+        throw new AppError(502, "background_provider_failed", `status=${response.status} body=${body}`);
       }
       return response.blob();
     } catch (error) {
       if (error instanceof AppError) throw error;
-      throw new AppError(502, "background_provider_failed");
+      throw new AppError(502, "background_provider_failed", String(error));
     }
   }
 }

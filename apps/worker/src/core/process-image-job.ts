@@ -5,7 +5,7 @@ import type {
   ImageObjectStore,
   ImageTransformer,
   JobRepository,
-} from "../ports";
+} from "#ports";
 
 export interface ProcessImageJobCommand {
   file: File;

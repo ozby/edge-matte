@@ -1,12 +1,14 @@
-import { AppError } from "../../core/errors";
-import type { ImageTransformer } from "../../ports";
+import { AppError } from "#core/errors";
+import type { ImageTransformer } from "#ports";
+
+interface ImagesBindingResult {
+  response(): Promise<Response>;
+}
 
 interface ImagesBinding {
   input(stream: ReadableStream): {
     transform(options: { flip: "h" }): {
-      output(options: { format: "image/png" }): {
-        response(): Promise<Response>;
-      };
+      output(options: { format: "image/png" }): Promise<ImagesBindingResult>;
     };
   };
 }
@@ -18,10 +20,10 @@ export class CloudflareImagesTransformer implements ImageTransformer {
     if (!this.images) {
       throw new AppError(502, "image_transform_failed", "missing IMAGES binding");
     }
-    return this.images
+    const result = await this.images
       .input(input.stream())
       .transform({ flip: "h" })
-      .output({ format: "image/png" })
-      .response();
+      .output({ format: "image/png" });
+    return result.response();
   }
 }

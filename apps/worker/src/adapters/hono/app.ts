@@ -6,13 +6,13 @@ import {
   imageNotFoundError,
   invalidDeleteTokenError,
   invalidRequestError,
-} from "../../core/errors";
-import { toPublicImageJob, verifyDeleteToken } from "../../core/image-job";
+} from "#core/errors";
+import { toPublicImageJob, verifyDeleteToken } from "#core/image-job";
 import {
   MAX_UPLOAD_BYTES,
   processImageJob,
   type ProcessImageJobDeps,
-} from "../../core/process-image-job";
+} from "#core/process-image-job";
 
 const toJsonResponse = (body: unknown, status: number): Response =>
   new Response(JSON.stringify(body), {

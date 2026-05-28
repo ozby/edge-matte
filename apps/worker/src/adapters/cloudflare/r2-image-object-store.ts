@@ -1,6 +1,6 @@
-import type { ImageJob } from "../../core/image-job";
-import { deriveObjectKeys } from "../../core/object-keys";
-import type { ImageObjectStore } from "../../ports";
+import type { ImageJob } from "#core/image-job";
+import { deriveObjectKeys } from "#core/object-keys";
+import type { ImageObjectStore } from "#ports";
 
 export class R2ImageObjectStore implements ImageObjectStore {
   constructor(private readonly bucket: R2Bucket) {}

@@ -1,4 +1,4 @@
-import type { ImageJob } from "../core/image-job";
+import type { ImageJob } from "#core/image-job";
 
 export interface BackgroundRemovalProvider {
   removeBackground(input: Blob, signal?: AbortSignal): Promise<Blob>;
