@@ -72,9 +72,14 @@ This repo includes starter project files for TypeScript/Workers development:
 
 ### Webpresso tooling (`wp` and `vp`)
 
-EdgeMatte reuses the same **quality and governance rails** as IngestLens instead of
-inventing parallel lint hooks, blueprint checks, or commit conventions. That work
-is handled by global CLI tools on your `PATH`, not by npm dependencies in this repo.
+EdgeMatte reuses
+[`webpresso/agent-kit`](https://github.com/webpresso/agent-kit) for the same
+**quality and governance rails** as IngestLens instead of inventing parallel
+lint hooks, blueprint checks, or commit conventions. Agent Kit solves the
+cross-agent drift problem here: one maintained source owns repo instructions,
+generated hooks, blueprint/audit policy, and verification command routing while
+EdgeMatte stays focused on the Cloudflare image-matting product. That work is
+handled by global CLI tools on your `PATH`, not by npm dependencies in this repo.
 
 | Tool     | Role                       | What it solves                                                                                                                                                                                                                                                     |
 | -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
