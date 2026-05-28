@@ -7,12 +7,13 @@ import {
 } from "./e2e-suite-manifest";
 
 describe("e2e-suite-manifest", () => {
-  it("registers honest smoke, browser, contract, and production-smoke suites", () => {
+  it("registers honest smoke, browser, contract, production-smoke, and production-journey suites", () => {
     expect(listE2ESuites().map((suite) => suite.id)).toEqual([
       "smoke",
       "upload-delete",
       "upload-delete-contract",
       "production-smoke",
+      "production-journey",
     ]);
   });
 
@@ -23,6 +24,8 @@ describe("e2e-suite-manifest", () => {
     expect(resolveE2ESuiteId("browser")).toBe("upload-delete");
     expect(resolveE2ESuiteId("contract")).toBe("upload-delete-contract");
     expect(resolveE2ESuiteId("production-smoke")).toBe("production-smoke");
+    expect(resolveE2ESuiteId("production-journey")).toBe("production-journey");
+    expect(resolveE2ESuiteId("prod-journey")).toBe("production-journey");
     expect(resolveE2ESuiteId("missing")).toBeNull();
   });
 
@@ -33,8 +36,8 @@ describe("e2e-suite-manifest", () => {
   });
 
   it("maps journey files to suites", () => {
-    expect(resolveE2ESuiteForFile("apps/e2e/journeys/upload-delete.spec.mjs")).toEqual({
-      normalizedPath: "apps/e2e/journeys/upload-delete.spec.mjs",
+    expect(resolveE2ESuiteForFile("apps/e2e/journeys/upload-delete.spec.ts")).toEqual({
+      normalizedPath: "apps/e2e/journeys/upload-delete.spec.ts",
       suiteId: "upload-delete",
     });
     expect(resolveE2ESuiteForFile("apps/e2e/journeys/upload-delete.contract.test.ts")).toEqual({

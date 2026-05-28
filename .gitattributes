@@ -1,0 +1,2 @@
+# Committed binary test fixtures — keep bytes intact across platforms.
+apps/e2e/fixtures/*.png binary

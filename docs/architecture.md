@@ -3,7 +3,7 @@ type: guide
 title: EdgeMatte Architecture
 status: draft
 created: 2026-05-27
-last_updated: 2026-05-28
+last_updated: 2026-05-29
 ---
 
 # Architecture
@@ -265,12 +265,26 @@ flowchart TD
 
     AK --> E2E[agent-kit E2E host adapter]
     E2E --> MANIFEST[apps/e2e suite manifest]
-    MANIFEST --> SMOKE[smoke: /health + /]
-    MANIFEST --> UPLOAD[upload-delete: fixture upload -> ready -> delete]
-    MANIFEST --> PROD[production-smoke: edge-matte.ozby.dev]
+    MANIFEST --> CONTRACT[upload-delete-contract: HTTP upload→serve→delete + error envelopes]
+    MANIFEST --> SMOKE[smoke: /health + SPA shell]
+    MANIFEST --> UPLOAD[upload-delete: Playwright browser journey]
+    MANIFEST --> PROD[production-smoke: edge-matte.ozby.dev health + shell]
+    MANIFEST --> PRODJOURNEY[production-journey: real upload→transform→delete on prod]
+
+    CONTRACT --> PRGATE[CI e2e job — gates every PR, hermetic mock mode]
+    SMOKE --> PRGATE
+    UPLOAD --> PRGATE
+    PROD --> POSTDEPLOY[deploy.production.yml — post-deploy]
+    PRODJOURNEY --> POSTDEPLOY
 
     WP --> DOCS[docs + blueprint lifecycle audits]
 ```
+
+The three hermetic suites (`upload-delete-contract`, `smoke`, `upload-delete`)
+gate every PR via the CI `e2e` job using `wrangler dev` + `E2E_MOCK_PIPELINE:1`
+— no secrets, deterministic. `production-journey` runs post-deploy against live
+prod and is the only suite that asserts the real `cf.image` transform (output
+bytes differ from input); the mock pipeline is a pass-through and cannot.
 
 Quality gates are adopted from the Webpresso/IngestLens pattern rather than
 reinvented locally. EdgeMatte should keep only project-specific journey files and

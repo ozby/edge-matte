@@ -63,3 +63,8 @@ jobs:
         env:
           E2E_RUN_PRODUCTION: "1"
         run: pnpm e2e -- --suite production-smoke
+
+      - name: Post-deploy production-journey e2e (real upload -> transform -> delete)
+        env:
+          E2E_RUN_PRODUCTION: "1"
+        run: pnpm e2e -- --suite production-journey

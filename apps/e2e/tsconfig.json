@@ -1,7 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "lib": ["ESNext", "DOM"]
   },
   "include": [
     "../../worker-configuration.d.ts",
@@ -10,10 +11,13 @@
     "src/e2e-suite-manifest.test.ts",
     "src/agent-kit-host-adapter.ts",
     "src/repo-root.ts",
+    "src/fixtures.ts",
     "src/journeys/env.ts",
     "src/cli/**/*.ts",
     "journeys/**/*.ts",
+    "journeys/**/*.spec.ts",
     "journeys/**/*.test.ts",
+    "playwright.config.ts",
     "vitest.config.ts",
     "vitest.journeys.config.ts"
   ]

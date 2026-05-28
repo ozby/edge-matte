@@ -15,9 +15,10 @@ export interface E2ESuiteDefinition {
 }
 
 const SMOKE_FILES = ["journeys/smoke.smoke.test.ts"] as const;
-const UPLOAD_DELETE_BROWSER_FILES = ["journeys/upload-delete.spec.mjs"] as const;
+const UPLOAD_DELETE_BROWSER_FILES = ["journeys/upload-delete.spec.ts"] as const;
 const UPLOAD_DELETE_CONTRACT_FILES = ["journeys/upload-delete.contract.test.ts"] as const;
 const PRODUCTION_SMOKE_FILES = ["journeys/production-smoke.smoke.test.ts"] as const;
+const PRODUCTION_JOURNEY_FILES = ["journeys/production-journey.smoke.test.ts"] as const;
 
 const E2E_SUITES: readonly E2ESuiteDefinition[] = [
   {
@@ -44,7 +45,7 @@ const E2E_SUITES: readonly E2ESuiteDefinition[] = [
       {
         runner: "playwright",
         logName: "upload-delete-browser",
-        configPath: "playwright.config.mjs",
+        configPath: "playwright.config.ts",
         fixedFiles: UPLOAD_DELETE_BROWSER_FILES,
         batchKey: "upload-delete",
       },
@@ -77,6 +78,21 @@ const E2E_SUITES: readonly E2ESuiteDefinition[] = [
         configPath: "vitest.journeys.config.ts",
         fixedFiles: PRODUCTION_SMOKE_FILES,
         batchKey: "production-smoke",
+      },
+    ],
+  },
+  {
+    id: "production-journey",
+    aliases: ["prod-journey"],
+    fileMatchers: PRODUCTION_JOURNEY_FILES,
+    batchKey: "production-journey",
+    steps: [
+      {
+        runner: "vitest",
+        logName: "production-journey",
+        configPath: "vitest.journeys.config.ts",
+        fixedFiles: PRODUCTION_JOURNEY_FILES,
+        batchKey: "production-journey",
       },
     ],
   },

@@ -71,16 +71,29 @@ The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts
 
 ```
 pnpm install --frozen-lockfile
-pnpm run test                        # unit + integration
-pnpm run e2e -- --suite smoke        # local smoke (boots wrangler dev)
-pnpm run e2e -- --suite upload-delete  # full contract: create → poll → serve → delete
+pnpm run test                              # unit + integration (worker, client, root)
+pnpm run e2e -- --suite upload-delete-contract  # HTTP contract: upload→serve→delete + every error code
+pnpm run e2e -- --suite smoke              # /health + SPA shell
+pnpm run e2e -- --suite upload-delete      # Playwright browser journey (boots wrangler dev)
 ```
 
-Production smoke against the deployed URL:
+The three local e2e suites are **hermetic**: the harness boots `wrangler dev`
+with `E2E_MOCK_PIPELINE:1` (deterministic mock provider/transformer), so no
+secrets and no external network are needed. Every PR runs all three in the CI
+`e2e` job (`pnpm act:ci:e2e` to dry-run it locally via `act`).
+
+Against the deployed URL (runs automatically post-deploy):
 
 ```
+# /health + SPA shell
 E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+# Real upload → cf.image transform → hosted PNG (bytes differ from input) → delete → 404
+E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
 ```
+
+`production-journey` is the only suite that proves the real background-removal +
+flip transform; the hermetic suites prove plumbing, the API contract, and the
+browser UI.
 
 ---
 

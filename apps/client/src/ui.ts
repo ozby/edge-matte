@@ -18,6 +18,7 @@ export interface UiElements {
   copyButton: HTMLButtonElement;
   downloadButton: HTMLAnchorElement;
   deleteButton: HTMLButtonElement;
+  deleteConfirm: HTMLElement;
   confirmDeleteButton: HTMLButtonElement;
   cancelDeleteButton: HTMLButtonElement;
   errorEl: HTMLElement;
@@ -156,6 +157,7 @@ export const createUi = (mount: HTMLElement): UiElements => {
     copyButton: query("copy-url"),
     downloadButton: query("download-result"),
     deleteButton: query("delete-job"),
+    deleteConfirm: query("delete-confirm"),
     confirmDeleteButton: query("confirm-delete"),
     cancelDeleteButton: query("cancel-delete"),
     errorEl: query("error"),
@@ -181,7 +183,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = false;
       ui.deleteButton.hidden = false;
-      ui.confirmDeleteButton.parentElement!.hidden = true;
+      ui.deleteConfirm.hidden = true;
       break;
     case "preview":
       ui.statusText.textContent = `Ready — ${state.fileName} (${formatFileSize(state.fileSize)})`;
@@ -221,7 +223,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.downloadButton.href = state.job.imageUrl;
       ui.downloadButton.download = `${state.job.id}.png`;
       ui.deleteButton.hidden = false;
-      ui.confirmDeleteButton.parentElement!.hidden = true;
+      ui.deleteConfirm.hidden = true;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = true;
       break;
@@ -230,7 +232,7 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.previewEl.hidden = false;
       ui.resultPanel.hidden = false;
       ui.deleteButton.hidden = true;
-      ui.confirmDeleteButton.parentElement!.hidden = false;
+      ui.deleteConfirm.hidden = false;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = true;
       break;

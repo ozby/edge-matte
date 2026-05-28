@@ -5,7 +5,7 @@ const baseURL = process.env.E2E_BASE_URL?.trim().replace(/\/$/u, "") || `http://
 
 export default defineConfig({
   testDir: "./journeys",
-  testMatch: ["**/*.spec.mjs"],
+  testMatch: ["**/*.spec.ts"],
   fullyParallel: false,
   workers: 1,
   timeout: 30_000,

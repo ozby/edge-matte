@@ -18,6 +18,9 @@ build/
 .next/
 coverage/
 apps/e2e/.e2e-base-url
+apps/e2e/.client-build-lock/
+apps/e2e/playwright-report/
+apps/e2e/test-results/
 
 # Environment and secrets
 .env

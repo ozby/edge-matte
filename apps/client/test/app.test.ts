@@ -87,7 +87,7 @@ describe("upload flow controller", () => {
 
     app.requestDelete();
     expect(app.getState().phase).toBe("confirm-delete");
-    expect(ui.confirmDeleteButton.parentElement?.hidden).toBe(false);
+    expect(ui.deleteConfirm.hidden).toBe(false);
 
     await app.confirmDelete();
     expect(app.getState().phase).toBe("deleted");

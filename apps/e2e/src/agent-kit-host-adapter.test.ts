@@ -15,8 +15,8 @@ describe("agent-kit-host-adapter", () => {
           "playwright",
           "test",
           "--config",
-          "playwright.config.mjs",
-          "journeys/upload-delete.spec.mjs",
+          "playwright.config.ts",
+          "journeys/upload-delete.spec.ts",
         ],
       }),
     ]);

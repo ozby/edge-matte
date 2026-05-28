@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "imports": {
-    "#repo-root": "./src/repo-root.ts"
+    "#repo-root": "./src/repo-root.ts",
+    "#fixtures": "./src/fixtures.ts"
   },
   "scripts": {
     "pretest": "pnpm --filter @edge-matte/client run build",
     "test": "vitest run --config vitest.config.ts",
     "test:journeys": "vitest run --config vitest.journeys.config.ts",
-    "test:browser": "playwright test --config playwright.config.mjs",
+    "test:browser": "playwright test --config playwright.config.ts",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "vp lint src/e2e-suite-manifest.ts src/e2e-suite-manifest.test.ts journeys global-setup.ts src/cli/start-local-e2e-server.ts src/repo-root.ts src/ensure-client-dist.ts --tsconfig tsconfig.json --type-aware",
+    "lint": "vp lint src/e2e-suite-manifest.ts src/e2e-suite-manifest.test.ts src/fixtures.ts journeys playwright.config.ts global-setup.ts src/cli/start-local-e2e-server.ts src/repo-root.ts src/ensure-client-dist.ts --tsconfig tsconfig.json --type-aware",
     "e2e:run": "bun src/cli/run-e2e.ts"
   },
   "devDependencies": {

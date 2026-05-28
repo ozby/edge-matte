@@ -17,6 +17,7 @@
     "lint": "vp run -r lint",
     "test": "node --test \"test/**/*.test.mjs\" && vp run -r test",
     "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
+    "act:ci:e2e": "act -W .github/workflows/ci.webpresso.yml -j e2e",
     "deploy:production": "bun scripts/deploy-production.ts",
     "deploy:production:wrangler": "with-secrets -- pnpm --filter @edge-matte/worker exec wrangler deploy --env production",
     "pulumi:preview": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi preview",
