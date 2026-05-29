@@ -460,6 +460,35 @@ risks, edge cases, technology choices, and cross-plan references.
 - IngestLens proves the hard case:
   split client/API, generated IDs, preview lifecycle, Durable Object-compatible contract
 
+## Adjacent local-script audit
+
+The architecture-drift Python checker was a true packaged-audit duplicate and
+has been removed. The remaining local scripts fall into two groups:
+
+### Keep local for now
+
+- `scripts/mcp-first-pretool-guard.mjs` — repo-specific routing/policy overlay
+  on top of packaged hook infrastructure
+- `scripts/deploy-production.ts` — EdgeMatte-specific deploy orchestration
+- `scripts/verify-cloudflare-deploy-creds.sh` — app/provider-specific deploy
+  preflight
+- `scripts/wait-for-http.sh` — small generic helper, but not clearly owned by
+  `agent-kit`
+- `scripts/check-no-dev-vars.ts` — narrow repo-policy helper
+
+### Best next extraction candidates
+
+- `scripts/audit-secret-provider-quarantine.ts`
+- `scripts/verify-secrets-policy.ts`
+- `scripts/sync-webpresso-config.ts`
+
+These are stronger shared candidates than the others because they encode
+Webpresso-wide secret-management policy rather than EdgeMatte business logic.
+The quarantine script is especially notable because `agent-kit` already
+scaffolds that pattern from its base-kit template. A later follow-up may move
+these into `agent-kit` or Webpresso-core tooling, but they are not treated as
+dead code by this blueprint.
+
 ## Verification Gates
 
 | Gate                  | Command                                           | Success Criteria |

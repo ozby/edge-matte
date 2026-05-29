@@ -207,8 +207,8 @@ architecture docs as source of truth
 ```
 
 For EdgeMatte now, a local contract plus CI check is enough. For IngestLens and
-other sibling repos, the right shared surface is an agent-kit audit such as
-`wp audit architecture-drift --root .`, backed by a repo-local
+other sibling repos, the right shared surface is the agent-kit audit
+`wp audit architecture-drift --root .`, driven by the repo-local
 `docs/architecture.contract.json`.
 
 That keeps the enforcement DRY, portable, and consistent with the existing
