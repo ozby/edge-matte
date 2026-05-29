@@ -40,6 +40,42 @@ jobs:
       - run: pnpm run build
       - run: pnpm run test
 
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install chromium + system deps
+        run: pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
+
+      # Hermetic pre-deploy gate — no secrets, no external network.
+      # IMPORTANT: always pass an explicit --suite.
+      # A bare `pnpm e2e` runs ALL five suites (default = all, see
+      # apps/e2e/src/agent-kit-host-adapter.ts buildExecutionPlan), and on
+      # Actions CI=true un-skips shouldRunProductionSmoke (env.ts:31), which
+      # would fire production-journey against live prod BEFORE wrangler deploy.
+      - name: Gate — contract (HTTP) suite
+        run: pnpm e2e -- --suite upload-delete-contract
+      - name: Gate — smoke (HTTP) suite
+        run: pnpm e2e -- --suite smoke
+      - name: Gate — browser (Playwright) journey
+        run: pnpm e2e -- --suite upload-delete
+
+      - name: Upload gate artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-gate-playwright-artifacts
+          path: |
+            apps/e2e/playwright-report
+            apps/e2e/test-results
+          retention-days: 7
+
       - name: Inject deploy credentials from Doppler
         if: env.HAS_DOPPLER_TOKEN == '1'
         uses: dopplerhq/secrets-fetch-action@v2.0.0
