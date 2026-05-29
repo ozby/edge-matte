@@ -180,7 +180,7 @@ is the corrective pass before any further feature expansion.
 - Placeholder lint surfaces are replaced with real checks or removed from
   claimed quality gates.
 - PR CI matches the checks promised in the infra blueprint.
-- `python3 scripts/check_architecture_drift.py` passes after all updates.
+- `wp audit architecture-drift --root .` passes after all updates.
 
 ## Wave 0 — secrets governance (ingest-lens parity)
 
@@ -533,7 +533,7 @@ wp audit blueprint-lifecycle --legacy-omx
 vp run e2e -- --suite smoke
 vp run e2e -- --suite upload-delete
 vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 ```
 
 When the production lane is intentionally included:

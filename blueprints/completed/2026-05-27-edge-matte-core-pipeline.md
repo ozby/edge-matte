@@ -183,7 +183,7 @@ vp run check-types
 vp run lint
 vp run e2e -- --suite upload-delete
 wp audit guardrails
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 ```
 
 ## Completion notes

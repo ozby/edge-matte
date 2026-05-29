@@ -174,7 +174,7 @@ vp run docs:check
 vp run blueprints:check
 vp run deploy:dry-run
 wp audit guardrails
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 ```
 
 ## Completion notes

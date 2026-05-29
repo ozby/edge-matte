@@ -169,7 +169,7 @@ vp run test
 vp run build
 wp audit agents
 wp audit guardrails
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 ```
 
 ## Completion notes

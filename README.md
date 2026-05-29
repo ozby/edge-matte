@@ -108,10 +108,10 @@ The repo treats architecture as a living contract, not a snapshot. Reviewers can
 - [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — implementation blueprint with architecture before/after.
 - [`docs/research/`](./docs/research) — naming research, infra best-practices, refinement notes.
 
-The architecture drift check is local and fast:
+The architecture drift check runs through the shared agent-kit audit surface:
 
 ```
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 ```
 
 ### Webpresso tooling (`wp` and `vp`)
@@ -144,7 +144,7 @@ E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 vp run verify:secrets
 wp audit absolute-path-policy --root .
 vp run audit:secret-provider-quarantine
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
 

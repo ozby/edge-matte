@@ -62,7 +62,7 @@ Start Blueprint 2 only when:
 
 - `vp install`, build, lint, typecheck, and test resolve
 - Worker/client/E2E topology is stable
-- `python3 scripts/check_architecture_drift.py` passes
+- `wp audit architecture-drift --root .` passes
 
 ---
 

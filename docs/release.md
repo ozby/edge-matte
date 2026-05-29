@@ -91,7 +91,7 @@ vp run e2e -- --suite upload-delete
 # Architecture + docs governance
 wp audit docs-frontmatter
 wp audit blueprint-lifecycle --legacy-omx
-python3 scripts/check_architecture_drift.py
+wp audit architecture-drift --root .
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
 
@@ -193,7 +193,7 @@ Use before merging infra/release changes or after cutover:
 - [ ] `main` deploy uses concurrency serialization
 - [ ] Post-deploy smoke runs `production-smoke` against public URL
 - [ ] No `.dev.vars*` / `.env*` files in repo (except documented `.env.example` if any)
-- [ ] `python3 scripts/check_architecture_drift.py` passes
+- [ ] `wp audit architecture-drift --root .` passes
 
 ## Rollback
 

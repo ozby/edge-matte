@@ -37,17 +37,8 @@ Before claiming completion on architecture, blueprint, deployment, or boundary
 changes:
 
 ```bash
-python3 scripts/check_architecture_drift.py
-```
-
-This repo currently uses the local contract checker above. The intended shared
-long-term surface is an agent-kit audit such as:
-
-```bash
 wp audit architecture-drift --root .
 ```
-
-When that upstream audit exists, prefer it over the local checker.
 
 ## DRY / SOLID / KISS
 

@@ -362,13 +362,7 @@ Architecture-changing blueprints must:
 - include `## Architecture before`
 - include `## Architecture after`
 
-Current local enforcement:
-
-```bash
-python3 scripts/check_architecture_drift.py
-```
-
-Target shared enforcement for EdgeMatte, IngestLens, and sibling repos:
+Shared enforcement for EdgeMatte, IngestLens, and sibling repos:
 
 ```bash
 wp audit architecture-drift --root .

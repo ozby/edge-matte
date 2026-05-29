@@ -167,7 +167,7 @@ seed role.
 
 1. Add explicit F1–F6 findings with severity, reality, and fix.
 2. Link official Cloudflare and GitHub deployment docs plus repo-local evidence.
-3. Run `python3 scripts/check_architecture_drift.py` — verify PASS.
+3. Run `wp audit architecture-drift --root .` — verify PASS.
 
 **Acceptance:**
 
@@ -401,7 +401,7 @@ risks, edge cases, technology choices, and cross-plan references.
    - `vp run audit:blueprint-links`
    - `wp audit blueprint-lifecycle --legacy-omx`
    - `wp audit docs-frontmatter`
-   - `python3 scripts/check_architecture_drift.py`
+   - `wp audit architecture-drift --root .`
 
 **Acceptance:**
 
@@ -467,7 +467,7 @@ risks, edge cases, technology choices, and cross-plan references.
 | Blueprint links       | `vp run audit:blueprint-links`                    | No local-path or broken-link violations |
 | Blueprint lifecycle   | `wp audit blueprint-lifecycle --legacy-omx`       | Blueprint structure valid |
 | Docs frontmatter      | `wp audit docs-frontmatter`                       | Frontmatter valid |
-| Architecture drift    | `python3 scripts/check_architecture_drift.py`     | No architecture contract drift |
+| Architecture drift    | `wp audit architecture-drift --root .`     | No architecture contract drift |
 
 ## Cross-Plan References
 
