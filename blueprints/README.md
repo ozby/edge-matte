@@ -29,12 +29,13 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
-## Active work (2026-05-27)
+## Active work (2026-05-29)
 
 | Blueprint          | Path                                                                                                                 | Purpose                                                                  |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Audit remediation  | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; closes production deploy smoke gap |
 | Security hardening | [`planned/2026-05-28-edge-matte-security-hardening.md`](./planned/2026-05-28-edge-matte-security-hardening.md)       | Private-beta security controls: Access, Turnstile, WAF/rate limiting     |
+| Deploy contract    | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: agent-kit policy + private infra plumbing |
 
 Wave 0 (secrets governance) is complete in the working tree — see the remediation
 blueprint for lane boundaries if multiple agents edit concurrently.

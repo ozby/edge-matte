@@ -4,6 +4,34 @@ Pulumi owns **durable** Cloudflare resources for EdgeMatte. Wrangler owns the Wo
 routes, bindings, and deploy — see [`wrangler.toml`](../wrangler.toml) and
 [`docs/release.md`](../docs/release.md).
 
+See also:
+
+- [`docs/architecture.md#infrastructure-deployment-ownership`](../docs/architecture.md#infrastructure-deployment-ownership) — system-wide deployment ownership Mermaid chart
+- [`docs/release.md`](../docs/release.md) — release path, smoke checks, and maintainer bootstrap
+
+## Deployment chart
+
+```mermaid
+flowchart LR
+    CI[deploy.production.yml<br/>or vp run deploy:production] --> WRANGLER[Wrangler deploy]
+
+    PULUMI[Pulumi stack] --> R2[(R2 bucket)]
+    PULUMI --> LIFE[R2 lifecycle rules]
+
+    WRANGLER --> ROUTE[edge-matte.ozby.dev route]
+    WRANGLER --> WORKER[Cloudflare Worker]
+    WRANGLER --> ASSETS[Workers Static Assets]
+    WRANGLER --> BINDINGS[Bindings + secret names]
+
+    ROUTE --> WORKER
+    ASSETS --> WORKER
+    BINDINGS --> WORKER
+    WORKER --> R2
+```
+
+Boundary summary: Pulumi creates and manages durable infrastructure. Wrangler
+deploys the Worker-facing runtime that consumes it.
+
 ## Resources
 
 | Resource     | Name / scope                                                                        |

@@ -7,6 +7,7 @@ last_updated: 2026-05-28
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
+  - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
 ---
 
 # EdgeMatte: private-beta security hardening
@@ -45,6 +46,11 @@ Architecture docs:
 
 Ship a secure private-beta surface that is resilient to automated abuse and
 operationally safe for CI/CD and maintainers.
+
+Deployment-contract note: if shared preview/main/prod lane semantics move into
+`agent-kit`, this blueprint should consume that contract rather than invent a
+second deployment taxonomy. Provider-specific deploy plumbing remains outside
+this blueprint's scope.
 
 ## Hard fact-check findings
 

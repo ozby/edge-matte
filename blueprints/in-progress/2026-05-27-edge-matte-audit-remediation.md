@@ -149,6 +149,9 @@ is the corrective pass before any further feature expansion.
 - queue-mode promotion
 - database introduction
 - new product scope beyond confidence restoration
+- cross-repo deployment-contract extraction, `agent-kit` policy changes, or
+  private Cloudflare deploy-package work (tracked separately in
+  [`2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md))
 
 ## Evidence motivating this blueprint
 

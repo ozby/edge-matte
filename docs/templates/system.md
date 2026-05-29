@@ -11,8 +11,17 @@ last_updated: "YYYY-MM-DD"
 
 ## Architecture
 
-```text
-[Diagram showing the main components and their edges]
+```mermaid
+flowchart LR
+  A[Main component] --> B[Dependency or downstream system]
+```
+
+## Infrastructure / deployment
+
+```mermaid
+flowchart LR
+  CI[Deploy entry point] --> RUNTIME[Runtime surface]
+  INFRA[Durable infrastructure owner] --> STATE[(Stateful resource)]
 ```
 
 ## Key invariants

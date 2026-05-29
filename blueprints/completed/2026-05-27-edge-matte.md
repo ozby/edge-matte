@@ -45,6 +45,13 @@ bucket, one pure pipeline core, explicit ports/adapters, agent-kit/vite-plus
 quality reuse, and `edge-matte.ozby.dev` as the production contract. Queue mode
 remains a promotion path only.
 
+Follow-up note (2026-05-29): shared multi-repo deployment-contract extraction
+is tracked separately in
+[`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md).
+That follow-up may change shared `agent-kit` policy and private Cloudflare
+deploy plumbing, but it does not change this blueprint's v1 product/runtime
+topology.
+
 ## Objective
 
 Ship a live app at `https://edge-matte.ozby.dev` that lets a user upload one

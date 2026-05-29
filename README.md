@@ -100,9 +100,10 @@ browser UI.
 
 The repo treats architecture as a living contract, not a snapshot. Reviewers can ignore this section — it's for maintainers.
 
-- [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth with Mermaid diagrams.
+- [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth with Mermaid runtime, storage, E2E, and infrastructure deployment diagrams.
 - [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
 - [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership split, post-deploy smoke.
+- [`infra/README.md`](./infra/README.md) — Pulumi-owned infrastructure bootstrap plus the infra deployment Mermaid chart.
 - [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` + Cloudflare Worker secret ownership.
 - [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — implementation blueprint with architecture before/after.
 - [`docs/research/`](./docs/research) — naming research, infra best-practices, refinement notes.
@@ -154,6 +155,8 @@ WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 Production target: `https://edge-matte.ozby.dev`.
 
 - [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap.
+- [`docs/architecture.md#infrastructure-deployment-ownership`](./docs/architecture.md#infrastructure-deployment-ownership) — Mermaid deployment/ownership chart for CI, Pulumi, Wrangler, and prod.
+- [`infra/README.md#deployment-chart`](./infra/README.md#deployment-chart) — infra-focused Mermaid chart for the durable-resource/bootstrap boundary.
 - [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` for deploy creds; provider keys in Cloudflare, not GitHub.
 
 Operator-local production deploy:

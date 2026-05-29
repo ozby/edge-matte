@@ -62,6 +62,9 @@ codified. This blueprint closes the production-readiness gap.
 - new product behavior
 - non-release UI work
 - queue-mode runtime promotion
+- cross-repo extraction of shared deployment contract or private Cloudflare
+  deploy plumbing (tracked separately in
+  [`../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md))
 
 ## Tasks
 
@@ -186,3 +189,9 @@ Completed 2026-05-27 for infra/release automation. Local verification passed.
 Deploy workflow post-smoke propagation and green `production-smoke` are tracked in
 [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](../in-progress/2026-05-27-edge-matte-audit-remediation.md)
 (Wave 0.5).
+
+Platform follow-up note (2026-05-29): if this release contract is generalized
+across EdgeMatte and other Cloudflare repos, the extraction lane lives in
+[`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md),
+with shared policy expected to land in `agent-kit` and provider-specific
+plumbing expected to stay in a separate private Cloudflare/Pulumi package.

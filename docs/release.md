@@ -14,6 +14,9 @@ maintainer bootstraps or verifies a release from a clean clone.
 
 Architecture source of truth: [`docs/architecture.md`](./architecture.md).
 Secret ownership: [`docs/secrets.md`](./secrets.md).
+Infra bootstrap + chart: [`infra/README.md`](../infra/README.md).
+Infrastructure deployment Mermaid chart:
+[`docs/architecture.md#infrastructure-deployment-ownership`](./architecture.md#infrastructure-deployment-ownership).
 
 ## Ownership split
 
@@ -34,6 +37,10 @@ resources; Wrangler owns Worker-scoped deployment.**
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
+
+For the visual version of this split, see the Mermaid charts in
+[`docs/architecture.md#infrastructure-deployment-ownership`](./architecture.md#infrastructure-deployment-ownership)
+and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 
 ## Production target
 
@@ -203,5 +210,6 @@ delete TTL or lifecycle rules apply.
 ## Related
 
 - [`docs/architecture.md`](./architecture.md) — deployment ownership diagram
+- [`infra/README.md`](../infra/README.md) — Pulumi bootstrap + infra deployment chart
 - [`docs/secrets.md`](./secrets.md) — secret stores and bootstrap
 - [`blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/completed/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint

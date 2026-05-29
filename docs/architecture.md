@@ -298,7 +298,10 @@ reinvented locally. EdgeMatte should keep only project-specific journey files an
 suite registration in `apps/e2e`; execution planning, structured QA lanes,
 formatting, test presets, and blueprint audits come from agent-kit/vite-plus.
 
-## Deployment ownership
+## Infrastructure deployment ownership
+
+Release/bootstrap companions:
+[`docs/release.md`](./release.md) and [`infra/README.md`](../infra/README.md).
 
 ```mermaid
 flowchart LR

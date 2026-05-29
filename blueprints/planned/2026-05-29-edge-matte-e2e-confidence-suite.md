@@ -5,6 +5,9 @@ status: planned
 created: 2026-05-29
 last_updated: 2026-05-29
 review_target: public GitHub repository
+depends_on:
+  - 2026-05-27-edge-matte-audit-remediation
+  - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
 ---
 
 # EdgeMatte: end-to-end confidence suite
@@ -29,6 +32,11 @@ mock mode, no secrets), and adds a real post-deploy journey that proves the live
 - **New user-visible capability:** every PR shows a green check that proves the
   full journey works, and every deploy proves the real background-removal + flip
   transform on `edge-matte.ozby.dev` before users see it.
+
+Deployment-contract note: this blueprint should eventually consume whatever
+shared preview/main/prod lane contract lands via
+[`../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md).
+It owns confidence coverage, not the reusable deploy-policy extraction itself.
 
 ## Architecture governance
 
