@@ -30,7 +30,10 @@ describe("CfImageSegmentProvider", () => {
       expect(url).toContain("/internal/raw/");
       expect(url).toContain(encodeURIComponent(SEGMENT_TMP_PREFIX));
       expect((init?.cf as { image?: { segment?: string } })?.image?.segment).toBe("foreground");
-      return new Response(cutout.stream(), { status: 200, headers: { "content-type": "image/png" } });
+      return new Response(cutout.stream(), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -74,7 +77,10 @@ describe("CfImageSegmentProvider", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const provider = new CfImageSegmentProvider(bucket, "https://edge-matte.ozby.dev");
-    await provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" }), controller.signal);
+    await provider.removeBackground(
+      new Blob([PNG_BYTES], { type: "image/png" }),
+      controller.signal,
+    );
 
     expect(fetchMock).toHaveBeenCalledOnce();
   });

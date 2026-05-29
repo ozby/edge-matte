@@ -84,7 +84,7 @@ Architecture docs:
 
 ## Task pool
 
-#### [test] Task 1: Real image fixture + path-safe reader
+#### [test] Task 1.1: Real image fixture + path-safe reader
 
 **Status:** todo
 
@@ -110,11 +110,11 @@ image without `../` traversal or hardcoded roots.
 - [ ] `sample.png` is a valid PNG (magic bytes + IHDR/IDAT/IEND), passes the worker magic-byte check.
 - [ ] `readFixture` resolves with no `../` and no absolute-path-policy violation.
 
-#### [test] Task 2: Convert browser e2e to TypeScript and rewrite the journey
+#### [test] Task 1.2: Convert browser e2e to TypeScript and rewrite the journey
 
 **Status:** todo
 
-**Depends:** Task 1
+**Depends:** Task 1.1
 
 Replace the stale `.mjs` browser spec with a TS spec covering the full visible flow.
 
@@ -135,11 +135,11 @@ Replace the stale `.mjs` browser spec with a TS spec covering the full visible f
 - [ ] `vp run e2e -- --suite upload-delete` is green locally in mock mode.
 - [ ] No `.mjs` files remain under `apps/e2e/`.
 
-#### [test] Task 3: Expand the HTTP contract suite
+#### [test] Task 1.3: Expand the HTTP contract suite
 
 **Status:** todo
 
-**Depends:** Task 1
+**Depends:** Task 1.1
 
 Cover the full contract and fix the byte-length assertion.
 
@@ -157,11 +157,11 @@ Cover the full contract and fix the byte-length assertion.
 
 - [ ] `vp run e2e -- --suite upload-delete-contract` is green; every error code asserted.
 
-#### [ci] Task 4: PR-gating `e2e` job
+#### [ci] Task 2.1: PR-gating `e2e` job
 
 **Status:** todo
 
-**Depends:** Task 2, Task 3
+**Depends:** Task 1.2, Task 1.3
 
 Add a hermetic, secret-free `e2e` job that gates every PR.
 
@@ -182,11 +182,11 @@ Add a hermetic, secret-free `e2e` job that gates every PR.
 - [ ] `act -W .github/workflows/ci.webpresso.yml -j e2e` passes with no Doppler token present.
 - [ ] Job is a required check on `main`.
 
-#### [ci] Task 5: Real post-deploy `production-journey`
+#### [ci] Task 2.2: Real post-deploy `production-journey`
 
 **Status:** todo
 
-**Depends:** Task 1
+**Depends:** Task 1.1
 
 Prove the real `cf.image` transform end to end after each deploy.
 
@@ -208,11 +208,11 @@ Prove the real `cf.image` transform end to end after each deploy.
 - [ ] Suite asserts the served image differs from the uploaded fixture (real transform).
 - [ ] Deploy job stays green; the real artifact is created then deleted.
 
-#### [docs] Task 6: Refresh docs to match
+#### [docs] Task 3.1: Refresh docs to match
 
 **Status:** todo
 
-**Depends:** Task 4, Task 5
+**Depends:** Task 2.1, Task 2.2
 
 **Files:**
 

@@ -1,56 +1,56 @@
-import { readdirSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
-const root = process.cwd()
-const forbidden: string[] = []
+const root = process.cwd();
+const forbidden: string[] = [];
 
 function walk(dir: string): void {
-  let entries: string[] = []
+  let entries: string[] = [];
   try {
-    entries = readdirSync(dir, { withFileTypes: true }).map((entry) => entry.name)
+    entries = readdirSync(dir, { withFileTypes: true }).map((entry) => entry.name);
   } catch {
-    return
+    return;
   }
 
   for (const name of entries) {
-    if (name === '.git' || name === 'node_modules') {
-      continue
+    if (name === ".git" || name === "node_modules") {
+      continue;
     }
 
-    const fullPath = join(dir, name)
-    let stat: ReturnType<typeof statSync>
+    const fullPath = join(dir, name);
+    let stat: ReturnType<typeof statSync>;
     try {
-      stat = statSync(fullPath)
+      stat = statSync(fullPath);
     } catch {
-      continue
+      continue;
     }
 
     if (stat.isDirectory()) {
-      walk(fullPath)
-      continue
+      walk(fullPath);
+      continue;
     }
 
     if (!stat.isFile()) {
-      continue
+      continue;
     }
 
-    const isEnvFile = (name === '.env' || /^\.env(?:\..+)?$/.test(name)) && name !== '.env.example'
-    if (name === '.dev.vars' || /^\.dev\.vars(?:\..+)?$/.test(name) || isEnvFile) {
-      forbidden.push(relative(root, fullPath))
+    const isEnvFile = (name === ".env" || /^\.env(?:\..+)?$/.test(name)) && name !== ".env.example";
+    if (name === ".dev.vars" || /^\.dev\.vars(?:\..+)?$/.test(name) || isEnvFile) {
+      forbidden.push(relative(root, fullPath));
     }
   }
 }
 
-walk(root)
+walk(root);
 
 if (forbidden.length > 0) {
   console.error(
-    'ERROR: forbidden .dev.vars or .env files detected. Secrets must be managed by secret providers, not written to disk:',
-  )
+    "ERROR: forbidden .dev.vars or .env files detected. Secrets must be managed by secret providers, not written to disk:",
+  );
   for (const file of forbidden) {
-    console.log(file)
+    console.log(file);
   }
-  process.exit(1)
+  process.exit(1);
 }
 
-console.log('OK: no forbidden .dev.vars or .env files present in repo working tree')
+console.log("OK: no forbidden .dev.vars or .env files present in repo working tree");

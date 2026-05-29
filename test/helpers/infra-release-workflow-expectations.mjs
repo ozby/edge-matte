@@ -27,7 +27,10 @@ export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
 export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
   { label: "main branch trigger", pattern: /branches:\s*\[[^\]]*main/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
-  { label: "wrangler deploy", pattern: /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/u },
+  {
+    label: "wrangler deploy",
+    pattern: /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/u,
+  },
   { label: "production domain target", pattern: /edge-matte\.ozby\.dev/u },
   { label: "post-deploy /health smoke", pattern: /wait-for-http\.sh.*\/health|\/health/u },
   {

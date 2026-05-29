@@ -18,24 +18,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-sessionstart-routing\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-sessionstart-routing\" || true",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-check-dev-link\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-check-dev-link\" || true",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "PreToolUse": [
@@ -45,16 +27,6 @@
           {
             "type": "command",
             "command": "[ -f \"/Users/ozby/repos/ozby/edge-matte/scripts/mcp-first-pretool-guard.mjs\" ] && node \"/Users/ozby/repos/ozby/edge-matte/scripts/mcp-first-pretool-guard.mjs\" || printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"mcp-first-pretool-guard is unavailable. Run vp install or wp setup to restore the agent-kit hook surface.\"}}'",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|apply_patch|Edit|Write|mcp__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-pretool-guard\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-pretool-guard\" || printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"wp-pretool-guard is unavailable. Run vp install or wp setup.\"}}'",
             "timeout": 5
           }
         ]
@@ -70,16 +42,6 @@
             "timeout": 15
           }
         ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-post-tool\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-post-tool\" || true",
-            "timeout": 15
-          }
-        ]
       }
     ],
     "UserPromptSubmit": [
@@ -91,15 +53,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-guard-switch\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-guard-switch\" || true",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "Stop": [
@@ -108,14 +61,6 @@
           {
             "type": "command",
             "command": "command -v wp-stop-qa >/dev/null 2>&1 && wp-stop-qa || true"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-stop-qa\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-stop-qa\" || true"
           }
         ]
       }

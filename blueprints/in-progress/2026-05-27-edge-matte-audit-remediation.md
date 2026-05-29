@@ -265,7 +265,9 @@ Exact stop condition:
 
 #### [qa] Task 1.1: Capture the current false-green behavior
 
-**Status:** in progress (adapter-semantics + e2e rename landed; browser lane open)
+**Status:** in_progress
+
+Adapter-semantics coverage and the E2E rename landed; the browser lane remains open.
 
 **Depends:** None
 
@@ -294,7 +296,9 @@ remediation work from being "fixed" only in prose.
 
 #### [docs] Task 1.2: Establish truthful doc and blueprint baseline
 
-**Status:** in progress (secrets/release/README updated; parent checkbox pending CI green)
+**Status:** in_progress
+
+Secrets/release/README updates landed; the parent checkbox still depends on CI going green.
 
 **Depends:** None
 
@@ -351,7 +355,9 @@ Contract-only tests may remain, but must be renamed and scoped honestly.
 
 #### [backend] Task 2.2: Fail loudly on missing production-sensitive config
 
-**Status:** done in working tree — verify on merge, then mark acceptance complete
+**Status:** done
+
+Done in working tree; verify on merge, then mark acceptance complete.
 
 **Depends:** Task 1.1
 
@@ -413,7 +419,9 @@ execution.
 
 #### [backend] Task 3.1: Reconcile the upload-size contract
 
-**Status:** done in working tree (8 MiB in worker + client)
+**Status:** done
+
+Done in working tree with the 8 MiB contract aligned in worker and client.
 
 **Depends:** Task 1.1
 
@@ -501,7 +509,7 @@ reviewer-readable evidence trail.
 
 #### [infra] Task 3.3: Production deploy smoke propagation
 
-**Status:** in progress
+**Status:** in_progress
 
 Add resilient post-deploy health polling so CI does not fail while Cloudflare
 routes propagate. Reuse the same helper for operator-local deploy.
