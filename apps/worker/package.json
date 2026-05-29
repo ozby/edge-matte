@@ -12,6 +12,7 @@
     "build": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
     "test": "vp run --filter @edge-matte/client build && vitest run",
+    "mutation": "stryker run",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
@@ -21,6 +22,9 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.10",
     "@cloudflare/workers-types": "^4.20260528.1",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/typescript-checker": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "oxlint": "^1.36.0",
     "typescript": "catalog:",
     "vitest": "catalog:",

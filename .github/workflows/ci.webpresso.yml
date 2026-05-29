@@ -111,6 +111,28 @@ jobs:
             apps/e2e/test-results
           retention-days: 7
 
+  mutation:
+    name: Mutation (affected)
+    if: github.event_name == 'pull_request'
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+      - run: bun ./scripts/affected-mutation.ts
+
   deploy-verify:
     runs-on: ubuntu-latest
     steps:
