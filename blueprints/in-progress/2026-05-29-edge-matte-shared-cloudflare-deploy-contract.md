@@ -2,8 +2,8 @@
 type: blueprint
 title: "EdgeMatte: shared Cloudflare deployment contract extraction"
 status: in-progress
-created: 2026-05-29
-last_updated: 2026-05-29
+created: 2026-05-29T00:00:00.000Z
+last_updated: "2026-05-29"
 review_target: internal multi-repo platform work
 parent_blueprint: 2026-05-27-edge-matte
 depends_on:
@@ -15,6 +15,7 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
+progress: "0% (0/9 tasks done, 0 blocked, updated 2026-05-29)"
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -123,7 +124,7 @@ one decision-complete contract. Parallelization score: **B**.
 
 #### [docs] Task 1.1: Lock the shared ownership boundary in the blueprint
 
-**Status:** todo
+**Status:** in_progress
 
 **Depends:** None
 
