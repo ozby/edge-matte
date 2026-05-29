@@ -10,7 +10,7 @@ describe("worker health", () => {
   });
 
   it("exposes ASSETS and IMAGES_BUCKET bindings in the test env", () => {
-    expect(env.ASSETS).toBeDefined();
-    expect(env.IMAGES_BUCKET).toBeDefined();
+    expect(env.ASSETS).not.toBeNull();
+    expect(env.IMAGES_BUCKET).not.toBeNull();
   });
 });

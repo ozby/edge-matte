@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { spawnSync } from "node:child_process";
-import { buildExecutionPlan } from "../agent-kit-host-adapter";
+import { buildExecutionPlan } from "#agent-kit-host-adapter";
 import { findRepoRoot } from "#repo-root";
 
 const resolveSuiteArg = (): string | undefined => {

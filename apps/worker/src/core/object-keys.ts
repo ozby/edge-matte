@@ -1,3 +1,6 @@
+/** R2 prefix for transient cf.image sub-request blobs. Deleted in finally. */
+export const SEGMENT_TMP_PREFIX = "segment-tmp/";
+
 export interface ObjectKeys {
   metadata: string;
   original: string;

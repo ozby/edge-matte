@@ -1,7 +1,8 @@
 import { AppError } from "#core/errors";
+import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 import type { BackgroundRemovalProvider } from "#ports";
 
-const randomKey = () => `segment-tmp/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const randomKey = () => `${SEGMENT_TMP_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export class CfImageSegmentProvider implements BackgroundRemovalProvider {
   constructor(
@@ -48,7 +49,7 @@ export class CfImageSegmentProvider implements BackgroundRemovalProvider {
         try {
           await this.bucket.delete(key);
         } catch (cleanupError) {
-          console.warn("segment-tmp cleanup failed", {
+          console.warn(`${SEGMENT_TMP_PREFIX}cleanup failed`, {
             key,
             error: String(cleanupError),
           });

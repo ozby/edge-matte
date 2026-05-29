@@ -8,6 +8,7 @@ import {
   invalidRequestError,
 } from "#core/errors";
 import { toPublicImageJob, verifyDeleteToken } from "#core/image-job";
+import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 import {
   MAX_UPLOAD_BYTES,
   processImageJob,
@@ -143,14 +144,14 @@ export const createApp = (
     }
   });
 
-  // Internal: serves the transient segment-tmp/ prefix only, so cf.image can apply
+  // Internal: serves the transient SEGMENT_TMP_PREFIX only, so cf.image can apply
   // CDN transforms via sub-request. Any other key (jobs/*.json, images/*) is rejected
   // — those R2 paths hold the persisted ImageJob and original uploads and must never
   // be readable through this route.
   app.get("/internal/raw/:key", async (c) => {
     if (!deps.rawBucket) return new Response("not available", { status: 404 });
     const key = decodeURIComponent(c.req.param("key"));
-    if (!key.startsWith("segment-tmp/")) {
+    if (!key.startsWith(SEGMENT_TMP_PREFIX)) {
       return new Response("not found", { status: 404 });
     }
     const obj = await deps.rawBucket.get(key);

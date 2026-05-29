@@ -5,7 +5,9 @@
   "type": "module",
   "imports": {
     "#repo-root": "./src/repo-root.ts",
-    "#fixtures": "./src/fixtures.ts"
+    "#fixtures": "./src/fixtures.ts",
+    "#agent-kit-host-adapter": "./src/agent-kit-host-adapter.ts",
+    "#ensure-client-dist": "./src/ensure-client-dist.ts"
   },
   "scripts": {
     "pretest": "pnpm --filter @edge-matte/client run build",

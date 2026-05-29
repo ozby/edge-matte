@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { writeFile, rm, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { findRepoRoot } from "#repo-root";
-import { ensureClientDist } from "../ensure-client-dist";
+import { ensureClientDist } from "#ensure-client-dist";
 
 const requestedPort = Number.parseInt(process.env.E2E_LOCAL_PORT ?? "4173", 10);
 const port = Number.isFinite(requestedPort) ? requestedPort : 4173;
