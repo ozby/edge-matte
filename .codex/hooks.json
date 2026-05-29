@@ -1,0 +1,69 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-sessionstart-routing\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-sessionstart-routing\" || true",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-check-dev-link\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-check-dev-link\" || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"/Users/ozby/repos/ozby/edge-matte/scripts/mcp-first-pretool-guard.mjs\" ] && node \"/Users/ozby/repos/ozby/edge-matte/scripts/mcp-first-pretool-guard.mjs\" || printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"mcp-first-pretool-guard is unavailable. Restore repo hooks or run wp setup.\"}}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-post-tool\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-post-tool\" || true",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-guard-switch\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-guard-switch\" || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-stop-qa\" ] && \"/Users/ozby/repos/ozby/edge-matte/node_modules/.bin/wp-stop-qa\" || true"
+          }
+        ]
+      }
+    ]
+  }
+}
