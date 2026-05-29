@@ -9,6 +9,7 @@
   "scripts": {
     "setup:agent": "wp setup",
     "build": "vp run -r build",
+    "catalog:check": "WP_SKIP_UPDATE_CHECK=1 wp audit catalog-drift",
     "check": "vp check",
     "check-types": "vp run -r check-types",
     "typecheck": "vp run -r check-types",
@@ -33,9 +34,9 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
-    "@webpresso/agent-kit": "0.21.3",
+    "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
-    "typescript": "^6.0.3",
+    "typescript": "catalog:",
     "vite-plus": "^0.1.22"
   },
   "engines": {
