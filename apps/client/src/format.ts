@@ -1,3 +1,5 @@
+import type { ImageJobStatus } from "./types";
+
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 const MAX_UPLOAD_LABEL = "8 MiB";
@@ -63,5 +65,5 @@ export const statusLabel = (status: string): string => {
   }
 };
 
-export const isTerminalStatus = (status: string): boolean =>
+export const isTerminalStatus = (status: ImageJobStatus): boolean =>
   status === "ready" || status === "failed";

@@ -53,7 +53,7 @@ public URL.
 
 Prerequisites:
 
-- Node `>=24`, pnpm `11.x`, Bun (for e2e/scripts)
+- Node `>=24`, Bun (for e2e/scripts)
 - Global `wp` and `vp` on `PATH` (`@webpresso/agent-kit` / vite-plus)
 - Cloudflare account access (for one-time infra + secret setup)
 - Secret manager configured for local commands (see [secrets](./secrets.md))
@@ -62,30 +62,28 @@ From a fresh checkout:
 
 ```bash
 git clone <repo-url> edge-matte && cd edge-matte
-pnpm install --frozen-lockfile
+vp install --frozen-lockfile
 
 # Agent surfaces + policy (no secrets written to disk)
 wp setup --yes
-wp config secrets show   # should report ozby-shell after pnpm install
+wp config secrets show   # should report ozby-shell after vp install
 
 # Quality gates (same surface CI uses)
-vp install
-pnpm run verify:secrets
+vp run verify:secrets
 wp audit absolute-path-policy --root .  # canonical shared audit surface
-pnpm run verify:paths   # human/CI wrapper around the shared audit
-pnpm run audit:secret-provider-quarantine
+vp run audit:secret-provider-quarantine
 vp run -r check-types
 vp run -r lint
-pnpm run test
+vp run test
 vp run -r build
 
 # Local journey verification
-pnpm run e2e -- --suite smoke
-pnpm run e2e -- --suite upload-delete
+vp run e2e -- --suite smoke
+vp run e2e -- --suite upload-delete
 
 # Architecture + docs governance
-pnpm run docs:check
-pnpm run blueprints:check
+wp audit docs-frontmatter
+wp audit blueprint-lifecycle --legacy-omx
 python3 scripts/check_architecture_drift.py
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
@@ -115,7 +113,7 @@ and in [`docs/secrets.md`](./secrets.md).
 Operator-local production deploy (mirrors ingest-lens `deploy.ts` + Doppler):
 
 ```bash
-pnpm run deploy:production
+vp run deploy:production
 ```
 
 This builds the workspace, runs `with-secrets -- wrangler deploy --env production`
@@ -125,14 +123,14 @@ This builds the workspace, runs `with-secrets -- wrangler deploy --env productio
 Wrangler-only (no smoke):
 
 ```bash
-pnpm run deploy:production:wrangler
+vp run deploy:production:wrangler
 ```
 
 Dry-run without mutating production (PR CI uses the same shape):
 
 ```bash
-pnpm --filter @edge-matte/worker build
-pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
+vp run --filter @edge-matte/worker build
+vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
 ```
 
 ## CI and release path
@@ -141,9 +139,9 @@ pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
 
 Implemented in [`.github/workflows/ci.webpresso.yml`](../.github/workflows/ci.webpresso.yml):
 
-1. **check** job — install, `verify:secrets`, `verify:paths`
+1. **check** job — install, `verify:secrets`, shared path-policy audit,
    `audit:secret-provider-quarantine`, format, typecheck, lint, docs/blueprint audits
-2. **test** job — `pnpm run test`
+2. **test** job — `vp run test`
 3. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
 
 E2E (`smoke`, `upload-delete`) runs locally or in maintainer bootstrap — not in PR CI yet.
@@ -154,15 +152,15 @@ PRs must not write production secrets or deploy to `edge-matte.ozby.dev`.
 
 Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
-1. Run quality gates (`verify:secrets`, `verify:paths` wrapper over shared path audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
+1. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
 2. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-3. Deploy with `pnpm --filter @edge-matte/worker exec wrangler deploy --env production`
+3. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
 4. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
    (`cancel-in-progress: false`)
 5. **Post-deploy smoke** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
-   - `E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke`
+   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
 
 If post-deploy smoke fails, treat the release as unhealthy and investigate
 before declaring success.
@@ -173,7 +171,7 @@ After any deploy (CI or emergency manual):
 
 ```bash
 curl -sf https://edge-matte.ozby.dev/health
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 ```
 
 ## Release checklist
@@ -196,7 +194,7 @@ v1 rollback is redeploy of the last known-good Worker revision:
 
 1. Identify last green commit on `main` (CI + `production-smoke` green)
 2. Re-run deploy workflow on that commit, or:
-   `pnpm run deploy:production` from that checkout
+   `vp run deploy:production` from that checkout
 3. Re-run post-deploy smoke
 
 R2 data is not rolled back with Worker deploys; job artifacts persist until

@@ -11,12 +11,12 @@ export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy.production.y
 
 /** PR CI must prove deployability without mutating production (IR-1 / blueprint task 5). */
 export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
-  { label: "frozen install", pattern: /pnpm install(?: --frozen-lockfile)?/u },
+  { label: "frozen install", pattern: /vp install(?: --frozen-lockfile)?/u },
   { label: "format check", pattern: /format:check|vp fmt --check/u },
-  { label: "lint", pattern: /pnpm run lint/u },
-  { label: "typecheck", pattern: /pnpm run (?:typecheck|check-types)/u },
-  { label: "test", pattern: /pnpm run test/u },
-  { label: "build", pattern: /pnpm run build/u },
+  { label: "lint", pattern: /vp run lint/u },
+  { label: "typecheck", pattern: /vp run (?:typecheck|check-types)/u },
+  { label: "test", pattern: /vp run test/u },
+  { label: "build", pattern: /vp run build/u },
   {
     label: "deploy credential verify (dry-run or full probe)",
     pattern: /verify-cloudflare-deploy-creds|deploy --dry-run|deploy:dry-run/u,
@@ -27,14 +27,14 @@ export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
 export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
   { label: "main branch trigger", pattern: /branches:\s*\[[^\]]*main/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
-  { label: "wrangler deploy", pattern: /wrangler deploy --env production/u },
+  { label: "wrangler deploy", pattern: /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/u },
   { label: "production domain target", pattern: /edge-matte\.ozby\.dev/u },
   { label: "post-deploy /health smoke", pattern: /wait-for-http\.sh.*\/health|\/health/u },
   {
     label: "post-deploy root smoke",
     pattern: /wait-for-http\.sh|edge-matte\.ozby\.dev\/["'\s]|curl[^\n]*\/["'\s]/u,
   },
-  { label: "verify paths policy", pattern: /verify:paths/u },
+  { label: "verify paths policy", pattern: /wp audit absolute-path-policy --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
   {
     label: "doppler deploy credential injection",

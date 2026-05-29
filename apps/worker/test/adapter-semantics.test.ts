@@ -20,7 +20,7 @@ describe("worker adapter semantics", () => {
     const transformer = new CloudflareImagesTransformer(null);
 
     await expect(
-      transformer.flipHorizontal(new Blob([PNG_BYTES], { type: "image/png" }), "image/png"),
+      transformer.flipHorizontalAsPng(new Blob([PNG_BYTES], { type: "image/png" })),
     ).rejects.toMatchObject({
       code: "image_transform_failed",
       status: 502,

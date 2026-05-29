@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "context-mode": {
+      "type": "local",
+      "command": [
+        "context-mode"
+      ]
+    },
+    "webpresso": {
+      "type": "local",
+      "command": [
+        "vp",
+        "exec",
+        "wp",
+        "mcp"
+      ]
+    }
+  },
+  "plugin": [
+    "context-mode"
+  ]
+}

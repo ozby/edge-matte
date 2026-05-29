@@ -30,10 +30,10 @@ flowchart LR
 
 ## Run locally
 
-Node `>=24`, pnpm `11.1.1`.
+Node `>=24` with global `wp` and `vp` on `PATH`.
 
 ```
-pnpm install --frozen-lockfile
+vp install --frozen-lockfile
 ```
 
 ### No-setup path — mock pipeline (recommended for a quick look)
@@ -41,8 +41,7 @@ pnpm install --frozen-lockfile
 Background removal in production uses Cloudflare's native `cf.image segment: "foreground"` CDN transform (BiRefNet) via a Worker sub-request — no external API key required. The mock pipeline swaps that path for in-memory mocks so the full upload → process → host → delete flow works without any Cloudflare account setup.
 
 ```
-cd apps/worker
-pnpm dev:mock
+vp run --filter @edge-matte/worker dev:mock
 ```
 
 (`dev:mock` is `wrangler dev --var E2E_MOCK_PIPELINE:1`; the shell-only `E2E_MOCK_PIPELINE=1` form does **not** propagate to Workers `env` and will land on the real cf.image path, which 502s in miniflare.)
@@ -70,25 +69,25 @@ The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts
 ## Tests
 
 ```
-pnpm install --frozen-lockfile
-pnpm run test                              # unit + integration (worker, client, root)
-pnpm run e2e -- --suite upload-delete-contract  # HTTP contract: upload→serve→delete + every error code
-pnpm run e2e -- --suite smoke              # /health + SPA shell
-pnpm run e2e -- --suite upload-delete      # Playwright browser journey (boots wrangler dev)
+vp install --frozen-lockfile
+vp run test                              # unit + integration (worker, client, root)
+vp run e2e -- --suite upload-delete-contract  # HTTP contract: upload→serve→delete + every error code
+vp run e2e -- --suite smoke              # /health + SPA shell
+vp run e2e -- --suite upload-delete      # Playwright browser journey (boots wrangler dev)
 ```
 
 The three local e2e suites are **hermetic**: the harness boots `wrangler dev`
 with `E2E_MOCK_PIPELINE:1` (deterministic mock provider/transformer), so no
 secrets and no external network are needed. Every PR runs all three in the CI
-`e2e` job (`pnpm act:ci:e2e` to dry-run it locally via `act`).
+`e2e` job (`vp run act:ci:e2e` to dry-run it locally via `act`).
 
 Against the deployed URL (runs automatically post-deploy):
 
 ```
 # /health + SPA shell
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 # Real upload → cf.image transform → hosted PNG (bytes differ from input) → delete → 404
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 ```
 
 `production-journey` is the only suite that proves the real background-removal +
@@ -123,7 +122,7 @@ EdgeMatte reuses [`webpresso/agent-kit`](https://github.com/webpresso/agent-kit)
 | **`wp`** | Webpresso / agent-kit CLI  | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
 | **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package.                                                        |
 
-`@webpresso/agent-kit` is a devDependency — `pnpm install --frozen-lockfile` installs it, making `wp` available for scripts and CI without a separate global install.
+Install `wp` and `vp` globally; the supported hook, audit, and script surface assumes both binaries are already on `PATH`.
 
 ### Full local verification surface (maintainer only)
 
@@ -131,20 +130,19 @@ EdgeMatte reuses [`webpresso/agent-kit`](https://github.com/webpresso/agent-kit)
 <summary>Expand the long-form verification recipe</summary>
 
 ```bash
-pnpm install --frozen-lockfile
+vp install --frozen-lockfile
 wp config secrets show
 wp init --dry-run
 vp run -r build
 vp run -r lint
 vp run -r check-types
-pnpm run test
-pnpm run e2e -- --suite smoke
-pnpm run e2e -- --suite upload-delete
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
-pnpm run verify:secrets
+vp run test
+vp run e2e -- --suite smoke
+vp run e2e -- --suite upload-delete
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+vp run verify:secrets
 wp audit absolute-path-policy --root .
-pnpm run verify:paths
-pnpm run audit:secret-provider-quarantine
+vp run audit:secret-provider-quarantine
 python3 scripts/check_architecture_drift.py
 WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
 ```
@@ -161,12 +159,12 @@ Production target: `https://edge-matte.ozby.dev`.
 Operator-local production deploy:
 
 ```
-pnpm run deploy:production
+vp run deploy:production
 ```
 
 Post-deploy verification:
 
 ```
 curl -sf https://edge-matte.ozby.dev/health
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 ```

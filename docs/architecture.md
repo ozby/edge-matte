@@ -87,7 +87,7 @@ classDiagram
     }
     class ImageTransformer {
       <<interface>>
-      +flipHorizontal(input, outputType) Response
+      +flipHorizontalAsPng(input) Blob
     }
     class JobRepository {
       <<interface>>
@@ -122,12 +122,12 @@ never leak into the pure pipeline core.
 
 The image-transform adapter is concrete at the principal level: the horizontal
 flip runs through the Cloudflare Images **Workers binding** rather than a vague
-remote-URL-only assumption. The adapter shape is:
+remote-URL-only assumption. The port returns a `Blob`; the adapter resolves the
+CF Images response to bytes internally:
 
 ```ts
-const response = (
-  await env.IMAGES.input(cutoutStream).transform({ flip: "h" }).output({ format: "image/png" })
-).response();
+const result = await env.IMAGES.input(cutoutStream).transform({ flip: "h" }).output({ format: "image/png" });
+return (await result.response()).blob();
 ```
 
 That keeps the brief’s order exact:

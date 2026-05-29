@@ -110,9 +110,9 @@ export const processImageJob = async (
 
     job = withStatus(job, "flipping");
     await deps.repository.update(job);
-    const transformed = await deps.transformer.flipHorizontal(cutout, "image/png");
+    const transformed = await deps.transformer.flipHorizontalAsPng(cutout);
 
-    await deps.objectStore.putProcessed(job, transformed.body ?? new Blob(), "image/png");
+    await deps.objectStore.putProcessed(job, transformed, "image/png");
     job = withStatus(job, "ready");
     await deps.repository.update(job);
     return { job, deleteToken };

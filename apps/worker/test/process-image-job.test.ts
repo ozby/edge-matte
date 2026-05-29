@@ -86,7 +86,7 @@ class InMemoryObjectStore implements ImageObjectStore {
   }
 
   async getProcessed(id: string) {
-    const object = this.objects.get(`images/${id}/processed`);
+    const object = this.objects.get(deriveObjectKeys(id).processed);
     if (!object) {
       return null;
     }
@@ -157,12 +157,9 @@ describe("core pipeline", () => {
     };
 
     const transformer: ImageTransformer = {
-      async flipHorizontal(input, outputType) {
+      async flipHorizontalAsPng(input) {
         transitions.push("flipping");
-        expect(outputType).toBe("image/png");
-        return new Response(input.stream(), {
-          headers: { "content-type": "image/png" },
-        });
+        return new Blob([await input.arrayBuffer()], { type: "image/png" });
       },
     };
 
@@ -195,7 +192,7 @@ describe("core pipeline", () => {
     };
 
     const transformer: ImageTransformer = {
-      async flipHorizontal() {
+      async flipHorizontalAsPng() {
         throw new Error("transform should not run after provider timeout");
       },
     };
@@ -233,7 +230,7 @@ describe("core pipeline", () => {
     };
 
     const transformer: ImageTransformer = {
-      async flipHorizontal() {
+      async flipHorizontalAsPng() {
         throw new Error("transform exploded");
       },
     };
@@ -266,8 +263,8 @@ describe("core pipeline", () => {
     };
 
     const transformer: ImageTransformer = {
-      async flipHorizontal(input) {
-        return new Response(input.stream());
+      async flipHorizontalAsPng(input) {
+        return new Blob([await input.arrayBuffer()], { type: "image/png" });
       },
     };
 

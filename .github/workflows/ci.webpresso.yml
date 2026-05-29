@@ -23,19 +23,21 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run verify:secrets
-      - run: pnpm run verify:paths
-      - run: pnpm run audit:secret-provider-quarantine
-      - run: pnpm run audit:blueprint-links
-      - run: pnpm run format:check
-      - run: pnpm run typecheck
-      - run: pnpm run lint
-      - run: pnpm run docs:check
-      - run: pnpm run blueprints:check
+      - run: vp install --frozen-lockfile
+      - run: vp run verify:secrets
+      - run: wp audit absolute-path-policy --root .
+      - run: vp run audit:secret-provider-quarantine
+      - run: vp run audit:blueprint-links
+      - run: vp run format:check
+      - run: vp run typecheck
+      - run: vp run lint
+      - run: wp audit docs-frontmatter
+      - run: wp audit blueprint-lifecycle --legacy-omx
 
   test:
     runs-on: ubuntu-latest
@@ -46,11 +48,13 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run test
+      - run: vp install --frozen-lockfile
+      - run: vp run test
 
   e2e:
     # Hermetic end-to-end suite — no secrets, no external network. The local
@@ -65,10 +69,12 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: pnpm install --frozen-lockfile
+      - run: vp install --frozen-lockfile
 
       - name: Resolve Playwright version
         id: pw
@@ -81,19 +87,19 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
       - name: Install chromium + system deps
-        run: pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
+        run: vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
 
       - name: Build client dist
-        run: pnpm --filter @edge-matte/client run build
+        run: vp run --filter @edge-matte/client build
 
       # Explicit suites only — never the bare default, which would select
       # production-* because CI === "true".
       - name: Contract (HTTP) suite
-        run: pnpm e2e -- --suite upload-delete-contract
+        run: vp run e2e -- --suite upload-delete-contract
       - name: Smoke (HTTP) suite
-        run: pnpm e2e -- --suite smoke
+        run: vp run e2e -- --suite smoke
       - name: Browser (Playwright) journey
-        run: pnpm e2e -- --suite upload-delete
+        run: vp run e2e -- --suite upload-delete
 
       - name: Upload Playwright artifacts on failure
         if: failure()
@@ -114,11 +120,13 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
+      - run: vp install --frozen-lockfile
+      - run: vp run build
 
       - name: Inject dry-run deploy credentials from Doppler
         if: env.HAS_DOPPLER_TOKEN == '1'

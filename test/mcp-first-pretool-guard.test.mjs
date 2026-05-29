@@ -32,8 +32,30 @@ test('denies docs:check wrapper in favor of wp_audit MCP', () => {
   assert.match(result.reason, /docs-frontmatter/)
 })
 
-test('allows install and setup recovery paths through to the delegate', () => {
-  assert.equal(inspectHookInput(bashInput('pnpm install')).action, 'delegate')
+test('denies pnpm install in favor of vp install', () => {
+  const result = inspectHookInput(bashInput('pnpm install --frozen-lockfile'))
+  assert.equal(result.action, 'deny')
+  assert.match(result.reason, /Use vp install instead/)
+})
+
+test('denies filtered pnpm exec in favor of vp exec', () => {
+  const result = inspectHookInput(
+    bashInput('pnpm --filter @edge-matte/worker exec wrangler deploy --env production'),
+  )
+  assert.equal(result.action, 'deny')
+  assert.match(result.reason, /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/)
+})
+
+test('denies wrapped pnpm exec in favor of vp exec', () => {
+  const result = inspectHookInput(
+    bashInput('with-secrets -- pnpm --filter @edge-matte/worker exec wrangler deploy --env production'),
+  )
+  assert.equal(result.action, 'deny')
+  assert.match(result.reason, /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/)
+})
+
+test('allows vp and wp recovery paths through to the delegate', () => {
+  assert.equal(inspectHookInput(bashInput('vp install --frozen-lockfile')).action, 'delegate')
   assert.equal(inspectHookInput(bashInput('wp setup')).action, 'delegate')
 })
 

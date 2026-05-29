@@ -189,7 +189,7 @@ is the corrective pass before any further feature expansion.
 - [x] `scripts/sync-webpresso-config.ts` via `wp config secrets set`
 - [x] `scripts/audit-secret-provider-quarantine.ts` (no dotenv / direct provider bypass)
 - [x] `docs/secrets.md`, `docs/release.md`, `README.md`, `AGENTS.md` aligned
-- [x] Pre-commit matches `verify:secrets` + `verify:paths` + quarantine
+- [x] Pre-commit matches `verify:secrets` + shared path-policy audit + quarantine
 
 ## Wave 0.5 — production deploy CI green
 
@@ -514,29 +514,29 @@ routes propagate. Reuse the same helper for operator-local deploy.
 
 - [x] Deploy workflow polls `/health` and `/` instead of single immediate `curl`
 - [ ] `Deploy production` GitHub Action is green on `main`
-- [ ] `E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-smoke` passes after deploy
+- [ ] `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke` passes after deploy
 
 ## Verification
 
 ```bash
-pnpm run verify:secrets
-pnpm run verify:paths
-pnpm run audit:secret-provider-quarantine
+vp run verify:secrets
+wp audit absolute-path-policy --root .
+vp run audit:secret-provider-quarantine
 vp run -r lint
 vp run -r check-types
-pnpm run test
-pnpm run docs:check
-pnpm run blueprints:check
-pnpm run e2e -- --suite smoke
-pnpm run e2e -- --suite upload-delete
-pnpm --filter @edge-matte/worker exec wrangler deploy --dry-run --env production
+vp run test
+wp audit docs-frontmatter
+wp audit blueprint-lifecycle --legacy-omx
+vp run e2e -- --suite smoke
+vp run e2e -- --suite upload-delete
+vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
 python3 scripts/check_architecture_drift.py
 ```
 
 When the production lane is intentionally included:
 
 ```bash
-E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 ```
 
 ## Risks

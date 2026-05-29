@@ -24,21 +24,23 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
+      - name: Install global Webpresso tooling
+        run: npm install -g vite-plus@0.1.22 @webpresso/agent-kit@0.21.3
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run verify:secrets
-      - run: pnpm run verify:paths
-      - run: pnpm run audit:secret-provider-quarantine
-      - run: pnpm run audit:blueprint-links
-      - run: pnpm run format:check
-      - run: pnpm run typecheck
-      - run: pnpm run lint
-      - run: pnpm run docs:check
-      - run: pnpm run blueprints:check
-      - run: pnpm run build
-      - run: pnpm run test
+      - run: vp install --frozen-lockfile
+      - run: vp run verify:secrets
+      - run: wp audit absolute-path-policy --root .
+      - run: vp run audit:secret-provider-quarantine
+      - run: vp run audit:blueprint-links
+      - run: vp run format:check
+      - run: vp run typecheck
+      - run: vp run lint
+      - run: wp audit docs-frontmatter
+      - run: wp audit blueprint-lifecycle --legacy-omx
+      - run: vp run build
+      - run: vp run test
 
       - name: Resolve Playwright version
         id: pw
@@ -51,20 +53,20 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
       - name: Install chromium + system deps
-        run: pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
+        run: vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
 
       # Hermetic pre-deploy gate — no secrets, no external network.
       # IMPORTANT: always pass an explicit --suite.
-      # A bare `pnpm e2e` runs ALL five suites (default = all, see
+      # A bare `vp run e2e` runs ALL five suites (default = all, see
       # apps/e2e/src/agent-kit-host-adapter.ts buildExecutionPlan), and on
       # Actions CI=true un-skips shouldRunProductionSmoke (env.ts:31), which
       # would fire production-journey against live prod BEFORE wrangler deploy.
       - name: Gate — contract (HTTP) suite
-        run: pnpm e2e -- --suite upload-delete-contract
+        run: vp run e2e -- --suite upload-delete-contract
       - name: Gate — smoke (HTTP) suite
-        run: pnpm e2e -- --suite smoke
+        run: vp run e2e -- --suite smoke
       - name: Gate — browser (Playwright) journey
-        run: pnpm e2e -- --suite upload-delete
+        run: vp run e2e -- --suite upload-delete
 
       - name: Upload gate artifacts on failure
         if: failure()
@@ -87,7 +89,7 @@ jobs:
         run: bash scripts/verify-cloudflare-deploy-creds.sh
 
       - name: Deploy Worker to edge-matte.ozby.dev
-        run: pnpm --filter @edge-matte/worker exec wrangler deploy --env production
+        run: vp exec --filter @edge-matte/worker -- wrangler deploy --env production
 
       - name: Post-deploy smoke /health
         run: bash scripts/wait-for-http.sh "${PRODUCTION_URL}/health" 24 5
@@ -98,9 +100,9 @@ jobs:
       - name: Post-deploy production-smoke e2e
         env:
           E2E_RUN_PRODUCTION: "1"
-        run: pnpm e2e -- --suite production-smoke
+        run: vp run e2e -- --suite production-smoke
 
       - name: Post-deploy production-journey e2e (real upload -> transform -> delete)
         env:
           E2E_RUN_PRODUCTION: "1"
-        run: pnpm e2e -- --suite production-journey
+        run: vp run e2e -- --suite production-journey

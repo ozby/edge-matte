@@ -10,7 +10,7 @@
     "#ensure-client-dist": "./src/ensure-client-dist.ts"
   },
   "scripts": {
-    "pretest": "pnpm --filter @edge-matte/client run build",
+    "pretest": "vp run --filter @edge-matte/client build",
     "test": "vitest run --config vitest.config.ts",
     "test:journeys": "vitest run --config vitest.journeys.config.ts",
     "test:browser": "playwright test --config playwright.config.ts",
@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   }
 }

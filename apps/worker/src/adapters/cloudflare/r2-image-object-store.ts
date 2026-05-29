@@ -6,7 +6,7 @@ export class R2ImageObjectStore implements ImageObjectStore {
   constructor(private readonly bucket: R2Bucket) {}
 
   async putOriginal(job: ImageJob, file: File): Promise<void> {
-    await this.bucket.put(job.originalObjectKey, await file.arrayBuffer(), {
+    await this.bucket.put(deriveObjectKeys(job.id).original, await file.arrayBuffer(), {
       httpMetadata: { contentType: file.type || "application/octet-stream" },
     });
   }
@@ -17,7 +17,7 @@ export class R2ImageObjectStore implements ImageObjectStore {
     contentType: string,
   ): Promise<void> {
     const blob = body instanceof Blob ? body : await new Response(body).blob();
-    await this.bucket.put(job.processedObjectKey, await blob.arrayBuffer(), {
+    await this.bucket.put(deriveObjectKeys(job.id).processed, await blob.arrayBuffer(), {
       httpMetadata: { contentType },
     });
   }
@@ -33,7 +33,7 @@ export class R2ImageObjectStore implements ImageObjectStore {
   }
 
   async deleteAll(job: ImageJob): Promise<void> {
-    await this.bucket.delete(job.originalObjectKey);
-    await this.bucket.delete(job.processedObjectKey);
+    await this.bucket.delete(deriveObjectKeys(job.id).original);
+    await this.bucket.delete(deriveObjectKeys(job.id).processed);
   }
 }

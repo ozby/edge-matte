@@ -20,7 +20,7 @@ export const getE2EBaseUrlOrThrow = (testFile: string): string => {
   const fromHarness = readLocalE2EBaseUrl();
   if (fromHarness) return fromHarness.replace(/\/$/u, "");
   throw new Error(
-    `E2E_BASE_URL is required for ${testFile}. Run journeys via "pnpm e2e -- --suite <name>" or set E2E_BASE_URL.`,
+    `E2E_BASE_URL is required for ${testFile}. Run journeys via "vp run e2e -- --suite <name>" or set E2E_BASE_URL.`,
   );
 };
 

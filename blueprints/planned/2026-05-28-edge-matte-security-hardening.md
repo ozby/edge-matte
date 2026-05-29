@@ -229,8 +229,8 @@ Add endpoint-specific rate-limit and abuse runbook guidance for operations.
 ## Verification commands
 
 ```bash
-pnpm run verify:secrets
-pnpm run verify:paths
-pnpm run audit:secret-provider-quarantine
-pnpm run test
+vp run verify:secrets
+wp audit absolute-path-policy --root .
+vp run audit:secret-provider-quarantine
+vp run test
 ```

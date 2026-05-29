@@ -50,6 +50,17 @@ test("agent-kit.config.ts wires the e2e host adapter", () => {
   assert.match(config, /\.\/apps\/e2e\/src\/agent-kit-host-adapter/u);
 });
 
+test("scaffolded hooks use global wp binaries and vp-first recovery guidance", () => {
+  const hooks = readText(".codex/hooks.json");
+  assert.match(hooks, /wp-sessionstart-routing/u);
+  assert.match(hooks, /wp-check-dev-link/u);
+  assert.match(hooks, /wp-post-tool/u);
+  assert.match(hooks, /wp-guard-switch/u);
+  assert.match(hooks, /wp-stop-qa/u);
+  assert.match(hooks, /Run vp install or wp setup/u);
+  assert.doesNotMatch(hooks, /node_modules\/\.bin\/wp-/u);
+});
+
 test("apps/e2e exposes smoke suite manifest wiring", () => {
   const manifest = readText("apps/e2e/src/e2e-suite-manifest.ts");
   assert.match(manifest, /id:\s*['"]smoke['"]/u);

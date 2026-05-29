@@ -11,7 +11,7 @@
     "dev:mock": "wrangler dev --var E2E_MOCK_PIPELINE:1",
     "build": "wrangler deploy --dry-run",
     "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
-    "test": "pnpm --filter @edge-matte/client run build && vitest run",
+    "test": "vp run --filter @edge-matte/client build && vitest run",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "lint": "oxlint src"
   },
@@ -19,11 +19,11 @@
     "hono": "^4.12.23"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.10.11",
-    "@cloudflare/workers-types": "^4.20260527.1",
+    "@cloudflare/vitest-pool-workers": "^0.16.10",
+    "@cloudflare/workers-types": "^4.20260528.1",
     "oxlint": "^1.36.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "wrangler": "^4.56.0"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7",
+    "wrangler": "^4.95.0"
   }
 }

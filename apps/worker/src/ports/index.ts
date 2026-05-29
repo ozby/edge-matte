@@ -5,7 +5,7 @@ export interface BackgroundRemovalProvider {
 }
 
 export interface ImageTransformer {
-  flipHorizontal(input: Blob, outputType: string): Promise<Response>;
+  flipHorizontalAsPng(input: Blob): Promise<Blob>;
 }
 
 export interface JobRepository {

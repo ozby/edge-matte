@@ -28,14 +28,14 @@ Object key layout matches the Worker (`apps/worker/src/core/object-keys.ts`):
 From the repo root:
 
 ```bash
-pnpm install
+vp install --frozen-lockfile
 cd infra
 pulumi login
 pulumi stack init production   # once
 with-secrets -- pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
 with-secrets -- pulumi config set artifactMaxAgeDays 30
-pnpm run pulumi:preview        # from repo root, or: with-secrets -- pulumi preview
-pnpm run pulumi:up
+vp run pulumi:preview        # from repo root, or: with-secrets -- pulumi preview
+vp run pulumi:up
 ```
 
 Or run Pulumi commands from `infra/` with `with-secrets --` so

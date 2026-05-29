@@ -19,3 +19,5 @@ fi
 if [ -f "$(pwd)/scripts/audit-blueprint-link-policy.ts" ]; then
   bun "$(pwd)/scripts/audit-blueprint-link-policy.ts" || exit 1
 fi
+bun scripts/check-no-dev-vars.ts
+bun scripts/audit-secret-provider-quarantine.ts

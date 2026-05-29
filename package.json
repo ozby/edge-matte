@@ -19,9 +19,9 @@
     "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
     "act:ci:e2e": "act -W .github/workflows/ci.webpresso.yml -j e2e",
     "deploy:production": "bun scripts/deploy-production.ts",
-    "deploy:production:wrangler": "with-secrets -- pnpm --filter @edge-matte/worker exec wrangler deploy --env production",
-    "pulumi:preview": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi preview",
-    "pulumi:up": "with-secrets -- pnpm --filter @edge-matte/infra exec pulumi up",
+    "deploy:production:wrangler": "with-secrets -- vp exec --filter @edge-matte/worker -- wrangler deploy --env production",
+    "pulumi:preview": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi preview",
+    "pulumi:up": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
     "verify:paths": "WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root .",
     "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
@@ -35,7 +35,7 @@
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "0.21.3",
     "husky": "^9.0.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite-plus": "^0.1.22"
   },
   "engines": {

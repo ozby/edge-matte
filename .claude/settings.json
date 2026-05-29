@@ -18,6 +18,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check-gstack-session.sh\"",
+            "timeout": 2
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -28,6 +37,26 @@
             "type": "command",
             "command": "[ -f \"$CLAUDE_PROJECT_DIR/scripts/mcp-first-pretool-guard.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/mcp-first-pretool-guard.mjs\" || printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"mcp-first-pretool-guard is unavailable. Restore repo hooks or run wp setup.\"}}'",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp-pretool-guard\" ] && \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp-pretool-guard\" || printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"wp-pretool-guard is unavailable. Run vp install or wp setup.\"}}'",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check-gstack.sh\"",
+            "timeout": 3
           }
         ]
       }
@@ -60,10 +89,24 @@
         "hooks": [
           {
             "type": "command",
+            "command": "[ -x \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp\" ] && \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp\" audit agents || true # from-skill: verify",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "[ -x \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp-stop-qa\" ] && \"$CLAUDE_PROJECT_DIR/node_modules/.bin/wp-stop-qa\" || true"
           }
         ]
       }
+    ]
+  },
+  "worktree": {
+    "symlinkDirectories": [
+      ".claude"
     ]
   }
 }

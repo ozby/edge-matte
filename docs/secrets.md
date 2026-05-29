@@ -35,11 +35,10 @@ Enforcement:
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
 | `scripts/verify-secrets-policy.ts`              | Working-tree secret carriers, tracked carriers, and secret-like values in git |
 | `scripts/sync-webpresso-config.ts --check-only` | Committed wp default is metadata-only                                         |
-| `pnpm run audit:secret-provider-quarantine`     | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
+| `vp run audit:secret-provider-quarantine`       | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
 | `wp audit absolute-path-policy --root .`        | Canonical shared path-policy audit surface                                    |
-| `pnpm run verify:paths`                         | Human/CI wrapper around the shared path-policy audit                          |
 
-Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provider-quarantine`
+Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-quarantine`
 (both in CI). Pre-commit also runs `wp audit absolute-path-policy --root .` and
 `sync-webpresso-config.ts --check-only`.
 
@@ -51,7 +50,7 @@ Run secret gates with `pnpm run verify:secrets` and `pnpm run audit:secret-provi
 | `ozby-shell`    | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
 **Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points
-at `ozby-shell` (committed **metadata only**). On `pnpm install`, the repo
+at `ozby-shell` (committed **metadata only**). On `vp install`, the repo
 applies that default through the canonical **`wp config secrets set`** surface
 (seed-only — it does not overwrite an existing local selection). Command
 execution still goes through **`with-secrets -- <cmd>`**, which reads the
@@ -63,7 +62,7 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 - Forbidden in git: tokens, passwords, API keys, or any Doppler secret values.
 - Runtime wp selection (manager/project only, no values) lives under
   `.git/webpresso/secrets.json` (untracked, written by `wp`, never committed).
-- CI validates metadata via `pnpm run verify:secrets`.
+- CI validates metadata via `vp run verify:secrets`.
 
 ## Where each credential lives
 
@@ -79,10 +78,10 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
    TypeScript `Env` types reference binding/secret names. Values are set with
    `wrangler secret put` or the Cloudflare dashboard.
 3. **Local bootstrap uses committed defaults through wp.** Edit
-   `.webpresso/secrets.config.json` (metadata only) in git. `pnpm install`
+   `.webpresso/secrets.config.json` (metadata only) in git. `vp install`
    runs `wp config secrets set` when no runtime selection exists; local overrides
    from an earlier `wp config secrets set` are preserved. Refresh after changing
-   the committed default: `pnpm run setup:secrets`.
+   the committed default: `vp run setup:secrets`.
 
 ## Worker secrets and bindings
 
@@ -148,16 +147,16 @@ Minimum token permissions on the **ozby** account:
    `.webpresso/secrets.config.json`):
 
    ```bash
-   pnpm install --frozen-lockfile
+   vp install --frozen-lockfile
    wp config secrets show
    ```
 
 3. Run policy checks:
 
    ```bash
-   pnpm run verify:secrets
-   pnpm run verify:paths
-   pnpm run audit:secret-provider-quarantine
+   vp run verify:secrets
+   wp audit absolute-path-policy --root .
+   vp run audit:secret-provider-quarantine
    ```
 
 4. **Pulumi (R2 bucket)** — account ID can live in stack config instead of Doppler:
@@ -169,15 +168,15 @@ Minimum token permissions on the **ozby** account:
    with-secrets -- pulumi preview
    with-secrets -- pulumi up
    # or from repo root:
-   pnpm run pulumi:up
+   vp run pulumi:up
    ```
 
 5. **Production Worker deploy** (operator-local, same as ingest-lens deploy runbook):
 
    ```bash
-   pnpm run deploy:production
+   vp run deploy:production
    # or wrangler only:
-   pnpm run deploy:production:wrangler
+   vp run deploy:production:wrangler
    ```
 
 See [README.md](../README.md) for the full local verification surface and

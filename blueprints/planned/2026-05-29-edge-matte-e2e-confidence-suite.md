@@ -95,7 +95,7 @@ image without `../` traversal or hardcoded roots.
 
 1. Generate `sample.png` once locally (e.g. ImageMagick or a one-off zlib script); commit it.
 2. Add `readFixture(name)` using `findRepoRoot(import.meta.dirname)` from [repo-root.ts](../../apps/e2e/src/repo-root.ts) + `join(root, "apps/e2e/fixtures", name)`.
-3. Confirm `pnpm run verify:paths` stays green (no hardcoded relative root).
+3. Confirm `wp audit absolute-path-policy --root .` stays green (no hardcoded relative root).
 
 **Acceptance:**
 
@@ -124,7 +124,7 @@ Replace the stale `.mjs` browser spec with a TS spec covering the full visible f
 
 **Acceptance:**
 
-- [ ] `pnpm e2e -- --suite upload-delete` is green locally in mock mode.
+- [ ] `vp run e2e -- --suite upload-delete` is green locally in mock mode.
 - [ ] No `.mjs` files remain under `apps/e2e/`.
 
 #### [test] Task 3: Expand the HTTP contract suite
@@ -147,7 +147,7 @@ Cover the full contract and fix the byte-length assertion.
 
 **Acceptance:**
 
-- [ ] `pnpm e2e -- --suite upload-delete-contract` is green; every error code asserted.
+- [ ] `vp run e2e -- --suite upload-delete-contract` is green; every error code asserted.
 
 #### [ci] Task 4: PR-gating `e2e` job
 
@@ -193,7 +193,7 @@ Prove the real `cf.image` transform end to end after each deploy.
 
 1. Register a `production-journey` suite (gated by `shouldRunProductionSmoke`), base URL via `getProductionBaseUrl` from [env.ts](../../apps/e2e/src/journeys/env.ts).
 2. Write a real POST → ready → `GET /i/:id` (valid PNG, bytes differ from input) → DELETE → 404 against live prod.
-3. Add `E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-journey` after the existing post-deploy smoke step.
+3. Add `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey` after the existing post-deploy smoke step.
 
 **Acceptance:**
 
@@ -214,7 +214,7 @@ Prove the real `cf.image` transform end to end after each deploy.
 **Steps (TDD):**
 
 1. Document the suites, the PR `e2e` gate, and the post-deploy real journey.
-2. Confirm `pnpm run docs:check` stays green.
+2. Confirm `wp audit docs-frontmatter` stays green.
 
 **Acceptance:**
 
@@ -236,11 +236,11 @@ Prove the real `cf.image` transform end to end after each deploy.
 ## Verification commands
 
 ```bash
-pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
-pnpm e2e -- --suite upload-delete-contract
-pnpm e2e -- --suite smoke
-pnpm e2e -- --suite upload-delete
-E2E_RUN_PRODUCTION=1 pnpm e2e -- --suite production-journey
-pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run verify:paths
-pnpm run blueprints:check && pnpm run audit:blueprint-links
+vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
+vp run e2e -- --suite upload-delete-contract
+vp run e2e -- --suite smoke
+vp run e2e -- --suite upload-delete
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+vp run typecheck && vp run lint && vp run format:check && wp audit absolute-path-policy --root .
+wp audit blueprint-lifecycle --legacy-omx && vp run audit:blueprint-links
 ```

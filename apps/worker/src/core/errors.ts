@@ -6,7 +6,8 @@ export type ErrorCode =
   | "background_provider_failed"
   | "image_transform_failed"
   | "storage_failed"
-  | "invalid_request";
+  | "invalid_request"
+  | "internal_error";
 
 export class AppError extends Error {
   constructor(
@@ -30,5 +31,5 @@ export const errorResponse = (
   if (error instanceof AppError) {
     return { status: error.status, body: { error: { code: error.code } } };
   }
-  return { status: 500, body: { error: { code: "storage_failed" } } };
+  return { status: 500, body: { error: { code: "internal_error" } } };
 };

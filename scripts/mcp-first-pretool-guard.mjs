@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const repoRoot = path.dirname(__dirname)
-const defaultDelegate = path.join(repoRoot, 'node_modules', '.bin', 'wp-pretool-guard')
-const delegatePath = process.env.WP_PRETOOL_GUARD_BIN || defaultDelegate
+const delegateCommand = process.env.WP_PRETOOL_GUARD_BIN || 'wp-pretool-guard'
 
 const AUDIT_KINDS = new Set([
   'tph',
@@ -30,35 +25,31 @@ const AUDIT_KINDS = new Set([
   'no-relative-package-scripts',
 ])
 
-const ALLOWLIST_PREFIXES = [
-  'pnpm install',
-  'pnpm i',
-  'npm install',
-  'npm i',
-  'vp install',
-  'wp setup',
-]
-
 const SCRIPT_ROUTES = [
   {
-    prefixes: ['pnpm run verify:paths', 'pnpm verify:paths', 'vp run verify:paths'],
+    prefixes: [
+      'pnpm run verify:paths',
+      'pnpm verify:paths',
+      'npm run verify:paths',
+      'vp run verify:paths',
+    ],
     reason:
       'Use wp_audit(kind="absolute-path-policy") instead — path-policy enforcement is owned by the agent-kit MCP audit surface.',
   },
   {
-    prefixes: ['pnpm run docs:check', 'pnpm docs:check', 'vp run docs:check'],
+    prefixes: ['pnpm run docs:check', 'pnpm docs:check', 'npm run docs:check', 'vp run docs:check'],
     reason:
       'Use wp_audit(kind="docs-frontmatter") instead — docs frontmatter checks are owned by the agent-kit MCP audit surface.',
   },
   {
-    prefixes: ['pnpm run blueprints:check', 'pnpm blueprints:check', 'vp run blueprints:check'],
+    prefixes: [
+      'pnpm run blueprints:check',
+      'pnpm blueprints:check',
+      'npm run blueprints:check',
+      'vp run blueprints:check',
+    ],
     reason:
       'Use wp_audit(kind="blueprint-lifecycle") instead — blueprint lifecycle checks are owned by the agent-kit MCP audit surface.',
-  },
-  {
-    prefixes: ['python3 scripts/check_architecture_drift.py', 'python scripts/check_architecture_drift.py'],
-    reason:
-      'Use wp_audit(kind="architecture-drift") instead — architecture drift checks should go through the canonical agent-kit MCP audit surface.',
   },
 ]
 
@@ -89,9 +80,10 @@ function stripLeadingEnvironmentAssignments(command) {
 
 function normalizeCommand(command) {
   const trimmed = stripLeadingEnvironmentAssignments(command)
+  const unwrapped = trimmed.replace(/^(?:with-secrets\s+--\s+)+/u, '')
   const corepackMatch =
-    /^corepack\s+(pnpm|pnpx|npm|npx|yarn|yarnpkg|bun|bunx)(?:@[^\s]+)?\s+([\s\S]+)$/u.exec(trimmed)
-  const corepackStripped = corepackMatch ? `${corepackMatch[1]} ${corepackMatch[2]}` : trimmed
+    /^corepack\s+(pnpm|pnpx|npm|npx|yarn|yarnpkg|bun|bunx)(?:@[^\s]+)?\s+([\s\S]+)$/u.exec(unwrapped)
+  const corepackStripped = corepackMatch ? `${corepackMatch[1]} ${corepackMatch[2]}` : unwrapped
   return corepackStripped.replace(/\s+/gu, ' ').trim()
 }
 
@@ -108,13 +100,46 @@ function extractCommand(input) {
   return null
 }
 
+function routePackageManagerCommand(command) {
+  if (/^(?:pnpm|npm)\s+(?:install|i)\b/u.test(command)) {
+    return 'Use vp install instead — dependency installation should go through the vp surface in this repo.'
+  }
+
+  const filteredExecMatch = /^(?:pnpm|npm)\s+--filter\s+(\S+)\s+exec\s+([\s\S]+)$/u.exec(command)
+  if (filteredExecMatch) {
+    const [, filter, execCommand] = filteredExecMatch
+    return `Use vp exec --filter ${filter} -- ${execCommand} instead — filtered workspace execution should go through the vp surface.`
+  }
+
+  const filteredRunMatch = /^(?:pnpm|npm)\s+--filter\s+(\S+)\s+run\s+([^\s]+)(?:\s+([\s\S]+))?$/u.exec(command)
+  if (filteredRunMatch) {
+    const [, filter, task, rest] = filteredRunMatch
+    return `Use vp run --filter ${filter} ${task}${rest ? ` ${rest}` : ''} instead — filtered workspace tasks should go through the vp surface.`
+  }
+
+  const execMatch = /^(?:pnpm|npm)\s+exec\s+([\s\S]+)$/u.exec(command)
+  if (execMatch) {
+    return `Use vp exec -- ${execMatch[1]} instead — package-manager command execution should go through the vp surface.`
+  }
+
+  const runMatch = /^(?:pnpm|npm)\s+run\s+([^\s]+)(?:\s+([\s\S]+))?$/u.exec(command)
+  if (runMatch) {
+    const [, task, rest] = runMatch
+    return `Use vp run ${task}${rest ? ` ${rest}` : ''} instead — package scripts should go through the vp surface in this repo.`
+  }
+
+  const shorthandTaskMatch = /^(?:pnpm|npm)\s+([A-Za-z0-9:_-]+)(?:\s+([\s\S]+))?$/u.exec(command)
+  if (shorthandTaskMatch) {
+    const [, task, rest] = shorthandTaskMatch
+    return `Use vp run ${task}${rest ? ` ${rest}` : ''} instead — package scripts should go through the vp surface in this repo.`
+  }
+
+  return 'Use vp/wp/MCP surfaces instead — raw pnpm/npm commands are not part of the supported repo workflow except explicit edge-case exceptions.'
+}
+
 function routeCommand(command) {
   const normalized = normalizeCommand(command)
   if (!normalized) return null
-
-  for (const prefix of ALLOWLIST_PREFIXES) {
-    if (matchesPrefix(normalized, prefix)) return null
-  }
 
   const auditMatch = /^wp\s+audit\s+([a-z0-9-]+)\b/u.exec(normalized)
   if (auditMatch) {
@@ -130,11 +155,22 @@ function routeCommand(command) {
     }
   }
 
+  if (/^(?:pnpm|npm)\b/u.test(normalized)) {
+    return routePackageManagerCommand(normalized)
+  }
+
   return null
 }
 
 function delegate(rawInput) {
-  if (!existsSync(delegatePath)) {
+  const result = spawnSync(delegateCommand, [], {
+    input: rawInput,
+    encoding: 'utf8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: process.env,
+  })
+
+  if (result.error && result.error.code === 'ENOENT') {
     writeJson(
       makeDeny(
         'wp-pretool-guard is unavailable. Run vp install or wp setup to restore the agent-kit hook surface.',
@@ -142,13 +178,6 @@ function delegate(rawInput) {
     )
     process.exit(0)
   }
-
-  const result = spawnSync(delegatePath, {
-    input: rawInput,
-    encoding: 'utf8',
-    stdio: ['pipe', 'pipe', 'pipe'],
-    env: process.env,
-  })
 
   if (result.stdout) process.stdout.write(result.stdout)
   if (result.stderr) process.stderr.write(result.stderr)

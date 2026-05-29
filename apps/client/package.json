@@ -18,9 +18,9 @@
     "@fontsource/dm-mono": "^5.2.7"
   },
   "devDependencies": {
-    "jsdom": "^26.1.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.3",
-    "vitest": "^3.2.4"
+    "jsdom": "^29.1.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
   }
 }
