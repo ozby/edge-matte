@@ -94,6 +94,28 @@ describe("upload flow controller", () => {
     expect(ui.resultPanel.hidden).toBe(true);
   });
 
+  it("keeps the object-URL preview alive through upload (does not revoke the displayed blob)", async () => {
+    const mount = document.createElement("div");
+    const { app, ui } = createAppForTest(mount);
+    const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+
+    app.selectFile(file);
+    expect(app.getState().phase).toBe("preview");
+    const displayedBlob = ui.previewImage.src;
+
+    // Enter the uploading phase synchronously, before the network resolves.
+    const pending = app.submitUpload();
+    expect(app.getState().phase).toBe("uploading");
+    // The blob URL the <img> is still showing must NOT have been revoked — revoking
+    // it mid-flight is what rendered the preview broken until processing finished.
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(displayedBlob);
+    expect(ui.previewImage.src).toBe(displayedBlob);
+
+    await pending;
+    // Once ready, the preview swaps to the processed result.
+    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
+  });
+
   it("surfaces recoverable validation errors before upload", () => {
     const mount = document.createElement("div");
     const { app } = createAppForTest(mount);

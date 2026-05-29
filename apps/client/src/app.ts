@@ -14,9 +14,17 @@ export interface AppController {
   copyResultUrl: () => Promise<void>;
 }
 
-const revokeIfNeeded = (state: UiPhase): void => {
-  if ("previewUrl" in state && state.previewUrl.startsWith("blob:")) {
-    URL.revokeObjectURL(state.previewUrl);
+const previewBlobUrl = (state: UiPhase): string | null =>
+  "previewUrl" in state && state.previewUrl.startsWith("blob:") ? state.previewUrl : null;
+
+// Revoke the outgoing blob URL only when the incoming state no longer references
+// it. uploading/processing/ready all carry the same previewUrl forward, so revoking
+// on every transition would invalidate the <img> the next state still displays —
+// the preview rendered broken until processing finished.
+const revokeReplacedBlob = (previous: UiPhase, next: UiPhase): void => {
+  const previousUrl = previewBlobUrl(previous);
+  if (previousUrl && previousUrl !== previewBlobUrl(next)) {
+    URL.revokeObjectURL(previousUrl);
   }
 };
 
@@ -33,7 +41,7 @@ const buildApp = (ui: UiElements): AppController => {
   let deleteToken: string | null = null;
 
   const setState = (next: UiPhase): void => {
-    revokeIfNeeded(state);
+    revokeReplacedBlob(state, next);
     state = next;
     renderUi(ui, state);
   };
