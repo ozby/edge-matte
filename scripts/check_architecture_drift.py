@@ -11,12 +11,27 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from shutil import which
+
+
+def resolve_wp() -> str:
+    path_wp = which("wp")
+    if path_wp:
+        return path_wp
+
+    bun_global_wp = Path.home() / ".bun" / "bin" / "wp"
+    if bun_global_wp.exists():
+        return str(bun_global_wp)
+
+    raise FileNotFoundError(
+        "wp executable not found on PATH or at ~/.bun/bin/wp; install Webpresso tooling first."
+    )
 
 
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     result = subprocess.run(
-        ["wp", "audit", "architecture-drift", "--root", "."],
+        [resolve_wp(), "audit", "architecture-drift", "--root", "."],
         cwd=repo_root,
         check=False,
     )
