@@ -187,6 +187,13 @@ stateDiagram-v2
     deleted --> [*]
 ```
 
+`validating` is the initial in-memory status only. Upload rejections
+(size, MIME, magic-byte) throw in `assertSupportedFile` **before** a job is
+persisted, so the `validating --> failed` edge is the logical lifecycle, not a
+stored `failed` record — no orphan metadata is written for a rejected upload.
+A persisted `failed` job is only produced once processing has begun
+(`uploading` onward).
+
 Only safe status values and coarse error codes are exposed publicly. Provider
 payloads, internal stack traces, object keys, and token hashes stay private.
 
@@ -263,7 +270,7 @@ flowchart TD
     UNIT --> WORKERS[Cloudflare Workers pool tests]
     UNIT --> REACT[React/jsdom tests]
 
-    AK --> E2E[agent-kit E2E host adapter]
+    WP --> E2E[agent-kit E2E host adapter]
     E2E --> MANIFEST[apps/e2e suite manifest]
     MANIFEST --> CONTRACT[upload-delete-contract: HTTP upload→serve→delete + error envelopes]
     MANIFEST --> SMOKE[smoke: /health + SPA shell]
