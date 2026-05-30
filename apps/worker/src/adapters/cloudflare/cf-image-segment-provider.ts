@@ -1,5 +1,6 @@
 import { AppError } from "#core/errors";
 import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
+import { cleanPngMatteEdges } from "./png-matte-edge-cleaner";
 import type { BackgroundRemovalProvider } from "#ports";
 
 const randomKey = () => `${SEGMENT_TMP_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -38,7 +39,7 @@ export class CfImageSegmentProvider implements BackgroundRemovalProvider {
         );
       }
 
-      return await response.blob();
+      return await cleanPngMatteEdges(await response.blob());
     } catch (error) {
       if (error instanceof AppError) throw error;
       throw new AppError(502, "background_provider_failed", String(error));

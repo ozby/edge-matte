@@ -1,8 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CfImageSegmentProvider } from "#adapters/cloudflare/cf-image-segment-provider";
+import { encodePngRgba } from "#adapters/cloudflare/png-matte-edge-cleaner";
 import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 
 const PNG_BYTES = Uint8Array.of(0x89, 0x50, 0x4e, 0x47);
+
+const createValidPngBytes = async () =>
+  new Uint8Array(
+    await (
+      await encodePngRgba({
+        width: 1,
+        height: 1,
+        rgba: Uint8Array.of(0, 0, 255, 255),
+      })
+    ).arrayBuffer(),
+  );
 
 // Minimal R2Bucket stub — only the methods the provider touches. put records the
 // transient key so each test can prove the finally-cleanup deletes exactly it.
@@ -22,7 +34,8 @@ afterEach(() => {
 describe("CfImageSegmentProvider", () => {
   it("stores a transient blob, sub-requests cf.image segment, and returns the cutout", async () => {
     const bucket = createBucketStub();
-    const cutout = new Blob([PNG_BYTES], { type: "image/png" });
+    const cutoutBytes = await createValidPngBytes();
+    const cutout = new Blob([cutoutBytes], { type: "image/png" });
     const fetchMock = vi.fn(async (input: RequestInfo, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.url;
       // Sub-request must target the Worker's own raw-serving route for the temp key,
@@ -40,7 +53,7 @@ describe("CfImageSegmentProvider", () => {
     const provider = new CfImageSegmentProvider(bucket, "https://edge-matte.ozby.dev");
     const result = await provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" }));
 
-    expect(new Uint8Array(await result.arrayBuffer())).toStrictEqual(PNG_BYTES);
+    expect(new Uint8Array(await result.arrayBuffer())).toStrictEqual(cutoutBytes);
     expect(fetchMock).toHaveBeenCalledOnce();
 
     // The temp blob is written under the segment-tmp prefix, then deleted in finally.
@@ -70,9 +83,10 @@ describe("CfImageSegmentProvider", () => {
   it("propagates the caller's abort signal to the cf.image sub-request", async () => {
     const bucket = createBucketStub();
     const controller = new AbortController();
+    const cutoutBytes = await createValidPngBytes();
     const fetchMock = vi.fn(async (_input: RequestInfo, init?: RequestInit) => {
       expect(init?.signal).toBe(controller.signal);
-      return new Response(new Blob([PNG_BYTES]).stream(), { status: 200 });
+      return new Response(new Blob([cutoutBytes]).stream(), { status: 200 });
     });
     vi.stubGlobal("fetch", fetchMock);
 
