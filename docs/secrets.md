@@ -75,8 +75,8 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 
 1. **Deploy capability comes from `ozby-shell`.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only Doppler project. No per-app Worker secrets required.
 2. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
-   TypeScript `Env` types reference binding/secret names. Values are set with
-   `wrangler secret put` or the Cloudflare dashboard.
+   TypeScript `Env` types reference binding names and non-secret vars. Secret
+   values are not part of the current runtime contract.
 3. **Local bootstrap uses committed defaults through wp.** Edit
    `.webpresso/secrets.config.json` (metadata only) in git. `vp install`
    runs `wp config secrets set` when no runtime selection exists; local overrides

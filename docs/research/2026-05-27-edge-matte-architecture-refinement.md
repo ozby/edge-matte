@@ -54,7 +54,7 @@ Browser
 - **Open/closed:** add remove.bg or queue execution by adding adapters, not changing route code.
 - **Liskov:** mock provider/transform/store implement the same ports as production.
 - **Interface segregation:** three small ports: background removal, image transform, persistence.
-- **Dependency inversion:** core pipeline depends on ports, not Hono, R2, Cloudflare Images, or Photoroom directly.
+- **Dependency inversion:** core pipeline depends on ports, not Hono, R2, or Cloudflare Images directly.
 
 ### KISS
 
@@ -127,7 +127,7 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 [vars]
-BACKGROUND_PROVIDER = "photoroom"
+BACKGROUND_PROVIDER = "cloudflare-images"
 
 [env.production]
 name = "edge-matte"
@@ -136,14 +136,12 @@ routes = [{ pattern = "edge-matte.ozby.dev", custom_domain = true }]
 
 [env.production.vars]
 PUBLIC_BASE_URL = "https://edge-matte.ozby.dev"
-BACKGROUND_PROVIDER = "photoroom"
+BACKGROUND_PROVIDER = "cloudflare-images"
 
 [[env.production.r2_buckets]]
 binding = "IMAGES"
 bucket_name = "edge-matte-production-images"
 
-[env.production.secrets]
-required = ["PHOTOROOM_API_KEY"]
 ```
 
 Pulumi owns only durable infrastructure:
@@ -172,7 +170,7 @@ CI gates -> cloudflare/wrangler-action@v3 deploy --env production
 Secrets:
 
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
-- Cloudflare Worker secret: `PHOTOROOM_API_KEY`, set with `wrangler secret put PHOTOROOM_API_KEY --env production`.
+- No provider secret values required in the current runtime contract.
 - Keep provider secret values in Cloudflare (secret provider), not in GitHub or
   on-disk files (`.dev.vars*` / `.env*`, except `.env.example`).
 
@@ -234,7 +232,7 @@ src/ports/
 src/adapters/
   hono/
   cloudflare/
-  photoroom/
+  background-removal/
 ```
 
 This is the smallest structure that preserves DRY/SOLID/KISS while keeping the

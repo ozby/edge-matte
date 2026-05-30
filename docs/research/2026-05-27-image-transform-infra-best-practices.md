@@ -36,7 +36,6 @@ Use **Wrangler** for Worker deployment, routes, bindings, generated types, and s
 - Official/upstream: [Hono Cloudflare Workers](https://hono.dev/docs/getting-started/cloudflare-workers) — Hono fits Workers, env bindings, static assets, GitHub Actions deployment, and Vitest.
 - Official/upstream: [Hono file upload](https://hono.dev/examples/file-upload) — use multipart parsing, `File` checks, and body limits for uploads.
 - Official/upstream: [Pulumi Cloudflare Worker tutorial](https://developers.cloudflare.com/pulumi/tutorial/hello-world/) and Context7 Pulumi Cloudflare docs — Pulumi can create Workers and R2 buckets, but this project should avoid duplicating Wrangler ownership.
-- Official/upstream: [Photoroom Remove Background API](https://www.photoroom.com/api/remove-background/) — current free-trial fit and supported formats.
 - Official/upstream: [remove.bg API](https://www.remove.bg/tr/i/api) — viable provider alternative with free low-res monthly calls.
 - Repo-local: Webpresso vision requires honest readiness, provenance, review/approval, and rollback paths.
 - Repo-local: IngestLens uses Hono, Workers, R2, Pulumi, exact CORS, Worker envs, and split testing.
@@ -100,7 +99,7 @@ edge-matte/
 │   ├── domain/image-record.ts   # ids, keys, metadata, delete-token hash
 │   ├── pipeline/process-image.ts
 │   ├── providers/background-removal.ts
-│   ├── providers/photoroom.ts
+│   ├── providers/background-removal.ts
 │   ├── platform/r2-image-store.ts
 │   ├── platform/cloudflare-images-transformer.ts
 │   └── errors.ts

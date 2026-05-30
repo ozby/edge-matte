@@ -76,7 +76,7 @@ optional polish ever conflicts with the take-home brief, the brief wins.
 | `task.pdf` requirement                                  | EdgeMatte contract                                                                                                |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Upload a single image file                              | One-file upload UI and `POST /api/jobs` multipart API.                                                            |
-| Remove the background using a third-party service       | `PhotoroomBackgroundRemovalProvider` behind the `BackgroundRemovalProvider` port.                                 |
+| Remove the background using the Cloudflare-native path  | `CfImageSegmentProvider` behind the `BackgroundRemovalProvider` port.                                              |
 | Horizontally flip after background removal              | `CloudflareImagesTransformer` uses the Workers Images binding to apply `flip=h` after cutout.                     |
 | Host the processed image online and return a unique URL | The processed artifact is stored in R2 and served at `https://edge-matte.ozby.dev/i/:id`.                         |
 | Allow deletion of uploaded and processed images         | `DELETE /api/jobs/:id` deletes original object, processed object, and metadata using the capability delete token. |
@@ -181,7 +181,7 @@ edge-matte.ozby.dev
   -> BackgroundRemovalProvider port
   -> ImageTransformer port
   -> JobRepository / ImageObjectStore ports
-  -> Photoroom + Cloudflare Images + R2 adapters
+  -> Cloudflare Images + R2 adapters
 ```
 
 ```mermaid
@@ -192,7 +192,7 @@ flowchart LR
     CORE --> IMG[ImageTransformer]
     CORE --> JOBS[JobRepository]
     CORE --> BLOBS[ImageObjectStore]
-    BG --> PHOTOROOM[Provider adapter]
+    BG --> SEGMENT[Background-removal adapter]
     IMG --> CFIMG[Cloudflare Images]
     JOBS --> R2[(R2 metadata)]
     BLOBS --> R2B[(R2 objects)]
@@ -223,7 +223,7 @@ type ImageJob = {
   metadataKey: string;
   originalContentType: "image/png" | "image/jpeg" | "image/webp";
   processedContentType: "image/png" | "image/webp";
-  provider: "photoroom";
+  provider: "cloudflare-images";
   createdAt: string;
   updatedAt: string;
   deleteTokenHash: string;
@@ -588,7 +588,7 @@ manifest. Do not fork a second QA framework; expose suites through agent-kit so
 - [x] Implement `ImageJob`, key derivation, status transitions, and delete-token hashing.
 - [x] Implement R2-backed `JobRepository` and `ImageObjectStore`.
 - [x] Implement `processImageJob()` orchestration.
-- [x] Implement `PhotoroomBackgroundRemovalProvider` and mock provider.
+- [x] Implement the background-removal provider and mock provider.
 - [x] Implement `CloudflareImagesTransformer` and mock transformer using the
       Workers Images binding (`env.IMAGES.input(...).transform({ flip: "h" })`).
 - [x] Ensure partial failures update status and cleanup safe orphaned objects.
@@ -763,7 +763,7 @@ Secrets:
 > [`docs/secrets.md`](../../docs/secrets.md).
 
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (historical blueprint text).
-- Cloudflare Worker secret: `PHOTOROOM_API_KEY` via `wrangler secret put PHOTOROOM_API_KEY --env production`.
+- No provider secret values required in the current runtime contract.
 - Keep provider secret values in Cloudflare (secret provider), not in GitHub or
   on-disk files (`.dev.vars*` / `.env*`, except `.env.example`).
 

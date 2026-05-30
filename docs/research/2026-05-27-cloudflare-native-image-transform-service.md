@@ -16,7 +16,7 @@ verdict: adopt
 
 - Recommended repo identity: **EdgeMatte** (`edge-matte`) — a Cloudflare-native reference app for image cutout, transform, hosting, and deletion.
 - Use a single Cloudflare Worker deployment with Hono API routes, Workers Static Assets for the UI, R2 for object storage, and Cloudflare Images transformations for the horizontal flip.
-- Use a provider interface for background removal. Default to Photoroom for the demo because it currently advertises 10 free monthly credits and a straightforward API; keep a `remove.bg` adapter shape as a documented swap.
+- Use a provider interface for background removal. Default to the Cloudflare-native path for the demo; keep an adapter swap point if a future external provider is ever needed.
 - Keep the core app small but not toy-like: typed pipeline, capability-based delete token, object lifecycle cleanup, structured errors, rate limits, and a testable adapter boundary.
 - Reuse Webpresso/IngestLens patterns, not private application names: generated Cloudflare types, Hono route modularity, exact CORS, Pulumi for long-lived resources, Wrangler for Worker-owned route/binding deployment, and Webpresso runtime helpers where package access is acceptable.
 
@@ -50,8 +50,6 @@ upload -> third-party cutout -> edge transform -> R2 hosted result -> capability
 
 ### Background-removal providers
 
-- Photoroom advertises 10 free monthly API credits, no card required, input support for PNG/JPEG/WEBP/HEIC, and PNG/JPEG/WEBP output. Source: [Photoroom Remove Background API](https://www.photoroom.com/api/remove-background/).
-- Photoroom's OpenAPI docs expose an image editing endpoint with background removal and other edit operations. Source: [Photoroom API reference](https://docs.photoroom.com/getting-started/api-reference-openapi).
 - remove.bg advertises 50 free low-res API calls per month, up to 50 megapixels, and API-key based setup. Source: [remove.bg API page](https://www.remove.bg/tr/i/api).
 
 ## Positive Signals
@@ -95,7 +93,7 @@ DELETE /api/images/:id
 
 ### Background-removal quality and free-tier variability
 
-- Provider pricing and quotas change. Photoroom and remove.bg both have visible free-test claims now, but the app should keep provider credentials in secrets and document provider swap points.
+- Provider pricing and quotas change. External APIs may still be useful as future fallback options, but the app should keep adapter swap points isolated.
 - Mitigation: one default adapter, one mock adapter for tests, and a README section called "Provider contract" instead of hardcoding provider-specific behavior throughout the pipeline.
 
 ### Worker memory and request duration
@@ -193,7 +191,7 @@ Confidence: **high** for the architecture and OSS positioning; **medium-high** f
 
 Implementation posture:
 
-- Use Photoroom as the default provider for the live demo.
+- Use the Cloudflare-native provider path as the default for the live demo.
 - Keep remove.bg documented as an adapter-compatible alternative.
 - Use Cloudflare Images binding first. If account capability blocks it, switch to the URL-based Cloudflare Image Transformation fallback before adding WASM.
 - Keep the repo public, MIT licensed, and company-neutral.
@@ -210,8 +208,6 @@ Implementation posture:
 8. [Hono Cloudflare Workers](https://hono.dev/docs/getting-started/cloudflare-workers) — official framework docs, high credibility, positive.
 9. [Hono file upload](https://hono.dev/examples/file-upload) — official framework docs, high credibility, positive.
 10. [Pulumi Cloudflare Worker tutorial](https://developers.cloudflare.com/pulumi/tutorial/hello-world/) — official docs, high credibility, positive for IaC.
-11. [Photoroom Remove Background API](https://www.photoroom.com/api/remove-background/) — vendor docs, medium-high credibility, positive but vendor-biased.
-12. [Photoroom API reference](https://docs.photoroom.com/getting-started/api-reference-openapi) — vendor docs, medium-high credibility, positive.
-13. [remove.bg API page](https://www.remove.bg/tr/i/api) — vendor docs, medium-high credibility, positive but vendor-biased.
-14. `/Users/ozby/repos/webpresso/monorepo/docs/research/product/VISION.md` — local product vision, high repo-local relevance.
+11. [remove.bg API page](https://www.remove.bg/tr/i/api) — vendor docs, medium-high credibility, positive but vendor-biased.
+12. `/Users/ozby/repos/webpresso/monorepo/docs/research/product/VISION.md` — local product vision, high repo-local relevance.
 15. `/Users/ozby/repos/ozby/ingest-lens/README.md` and `infra/src/resources/main.ts` — local reuse evidence, high repo-local relevance.

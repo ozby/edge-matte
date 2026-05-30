@@ -30,8 +30,6 @@ resources; Wrangler owns Worker-scoped deployment.**
 | Static SPA shell              | **Wrangler** (`wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                        |
 | R2 runtime binding            | **Wrangler**                              | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)       |
 | Images transform binding      | **Wrangler**                              | `IMAGES` binding for horizontal flip via Cloudflare Images            |
-| Provider secret names         | **Wrangler**                              | Secret _names_ declared in config; values never in repo               |
-| Provider secret values        | **Cloudflare**                            | e.g. `PHOTOROOM_API_KEY` set with `wrangler secret put`               |
 | Deploy credentials            | **Doppler `ozby-shell`**                  | CI via `DOPPLER_SERVICE_TOKEN`; local via `with-secrets`              |
 | Local/dev secret injection    | **Doppler (or selected manager)**         | `wp config secrets set doppler ozby-shell`; never `.dev.vars` on disk |
 
@@ -99,17 +97,10 @@ One-time platform setup (before first production deploy):
 
 1. **Pulumi** — provision R2 bucket and lifecycle rules ([`infra/README.md`](../infra/README.md);
    blueprint `2026-05-27-edge-matte-infra-and-release`).
-2. **Cloudflare Worker secrets** — set provider values in Cloudflare, not GitHub:
-
-   ```bash
-   cd apps/worker
-   with-secrets -- wrangler secret put PHOTOROOM_API_KEY --env production
-   ```
-
-3. **GitHub Actions** — add `DOPPLER_SERVICE_TOKEN` scoped to `ozby-shell`
+2. **GitHub Actions** — add `DOPPLER_SERVICE_TOKEN` scoped to `ozby-shell`
    (see [secrets](./secrets.md#github-actions-bootstrap)). Do not add raw
-   `CLOUDFLARE_API_TOKEN` or `PHOTOROOM_API_KEY` as GitHub repository secrets.
-4. **Images binding** — ensure `IMAGES` is bound in production Wrangler config
+   `CLOUDFLARE_API_TOKEN` as GitHub repository secrets.
+3. **Images binding** — ensure `IMAGES` is bound in production Wrangler config
    when IR-5 lands.
 
 There are no hidden manual deploy steps beyond provider setup documented here
@@ -199,7 +190,6 @@ Use before merging infra/release changes or after cutover:
 - [ ] Pulumi stack applied; R2 bucket `edge-matte-images` exists
 - [ ] Wrangler production route targets `edge-matte.ozby.dev`
 - [ ] Bindings present: `ASSETS`, `IMAGES_BUCKET`, `IMAGES`
-- [ ] `PHOTOROOM_API_KEY` set in Cloudflare (not GitHub)
 - [ ] PR CI includes dry-run deploy
 - [ ] PR CI includes hermetic e2e gate (`upload-delete-contract`, `smoke`, `upload-delete`)
 - [ ] `main` deploy uses concurrency serialization

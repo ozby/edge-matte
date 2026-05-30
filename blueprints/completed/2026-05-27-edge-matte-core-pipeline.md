@@ -54,7 +54,6 @@ no executable backend that proves the documented request flow and lifecycle.
 - `apps/worker/src/core/errors.ts`
 - `apps/worker/src/ports/*`
 - `apps/worker/src/adapters/cloudflare/*`
-- `apps/worker/src/adapters/photoroom/*`
 - `apps/worker/src/adapters/hono/*`
 - `apps/worker/src/index.ts`
 - Worker test files for the same surfaces
@@ -72,7 +71,7 @@ no executable backend that proves the documented request flow and lifecycle.
 3. Write failing tests first for port contracts and R2-backed repository/store behavior.
 4. Implement `BackgroundRemovalProvider`, `ImageTransformer`, `JobRepository`, and `ImageObjectStore` ports plus R2-backed repositories/stores.
 5. Write failing tests first for provider success/failure and transformer success/failure with exact state transitions.
-6. Add Photoroom provider adapter and mock provider.
+6. Add a background-removal provider adapter and mock provider.
 7. Add Cloudflare Images Workers-binding transformer (`IMAGES`) and mock transformer.
 8. Write failing tests first for `processImageJob()` orchestration and delete flow.
 9. Implement pure `processImageJob()` orchestration and delete flow.

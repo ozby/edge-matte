@@ -158,7 +158,7 @@ is the corrective pass before any further feature expansion.
 - Internal-import E2E harness: `apps/e2e/src/test-harness.ts`
 - E2E blueprint forbids internal-import manufactured passes: `blueprints/completed/2026-05-27-edge-matte-ui-and-e2e.md`
 - Infra blueprint stop condition requires a live healthy deployment before completion: `blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`
-- Silent runtime fallbacks: `apps/worker/src/adapters/photoroom/photoroom-provider.ts`, `apps/worker/src/adapters/cloudflare/images-transformer.ts`
+- Silent runtime fallbacks: `apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`, `apps/worker/src/adapters/cloudflare/images-transformer.ts`
 - Missing cleanup semantics in failure path: `apps/worker/src/core/process-image-job.ts`
 - 8 MiB vs 10 MiB contract drift: principal blueprint vs worker/client
 
@@ -233,8 +233,7 @@ Exact stop condition:
 
 ### Unit tests
 
-- explicit adapter-behavior tests for missing `PHOTOROOM_API_KEY` /
-  missing `IMAGES` handling;
+- explicit adapter-behavior tests for missing `IMAGES` handling;
 - upload-size contract tests shared across worker/client validation helpers;
 - timeout and cleanup helper tests for failure-path behavior.
 
@@ -366,14 +365,14 @@ production-sensitive path. Keep mocks explicit for local/test wiring.
 
 **Files:**
 
-- Modify: `apps/worker/src/adapters/photoroom/photoroom-provider.ts`
+- Modify: `apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`
 - Modify: `apps/worker/src/adapters/cloudflare/images-transformer.ts`
 - Modify: `apps/worker/src/index.ts`
 - Modify: `apps/worker/test/*.ts`
 
 **Steps (TDD):**
 
-1. Add failing tests for missing `PHOTOROOM_API_KEY` and `IMAGES`.
+1. Add failing tests for missing `IMAGES`.
 2. Decide and codify explicit failure semantics.
 3. Keep local/test mock wiring explicit rather than silent.
 4. Make tests pass.
@@ -397,7 +396,7 @@ execution.
 
 - Modify: `apps/worker/src/core/process-image-job.ts`
 - Modify: `apps/worker/src/ports/index.ts`
-- Modify: `apps/worker/src/adapters/photoroom/photoroom-provider.ts`
+- Modify: `apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`
 - Modify: `apps/worker/test/*.ts`
 
 **Steps (TDD):**
