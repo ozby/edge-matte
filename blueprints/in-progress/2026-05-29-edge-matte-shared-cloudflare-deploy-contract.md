@@ -3,7 +3,7 @@ type: blueprint
 title: "EdgeMatte: shared Cloudflare deployment contract extraction"
 status: in-progress
 created: 2026-05-29T00:00:00.000Z
-last_updated: "2026-05-29"
+last_updated: "2026-05-30"
 review_target: internal multi-repo platform work
 parent_blueprint: 2026-05-27-edge-matte
 depends_on:
@@ -15,7 +15,7 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
-progress: "0% (0/9 tasks done, 0 blocked, updated 2026-05-29)"
+progress: "0% (0/8 implementation tasks done, 0 blocked, refreshed 2026-05-30)"
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -32,13 +32,14 @@ stay out of scope even when they expose nearby bugs or stale assumptions.
 
 Treat these as lane boundaries if multiple agents work in parallel:
 
-| Lane                   | Primary paths / repos                                                                          | Notes                                                         |
-| ---------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Local blueprint + docs | `blueprints/**`, `README.md`, `docs/architecture.md`, `docs/release.md`, `infra/README.md`     | EdgeMatte-local source of truth for the extracted contract    |
-| Agent-kit contract     | `@webpresso/agent-kit` templates / audits / workflow docs (external upstream)                  | Allowed ownership surface                                     |
-| Cloudflare infra pkg   | `wrangler-sync` seed repo or successor private package (external upstream)                     | Private provider-specific plumbing; **not** part of agent-kit |
-| IngestLens alignment   | `ingest-lens` deploy plumbing, preview lifecycle, Doppler config hierarchy (external upstream) | Reference repo; do not assume same app topology as EdgeMatte  |
-| Excluded external code | gstack / OMX / Claude skill repos                                                              | Out of scope even if adjacent bugs are discovered             |
+| Lane                    | Primary paths / repos                                                                                                                               | Notes                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Local blueprint + docs  | `blueprints/**`, `README.md`, `docs/architecture.md`, `docs/release.md`, `docs/secrets.md`, `infra/README.md`                                      | EdgeMatte-local source of truth for the extracted contract                                                |
+| Workspace tooling churn | `package.json`, `tsconfig.json`, `oxlint.config.ts`, `pnpm-lock.yaml`, `apps/*/{package.json,tsconfig.json,vitest.config.ts}`, `infra/{package.json,tsconfig.json}` | Current uncommitted toolchain alignment work; do not bake stale pre-change assumptions into repo adoption |
+| Agent-kit contract      | `@webpresso/agent-kit` templates / audits / workflow docs (external upstream)                                                                       | Allowed ownership surface                                                                                 |
+| Cloudflare infra pkg    | `wrangler-sync` seed repo or successor private package (external upstream)                                                                          | Private provider-specific plumbing; **not** part of agent-kit                                             |
+| IngestLens alignment    | `ingest-lens` deploy plumbing, preview lifecycle, Doppler config hierarchy (external upstream)                                                      | Reference repo; do not assume same app topology as EdgeMatte                                              |
+| Excluded external code  | gstack / OMX / Claude skill repos                                                                                                                   | Out of scope even if adjacent bugs are discovered                                                         |
 
 ## Architecture governance
 
@@ -50,17 +51,26 @@ Architecture docs:
 ## Architecture before
 
 EdgeMatte has one production lane at `edge-matte.ozby.dev` and one repo-local
-deploy shape. Shared deployment reuse across repos is ad hoc:
+deploy shape. Recent repo hardening strengthened that local lane, but shared
+deployment reuse across repos is still ad hoc:
 
-- EdgeMatte currently uses source-controlled stable names in `wrangler.toml` and
-  does **not** need Pulumi output patching to deploy.
+- EdgeMatte currently uses source-controlled stable names in `wrangler.toml`,
+  follows the documented Pulumi-durable / Wrangler-deploy ownership split, and
+  does **not** need Pulumi output patching to deploy today.
+- The current repo already hardens deploy truth with pinned GitHub Actions SHAs,
+  `vp install --frozen-lockfile`, hermetic PR e2e gates, post-deploy
+  `production-smoke` and `production-journey`, and direct
+  `wp audit architecture-drift --root .` usage.
+- Background removal and horizontal flip now both run through the Worker
+  `IMAGES` binding; the repo no longer has a Photoroom-era provider-secret
+  deploy contract to preserve.
 - IngestLens already has richer lane semantics (`dev`, `preview_main`,
   `preview_pr_<n>`, `prd`) plus deploy orchestration and Pulumi→Wrangler sync.
 - `wrangler-sync` exists as a narrow reusable primitive, but there is no agreed
   ownership split between agent-kit policy and provider-specific deploy code.
 - Cloudflare Workers Preview URLs are not a viable exact standard across repos
-  because current Cloudflare docs exclude Workers that implement Durable
-  Objects; IngestLens uses Durable Objects.
+  because current Cloudflare docs say preview URLs are not generated for
+  Workers that implement Durable Objects; IngestLens uses Durable Objects.
 - Adjacent stale auth logic exists in external gstack Claude skill code, but it
   is outside the ownership boundary for this blueprint.
 
@@ -70,15 +80,22 @@ EdgeMatte keeps the same product/runtime topology at `edge-matte.ozby.dev`, but
 deployment becomes a shared **multi-repo contract**:
 
 - `agent-kit` owns canonical lane semantics, workflow templates, and audits for:
-  `dev`, `preview_main`, `preview_pr_<n>`, and `prd`.
+  `dev`, `preview_main`, `preview_pr_<n>`, and `prd`, including reusable policy
+  for GitHub environment naming, concurrency, pinned action usage, frozen
+  installs, and explicit deploy-lane verification hooks.
 - A separate private Cloudflare/Pulumi package, seeded from `wrangler-sync`,
   owns provider-specific deploy plumbing:
   Pulumi output loading, Wrangler TOML/JSONC sync/render, preview domain
   derivation, and deploy orchestration helpers.
 - EdgeMatte adopts the same lane names and sync/render contract even where the
-  first implementation is a no-op or deterministic-name path.
+  first implementation is a no-op or deterministic-name path, while preserving
+  current repo-local quality gates such as `production-smoke`,
+  `production-journey`, and direct architecture-drift auditing.
 - IngestLens aligns to the same contract while preserving split client/API
   topology and richer generated-ID needs.
+- The private package stays provider-specific: it does not absorb repo-owned
+  e2e suites, supply-chain policy, secret bootstrap policy, or other
+  agent-kit/vite-plus quality rails.
 - No work in this lane modifies gstack or OMX.
 
 ## Objective
@@ -87,44 +104,82 @@ Define and land the blueprint needed to extract a reusable Cloudflare deploy
 contract from EdgeMatte/IngestLens reality without mixing provider-specific
 deploy code into agent-kit.
 
+## Repo-local evidence refreshed 2026-05-30
+
+- `a28a842` — docs removed remaining Photoroom references; the current repo
+  contract is Cloudflare-native.
+- `bbcbda9` — GitHub Actions workflow supply-chain hardening landed.
+- `e83304a` — background removal now uses the Worker `IMAGES` binding.
+- `1698675` — production journeys skip local setup, keeping post-deploy live
+  verification honest.
+- `4b7c94d` / `cce5bdc` — CI, tests, format, and lockfile behavior were aligned.
+- `84daf21` / `bb2693b` — architecture drift now routes through direct
+  `wp audit architecture-drift --root .` usage and tests that contract.
+- Current uncommitted workspace changes touch package / tsconfig / vitest
+  surfaces across `apps/client`, `apps/e2e`, `apps/worker`, `infra`, the root
+  workspace, and `oxlint.config.ts`; consumer-adoption tasks must coordinate
+  with that churn instead of assuming the older toolchain shape.
+
+## Hard fact-check findings
+
+| ID | Severity | Claim | Reality | Fix |
+| -- | -------- | ----- | ------- | --- |
+| F1 | HIGH | Workers Preview URLs can be the exact preview standard across repos. | Official Cloudflare preview docs say preview URLs are not generated for Workers that implement Durable Objects and only run on `workers.dev`; IngestLens uses Durable Objects. | Standardize lane semantics and lifecycle, not the preview-URL mechanism; keep the shared contract compatible with custom-domain preview lanes. |
+| F2 | HIGH | EdgeMatte still needs a provider-secret-based background-removal deploy contract. | EdgeMatte now routes both segmentation and flip through `env.IMAGES`, and `docs/secrets.md` states no Worker secrets are required for the runtime. | Keep provider-secret setup out of the shared deploy contract for this consumer; treat binding names and lane semantics as the reusable surface. |
+| F3 | HIGH | Shared deployment extraction can ignore current CI/release hardening because it is repo-local ceremony. | Current workflows pin all `uses:` references to full SHAs, use `vp install --frozen-lockfile`, gate PRs with hermetic e2e suites, and run post-deploy `production-smoke` plus `production-journey`. | Put reusable workflow/release policy in `agent-kit`; do not bury supply-chain or quality-gate behavior in the private Cloudflare package. |
+| F4 | MEDIUM | EdgeMatte’s deterministic-name deploy path proves sync/render is unnecessary everywhere. | EdgeMatte deploys today without output patching, but the repo already depends on a Pulumi-durable / Wrangler-deploy split and downstream blueprints need shared lane semantics. | Require the contract to support deterministic no-op repos and richer generated-ID repos through one declared sync/render boundary. |
+| F5 | MEDIUM | This repo verifies the exact future `wrangler-sync` successor module layout and package version. | The monorepo contains consumer evidence only; `wrangler-sync` and any successor package live upstream, so exact filenames/versions are not repo-verified here. | Keep the blueprint at capability/API-boundary level and verify exact upstream file/module names during implementation kickoff. |
+| F6 | LOW | Consumer adoption can assume a stable local tooling surface while extraction work lands. | The working tree currently has uncommitted package, tsconfig, vitest, lockfile, and oxlint alignment changes across the workspace. | Keep this blueprint scoped to deployment-contract extraction and call out tooling-file coordination explicitly in lane boundaries and repo adoption tasks. |
+
+Reference docs used during this refresh:
+
+- Cloudflare Preview URLs: <https://developers.cloudflare.com/workers/configuration/previews/>
+- GitHub Actions security hardening: <https://docs.github.com/actions/security-guides/security-hardening-for-github-actions>
+- GitHub deployments and environments: <https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments>
+
 ## Key decisions
 
-| Decision              | Choice                                                          | Rationale                                                                           |
-| --------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Shared lane names     | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos              |
-| Preview mechanism     | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects |
-| Shared policy owner   | `agent-kit`                                                     | Templates, audits, and docs are already its durable lane                            |
-| Shared plumbing owner | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit    |
-| gstack / OMX scope    | excluded                                                        | Not owned by this lane even if nearby issues exist                                  |
+| Decision                    | Choice                                                          | Rationale                                                                                   |
+| --------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Shared lane names           | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos                      |
+| Preview mechanism           | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects         |
+| Shared policy owner         | `agent-kit`                                                     | Templates, audits, workflow docs, and repo-contract rules are already its durable lane      |
+| Shared plumbing owner       | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit            |
+| Workflow hardening owner    | `agent-kit` + repo workflow docs                                | Full-SHA action pins, frozen installs, explicit suite gating, and environment policy are reusable process contract, not provider plumbing |
+| Consumer proof points       | EdgeMatte + IngestLens                                          | One deterministic-name repo plus one split-topology Durable Object repo proves contract breadth |
+| gstack / OMX scope          | excluded                                                        | Not owned by this lane even if nearby issues exist                                          |
 
 ## Quick Reference (Execution Waves)
 
 | Wave              | Tasks                 | Dependencies | Parallelizable | Effort (T-shirt) |
 | ----------------- | --------------------- | ------------ | -------------- | ---------------- |
-| **Wave 0**        | 1.1, 1.2, 1.3         | None         | 3 agents       | XS-S             |
-| **Wave 1**        | 2.1, 2.2, 2.3         | Wave 0       | 3 agents       | S-M              |
-| **Wave 2**        | 3.1, 3.2              | Wave 1       | 2 agents       | S-M              |
-| **Wave 3**        | 4.1                   | Wave 2       | 1 agent        | M                |
-| **Critical path** | 1.1 → 2.1 → 3.1 → 4.1 | --           | 4 waves        | M                |
+| **Wave 0**        | 1.1                   | None         | 1 agent        | S                |
+| **Wave 1**        | 1.2, 1.3              | Wave 0       | 2 agents       | XS-S             |
+| **Wave 2**        | 2.1, 2.2              | Wave 1       | 2 agents       | S-M              |
+| **Wave 3**        | 2.3, 3.1, 3.2         | Wave 2 (partial) | 3 agents    | S                |
+| **Wave 4**        | 4.1                   | Wave 3       | 1 agent        | S                |
+| **Critical path** | 1.1 → 1.2 → 2.1 → 3.1 → 4.1 | --    | 5 waves        | M                |
 
 ### Parallel Metrics Snapshot
 
 | Metric | Formula / Meaning                  | Target               | Actual |
 | ------ | ---------------------------------- | -------------------- | ------ |
-| RW0    | Ready tasks in Wave 0              | ≥ planned agents / 2 | 3      |
-| CPR    | total_tasks / critical_path_length | ≥ 2.5                | 2.0    |
-| DD     | dependency_edges / total_tasks     | ≤ 2.0                | 1.0    |
+| RW0    | Ready tasks in Wave 0              | ≥ planned agents / 2 | 1      |
+| CPR    | total_tasks / critical_path_length | ≥ 2.5                | 1.6    |
+| DD     | dependency_edges / total_tasks     | ≤ 2.0                | 1.63   |
 | CP     | same-file overlaps per wave        | 0                    | 0      |
 
-Refinement delta: the plan stays slightly narrower than a full `/pll`-maximized
-roadmap because one final consolidation task must merge cross-repo findings into
-one decision-complete contract. Parallelization score: **B**.
+Refinement delta: Wave 0 is intentionally narrow because the repo-state and
+fact-check refresh must land before the contract and plumbing lanes can branch.
+This avoids same-file blueprint conflicts while still preserving two parallel
+implementation lanes (`agent-kit` policy vs private Cloudflare plumbing) once
+the shared findings are locked. Parallelization score: **C**.
 
 ## Phase 1: fact-check the extraction boundary [Complexity: S]
 
 #### [docs] Task 1.1: Lock the shared ownership boundary in the blueprint
 
-**Status:** in_progress
+**Status:** todo
 
 **Depends:** None
 
@@ -153,7 +208,7 @@ silently widening scope into unrelated external code.
 
 **Status:** todo
 
-**Depends:** None
+**Depends:** Task 1.1
 
 Persist the fact-checked architectural findings that force the extraction split:
 Workers Preview URL limitations, IngestLens Durable Object constraints,
@@ -179,25 +234,27 @@ seed role.
 
 **Status:** todo
 
-**Depends:** None
+**Depends:** Task 1.1
 
-Document that the Cloudflare/Pulumi helper package is private-by-default and
-must not be treated as an automatically public package just because it is
-reusable.
+Mirror the blueprint's package-surface decision into surrounding repo docs so
+the Cloudflare/Pulumi helper package is private-by-default and not treated as
+an automatically public package just because it is reusable.
 
 **Files:**
 
-- Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `blueprints/README.md`
+- Modify: `docs/release.md`
+- Modify: `docs/secrets.md`
 
 **Steps (TDD):**
 
-1. Record that current package-surface policy already treats `@webpresso/cloudflare-pulumi` and `@webpresso/doppler-pulumi` as forbidden public-name patterns.
-2. State that any later public promotion is a separate package-surface blueprint.
+1. Mirror the repo-verified gate into local docs: public promotion must pass `catalog/agent/rules/public-package-safety.md` expectations and a package-surface audit; do not treat reusability as automatic permission to publish.
+2. State that any later public promotion is a separate package-surface blueprint with its own tarball / denied-content review.
 3. Run `wp audit docs-frontmatter` — verify PASS.
 
 **Acceptance:**
 
-- [ ] The blueprint explicitly says the infra package is private/internal by default.
+- [ ] Local docs repeat that the infra package is private/internal by default.
 - [ ] Public-package safety is called out as a gate, not a footnote.
 
 ## Phase 2: define the reusable contract [Complexity: M]
@@ -226,7 +283,10 @@ Concrete target artifacts:
 
 **Files:**
 
-- Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `@webpresso/agent-kit/catalog/base-kit/.github/workflows/ci.webpresso.yml.tmpl` (external upstream)
+- Modify: `@webpresso/agent-kit/catalog/agent/rules/extraction-parity.md` (external upstream)
+- Modify: `@webpresso/agent-kit/catalog/agent/rules/public-package-safety.md` (external upstream)
+- Modify: `@webpresso/agent-kit` deployment-contract audit source (external upstream; exact source file verified during kickoff)
 
 **Steps (TDD):**
 
@@ -258,23 +318,26 @@ Concrete target artifacts:
 Define the provider-specific package that expands `wrangler-sync`: what APIs it
 owns, what inputs/outputs it handles, and what remains repo-specific.
 
-Concrete target surface, seeded from current `wrangler-sync` modules:
+Concrete target capability surface, seeded from the current `wrangler-sync`
+responsibility split (verify exact upstream filenames during kickoff):
 
-- `run-pulumi.ts` → stack output loader abstraction
-- `patch-toml.ts` → pure TOML patch/render primitive
-- `patch-jsonc.ts` → pure JSONC patch/render primitive
-- `index.ts` / `types.ts` → public package API for sync/render entrypoints
-- new higher-level helpers for:
-  stack naming, preview domain derivation, multi-file sync plans, and deploy
-  orchestration
+- stack output loading abstraction
+- pure TOML patch/render primitive
+- pure JSONC patch/render primitive
+- public sync/render API entrypoints and shared types
+- higher-level helpers for stack naming, preview domain derivation, multi-file
+  sync plans, and deploy orchestration
 
 **Files:**
 
-- Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `wrangler-sync/src/run-pulumi.ts` (external upstream or source equivalent)
+- Modify: `wrangler-sync/src/patch-toml.ts` (external upstream or source equivalent)
+- Modify: `wrangler-sync/src/patch-jsonc.ts` (external upstream or source equivalent)
+- Modify: `wrangler-sync/src/index.ts` (external upstream or source equivalent)
 
 **Steps (TDD):**
 
-1. Write the package responsibilities as concrete modules/APIs, not just
+1. Write the package responsibilities as concrete capabilities/APIs, not just
    concepts: Pulumi output loading, TOML/JSONC sync/render, stack naming,
    preview domain derivation, multi-file sync plans, deploy orchestration
    helpers.
@@ -301,17 +364,22 @@ Concrete target surface, seeded from current `wrangler-sync` modules:
 **Depends:** Task 2.1, Task 2.2
 
 Spell out how EdgeMatte and IngestLens adopt the same contract without forcing
-identical app topology.
+identical app topology, and make the current EdgeMatte workflow/tooling state an
+explicit compatibility constraint.
 
 **Files:**
 
-- Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `wrangler.toml`
+- Modify: `.github/workflows/ci.webpresso.yml`
+- Modify: `.github/workflows/deploy.production.yml`
+- Modify: `docs/release.md`
+- Modify: external IngestLens deploy/workflow/docs counterparts (exact upstream paths verified during kickoff)
 
 **Steps (TDD):**
 
-1. Write EdgeMatte adoption rules: add `preview_main`, `preview_pr_<n>`, sync/render before deploy, custom-domain preview lanes.
+1. Write EdgeMatte adoption rules: add `preview_main`, `preview_pr_<n>`, sync/render before deploy where declared, and custom-domain preview lanes without regressing current `production-smoke` / `production-journey` verification or direct architecture-drift auditing.
 2. Write IngestLens alignment rules: preserve split client/API topology and existing richer preview model while converging on the same lane semantics and sync/render class.
-3. Add the explicit non-goal that neither repo is required to converge to identical runtime topology.
+3. Add the explicit non-goal that neither repo is required to converge to identical runtime topology or identical workspace-tooling file layout.
 
 **Acceptance:**
 
@@ -325,14 +393,15 @@ identical app topology.
 
 **Status:** todo
 
-**Depends:** Task 2.1, Task 2.2, Task 2.3
+**Depends:** Task 2.1, Task 2.2
 
 Add the verification matrix needed before any implementer starts changing
 agent-kit or the private infra package.
 
 **Files:**
 
-- Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `test/helpers/infra-release-workflow-expectations.mjs`
+- Modify: `test/infra-release-workflow-expectations.test.mjs`
 
 **Steps (TDD):**
 
@@ -343,11 +412,12 @@ agent-kit or the private infra package.
    lane-name generation, required GitHub environment names, preview cleanup,
    and declared sync/render requirement auditing.
 3. Add per-repo adoption checks for:
-   EdgeMatte single-Worker adoption and IngestLens split client/API adoption.
+   EdgeMatte single-Worker adoption and IngestLens split client/API adoption,
+   then reconcile any final consumer-specific deltas during Task 4.1.
 4. Add failure gates for raw unsynced Wrangler deploys, missing preview cleanup,
    lane-name drift, and package-surface leakage if the private package is ever
    accidentally marked public.
-5. Record the exact commands already available in this repo for blueprint/docs/architecture verification.
+5. Record the exact commands already available in this repo for blueprint/docs/architecture verification, including the current hermetic PR e2e suites and post-deploy live-production suites.
 
 **Acceptance:**
 
@@ -359,7 +429,7 @@ agent-kit or the private infra package.
 
 **Status:** todo
 
-**Depends:** Task 2.3
+**Depends:** Task 1.2
 
 Make sure adjacent external issues, such as the stale gstack Claude auth check,
 are tracked as upstream bugs rather than quietly re-entering this lane.
@@ -367,6 +437,9 @@ are tracked as upstream bugs rather than quietly re-entering this lane.
 **Files:**
 
 - Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
+- Modify: `blueprints/README.md`
+- Modify: `blueprints/planned/2026-05-28-edge-matte-security-hardening.md`
+- Modify: `blueprints/in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`
 
 **Steps (TDD):**
 
@@ -397,7 +470,7 @@ risks, edge cases, technology choices, and cross-plan references.
 **Steps (TDD):**
 
 1. Fill the Verification Gates, Cross-Plan References, Edge Cases, Risks, and Technology Choices sections.
-2. Update `blueprints/README.md` active work table and purpose line.
+2. Update `blueprints/README.md` active-work wording and date only if it is still stale when this contract blueprint is ready to leave `in-progress`.
 3. Run:
    - `vp run audit:blueprint-links`
    - `wp audit blueprint-lifecycle --legacy-omx`
@@ -415,9 +488,12 @@ risks, edge cases, technology choices, and cross-plan references.
 - [ ] Freeze the ownership boundary: `agent-kit` yes; gstack/OMX no.
 - [ ] Lock the canonical lane vocabulary: `dev`, `preview_main`, `preview_pr_<n>`, `prd`.
 - [ ] Define the first `agent-kit` delivery slice:
-      workflow template(s), rule doc(s), and deployment-contract drift audit.
+      workflow template(s), rule doc(s), deployment-contract drift audit, and
+      reusable workflow hardening expectations (pinned actions, frozen install,
+      concurrency, explicit deploy-lane verification hooks).
 - [ ] Define the first private package delivery slice from `wrangler-sync`:
-      pure patch/render helpers, stack output loading, and multi-target sync plan support.
+      pure patch/render helpers, stack output loading, and multi-target sync
+      plan support.
 - [ ] Write EdgeMatte adoption notes for a single-Worker repo using the shared contract.
 - [ ] Write IngestLens adoption notes for a split client/API repo using the same contract.
 - [ ] Lock failure gates:
@@ -437,6 +513,11 @@ risks, edge cases, technology choices, and cross-plan references.
   - preview destroy
   - main → `preview_main`
   - manual `prd` promotion
+- preserve reusable workflow hardening already proven here:
+  - full 40-character action SHA pins
+  - `vp install --frozen-lockfile`
+  - deploy concurrency
+  - explicit pre-deploy vs post-deploy verification lanes
 - add or extend a `wp audit` contract check for:
   - lane naming
   - GitHub environment naming
@@ -445,7 +526,8 @@ risks, edge cases, technology choices, and cross-plan references.
 
 ### First private package implementation slice
 
-- keep current `wrangler-sync` pure patch modules as the seed
+- keep the current `wrangler-sync` patch/render responsibility split as the seed
+  (verify exact upstream filenames during kickoff)
 - add a higher-level sync plan API that supports:
   - one wrangler file
   - multiple wrangler files
@@ -457,7 +539,8 @@ risks, edge cases, technology choices, and cross-plan references.
 ### First repo-consumer validation slice
 
 - EdgeMatte proves the simple case:
-  single Worker, deterministic names, shared lane semantics
+  single Worker, deterministic names, shared lane semantics, current hermetic
+  PR e2e, and post-deploy `production-smoke` / `production-journey`
 - IngestLens proves the hard case:
   split client/API, generated IDs, preview lifecycle, Durable Object-compatible contract
 
@@ -492,34 +575,44 @@ dead code by this blueprint.
 
 ## Verification Gates
 
-| Gate                | Command                                     | Success Criteria                        |
-| ------------------- | ------------------------------------------- | --------------------------------------- |
-| Blueprint links     | `vp run audit:blueprint-links`              | No local-path or broken-link violations |
-| Blueprint lifecycle | `wp audit blueprint-lifecycle --legacy-omx` | Blueprint structure valid               |
-| Docs frontmatter    | `wp audit docs-frontmatter`                 | Frontmatter valid                       |
-| Architecture drift  | `wp audit architecture-drift --root .`      | No architecture contract drift          |
+| Gate                    | Command                                                                                                                     | Success Criteria                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Secrets policy          | `vp run verify:secrets`                                                                                                     | Metadata-only secret config and committed secret policy stay valid      |
+| Path policy             | `wp audit absolute-path-policy --root .`                                                                                    | No forbidden relative-root or ambient-path violations                  |
+| Secret quarantine       | `vp run audit:secret-provider-quarantine`                                                                                   | No direct provider CLI or dotenv bypasses                              |
+| Format                  | `vp run format:check`                                                                                                       | Workspace formatting stays clean                                       |
+| Typecheck               | `vp run typecheck`                                                                                                          | Current root/apps/infra package + tsconfig alignment still typechecks   |
+| Lint                    | `vp run lint`                                                                                                               | Lint surface stays green, including the new shared oxlint lane          |
+| Tests                   | `vp run test`                                                                                                               | Unit/integration suites remain green                                   |
+| Hermetic PR e2e         | `vp run e2e -- --suite upload-delete-contract && vp run e2e -- --suite smoke && vp run e2e -- --suite upload-delete`     | Repo-local preview/PR confidence remains secret-free and deterministic  |
+| Live post-deploy e2e    | `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke && E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey` | Live production lane still proves upload → transform → delete          |
+| Blueprint links         | `vp run audit:blueprint-links`                                                                                              | No local-path or broken-link violations                                 |
+| Blueprint lifecycle     | `wp audit blueprint-lifecycle --legacy-omx`                                                                                 | Blueprint structure valid                                              |
+| Docs frontmatter        | `wp audit docs-frontmatter`                                                                                                 | Frontmatter valid                                                      |
+| Architecture drift      | `wp audit architecture-drift --root .`                                                                                      | No architecture contract drift                                         |
 
 ## Cross-Plan References
 
 | Type       | Blueprint / source                                                                                                 | Relationship                                                                   |
 | ---------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| Upstream   | [`EdgeMatte: infrastructure, CI, and production release`](../completed/2026-05-27-edge-matte-infra-and-release.md) | Supplies the current single-repo deploy truth surface                          |
-| Upstream   | [`EdgeMatte: audit remediation and confidence hardening`](./2026-05-27-edge-matte-audit-remediation.md)            | Keeps production truthfulness aligned while the shared contract is extracted   |
-| Downstream | [`EdgeMatte: private-beta security hardening`](../planned/2026-05-28-edge-matte-security-hardening.md)             | Should consume shared lane semantics for Access-protected preview/prod flows   |
-| Downstream | [`EdgeMatte: end-to-end confidence suite`](../planned/2026-05-29-edge-matte-e2e-confidence-suite.md)               | Should consume shared lane semantics for PR preview and post-deploy confidence |
-| Downstream | `agent-kit` deployment-contract work (external upstream)                                                           | Will own the reusable contract templates/audits                                |
+| Upstream   | [`EdgeMatte: infrastructure, CI, and production release`](../completed/2026-05-27-edge-matte-infra-and-release.md) | Supplies the current single-repo deploy truth surface, including Pulumi/Wrangler ownership split |
+| Upstream   | [`EdgeMatte: audit remediation and confidence hardening`](./2026-05-27-edge-matte-audit-remediation.md)            | Supplies the now-hardened workflow, `IMAGES` binding semantics, and production confidence gates |
+| Downstream | [`EdgeMatte: private-beta security hardening`](../planned/2026-05-28-edge-matte-security-hardening.md)             | Should consume shared lane semantics for Access-protected preview/prod flows, not invent a second taxonomy |
+| Downstream | [`EdgeMatte: end-to-end confidence suite`](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)           | Should consume shared lane semantics for PR preview and post-deploy confidence while preserving explicit suite selection |
+| Downstream | `agent-kit` deployment-contract work (external upstream)                                                           | Will own the reusable contract templates, rules, and audits                    |
 | Downstream | `wrangler-sync` expansion / private Cloudflare deploy package (external upstream)                                  | Will own provider-specific sync/render plumbing                                |
 | Reference  | IngestLens preview/deploy work (external upstream)                                                                 | Stronger existing lane model and sync/orchestration reference                  |
 
 ## Edge Cases and Error Handling
 
-| Edge Case                                                                                       | Risk                                                                    | Solution                                                                 | Task |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---- |
-| Preview URLs are proposed as the exact standard                                                 | IngestLens cannot comply because of Durable Object limitations          | Standardize on custom-domain preview lanes instead                       | 1.2  |
-| EdgeMatte’s simple deploy path is mistaken for proof that sync/render is unnecessary everywhere | Shared contract becomes too narrow for richer repos                     | Support no-op/simple repos and generated-ID repos in the private package | 2.2  |
-| Provider-specific deploy code leaks into agent-kit                                              | Agent-kit becomes Cloudflare-coupled and harder to reuse                | Keep only policy/templates/audits in agent-kit                           | 2.1  |
-| Private infra package is assumed to be public by default                                        | Secrets, internals, or unstable surfaces leak into release expectations | Treat public promotion as a separate package-surface decision            | 1.3  |
-| External gstack bug gets silently pulled into this lane                                         | Scope creep and ownership confusion                                     | Record it explicitly as external and excluded                            | 3.2  |
+| Edge Case | Risk | Solution | Task |
+| --------- | ---- | -------- | ---- |
+| F1 — Preview URLs are proposed as the exact standard | IngestLens cannot comply because of Durable Object limitations | Standardize on custom-domain preview lanes instead of a Preview URL requirement | 1.2 |
+| F2 — Shared contract assumes provider secrets for EdgeMatte’s image pipeline | Extraction preserves obsolete provider-env semantics | Keep runtime-secret assumptions out of the shared contract for the current consumer and rely on stable binding names instead | 2.3 |
+| F3 — Workflow extraction drops pinned SHAs, frozen installs, or explicit deploy-lane verification | Supply-chain or CI truthfulness regresses during reuse | Keep workflow hardening in the `agent-kit` lane and audit for it there | 2.1 |
+| F4 — EdgeMatte’s simple deploy path is mistaken for proof that sync/render is unnecessary everywhere | Shared contract becomes too narrow for richer repos | Support no-op/simple repos and generated-ID repos in the private package | 2.2 |
+| F6 — Consumer adoption ignores ongoing toolchain churn | Adoption work stomps package / tsconfig / vitest / oxlint alignment work | Coordinate through the tooling-churn lane and avoid stale pre-change assumptions | 2.3 |
+| External gstack bug gets silently pulled into this lane | Scope creep and ownership confusion | Record it explicitly as external and excluded | 3.2 |
 
 ## Non-goals
 
@@ -528,40 +621,48 @@ dead code by this blueprint.
 - Replacing EdgeMatte’s one-Worker product topology
 - Forcing IngestLens to collapse its split client/API topology
 - Publishing the private Cloudflare deploy package as a public package in this lane
+- Reverting or absorbing the current workspace package / tsconfig / vitest / oxlint alignment work
+
+## External upstream issues observed
+
+- Stale gstack `/claude` auth-check behavior remains external context only. Keep
+  it recorded, but do not widen this lane into gstack / OMX write scope.
 
 ## Risks
 
-| Risk                                                                                | Impact | Mitigation                                                                                      |
-| ----------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
-| Agent-kit tries to absorb deploy execution code                                     | Medium | Keep the contract/plumbing split explicit in tasks and verification                             |
-| The private package remains too narrow and only solves today’s `wrangler-sync` case | High   | Require support for simple repos and generated-ID repos in Task 2.2                             |
-| Cross-repo exactness is interpreted as identical app topology                       | Medium | Write adoption rules explicitly and preserve repo-specific topology as a first-class constraint |
-| Preview lifecycle semantics drift between repos                                     | High   | Standardize lane naming, deploy triggers, cleanup behavior, and audit them through agent-kit    |
+| Risk | Impact | Mitigation |
+| ---- | ------ | ---------- |
+| Agent-kit tries to absorb deploy execution code | Medium | Keep the contract/plumbing split explicit in tasks and verification |
+| Workflow extraction weakens pinned-action / frozen-install / concurrency discipline | High | Preserve those behaviors in the `agent-kit` workflow lane and include them in drift auditing |
+| The private package remains too narrow and only solves today’s `wrangler-sync` case | High | Require support for simple repos and generated-ID repos in Task 2.2 |
+| Cross-repo exactness is interpreted as identical app topology | Medium | Write adoption rules explicitly and preserve repo-specific topology as a first-class constraint |
+| Preview lifecycle semantics drift between repos | High | Standardize lane naming, deploy triggers, cleanup behavior, and audit them through agent-kit |
 
 ## Technology Choices
 
-| Component                 | Technology                                                                      | Version                                   | Why                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Shared contract           | `@webpresso/agent-kit`                                                          | current workspace version                 | Already owns repo contracts, templates, and audits                                           |
-| Shared deploy plumbing    | `wrangler-sync` expansion into a private Cloudflare/Pulumi package              | current seed: `@ozby/wrangler-sync@0.2.0` | Existing reusable primitive for Pulumi→Wrangler sync; right seed for broader private package |
-| Preview/prod deploy model | Cloudflare Workers Wrangler Environments + custom domains                       | current official docs                     | Exact cross-repo mechanism that works with Durable Object consumers                          |
-| Secret hierarchy          | Doppler config inheritance (`preview`, `preview_main`, `preview_pr_<n>`, `prd`) | current official docs                     | Matches stronger existing multi-repo preview model                                           |
+| Component | Technology | Version | Why |
+| --------- | ---------- | ------- | --- |
+| Shared contract | `@webpresso/agent-kit` | workspace catalog pin; CI currently installs `0.21.3` | Already owns repo contracts, templates, rules, and audits |
+| Shared quality rail | `vite-plus` / `vp` | workspace dependency; CI currently installs `0.1.22` | Current repo release/test/format/check workflow already delegates through this lane |
+| Shared deploy plumbing | `wrangler-sync` expansion into a private Cloudflare/Pulumi package | external upstream seed; exact successor version not repo-verified here | Existing reusable sync/render primitive is the right abstraction boundary for provider-specific plumbing |
+| Preview/prod deploy model | Cloudflare Workers Wrangler environments + custom domains | current official docs | Exact cross-repo mechanism that works with Durable Object consumers |
+| Secret hierarchy | Doppler config inheritance (`preview`, `preview_main`, `preview_pr_<n>`, `prd`) | repo docs + stronger existing multi-repo reference | Matches the stronger preview-model reference without forcing identical topology |
 
 ## Refinement Summary
 
 | Metric                    | Value                                |
 | ------------------------- | ------------------------------------ |
 | Findings total            | 6                                    |
-| Critical                  | 1                                    |
+| Critical                  | 0                                    |
 | High                      | 3                                    |
 | Medium                    | 2                                    |
-| Low                       | 0                                    |
+| Low                       | 1                                    |
 | Fixes applied             | 6/6 in blueprint wording             |
-| Cross-plans updated       | 5 local blueprints + blueprint index |
-| Edge cases documented     | 5                                    |
-| Risks documented          | 4                                    |
-| **Parallelization score** | B                                    |
-| **Critical path**         | 4 waves                              |
+| Cross-plans updated       | 0 (recommendations recorded only)    |
+| Edge cases documented     | 6                                    |
+| Risks documented          | 5                                    |
+| **Parallelization score** | C                                    |
+| **Critical path**         | 5 waves                              |
 | **Max parallel agents**   | 3                                    |
 | **Total tasks**           | 8                                    |
 | **Blueprint compliant**   | 8/8                                  |

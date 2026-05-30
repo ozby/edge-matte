@@ -29,16 +29,18 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
-## Active work (2026-05-29)
+## Active work (2026-05-30)
 
-| Blueprint          | Path                                                                                                                                                 | Purpose                                                                                  |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Audit remediation  | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)                                 | Truthful CI/E2E/runtime verification; closes production deploy smoke gap                 |
-| Security hardening | [`planned/2026-05-28-edge-matte-security-hardening.md`](./planned/2026-05-28-edge-matte-security-hardening.md)                                       | Private-beta security controls: Access, Turnstile, WAF/rate limiting                     |
-| Deploy contract    | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: agent-kit policy + private infra plumbing |
+| Blueprint | Path | Purpose |
+| --- | --- | --- |
+| Audit remediation | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; remaining live work is quality-rail alignment, a green production deploy, and final truth-state capture |
+| Deploy contract | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: agent-kit policy + private infra plumbing |
+| Security hardening | [`planned/2026-05-28-edge-matte-security-hardening.md`](./planned/2026-05-28-edge-matte-security-hardening.md) | Private-beta security controls: Access, Turnstile, public security config, WAF/rate limiting |
+| E2E confidence suite | [`in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`](./in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md) | Narrowed follow-through lane for release/docs parity, live production-journey proof, and required-check evidence |
 
-Wave 0 (secrets governance) is complete in the working tree — see the remediation
-blueprint for lane boundaries if multiple agents edit concurrently.
+Wave 0 (secrets governance) is complete in the working tree. All four active or
+next-up blueprints were refreshed against the current repo state on
+**2026-05-30**; use each blueprint’s lane-boundary notes before parallel edits.
 
 ## Completed EdgeMatte blueprints (2026-05-27)
 
