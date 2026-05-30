@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "#adapters/hono/app";
-import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 import type { ProcessImageJobDeps } from "#core/process-image-job";
 
 // Minimal deps stub — these tests only exercise the middleware + catch-all,
@@ -93,57 +92,10 @@ describe("static asset delegation (run_worker_first)", () => {
   });
 });
 
-describe("internal raw-serving gate (/internal/raw/:key)", () => {
-  // A bucket holding both a transient cf.image blob AND the kind of private objects
-  // (job metadata, original uploads) that must NEVER be reachable through this route.
-  const SEGMENT_KEY = `${SEGMENT_TMP_PREFIX}123-abc`;
-  const rawBucketStub = () => {
-    const objects = new Map<string, string>([
-      [SEGMENT_KEY, "transient-cutout-bytes"],
-      ["jobs/job_secret.json", '{"deleteTokenHash":"leaked"}'],
-      ["images/job_secret/original", "private-original-bytes"],
-    ]);
-    return {
-      async get(key: string) {
-        const body = objects.get(key);
-        if (body === undefined) return null;
-        return { body, httpMetadata: { contentType: "image/png" } };
-      },
-    } as unknown as R2Bucket;
-  };
-
-  const fetchRaw = (key: string) =>
-    createApp({ ...stubDeps(), rawBucket: rawBucketStub() }).fetch(
-      new Request(`https://edge-matte.ozby.dev/internal/raw/${encodeURIComponent(key)}`),
-    );
-
-  it("serves a transient segment-tmp object so the cf.image sub-request can read it", async () => {
-    const response = await fetchRaw(SEGMENT_KEY);
-    expect(response.status).toBe(200);
-    expect(await response.text()).toBe("transient-cutout-bytes");
-  });
-
-  it("rejects private job metadata even when the object exists in the bucket", async () => {
-    const response = await fetchRaw("jobs/job_secret.json");
-    expect(response.status).toBe(404);
-    // The deleteTokenHash must never leak through this route.
-    expect(await response.text()).not.toContain("leaked");
-  });
-
-  it("rejects original uploads even when the object exists in the bucket", async () => {
-    const response = await fetchRaw("images/job_secret/original");
-    expect(response.status).toBe(404);
-    expect(await response.text()).not.toContain("private-original-bytes");
-  });
-
-  it("returns 404 for a missing segment-tmp key", async () => {
-    const response = await fetchRaw(`${SEGMENT_TMP_PREFIX}does-not-exist`);
-    expect(response.status).toBe(404);
-  });
-
-  it("returns 404 when no raw bucket is wired (in-memory dev/test path)", async () => {
+describe("internal route isolation", () => {
+  it("hard-rejects /internal/* paths instead of falling through to the SPA shell", async () => {
     const response = await createApp(stubDeps()).fetch(
-      new Request(`https://edge-matte.ozby.dev/internal/raw/${encodeURIComponent(SEGMENT_KEY)}`),
+      new Request("https://edge-matte.ozby.dev/internal/raw/anything"),
     );
     expect(response.status).toBe(404);
   });

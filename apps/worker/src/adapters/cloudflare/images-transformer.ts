@@ -1,17 +1,6 @@
 import { AppError } from "#core/errors";
+import type { ImagesBinding } from "./images-binding";
 import type { ImageTransformer } from "#ports";
-
-interface ImagesBindingResult {
-  response(): Promise<Response>;
-}
-
-interface ImagesBinding {
-  input(stream: ReadableStream): {
-    transform(options: { flip: "h" }): {
-      output(options: { format: "image/png" }): Promise<ImagesBindingResult>;
-    };
-  };
-}
 
 export class CloudflareImagesTransformer implements ImageTransformer {
   constructor(private readonly images: ImagesBinding | null) {}

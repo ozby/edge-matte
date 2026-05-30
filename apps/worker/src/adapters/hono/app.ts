@@ -8,7 +8,6 @@ import {
   invalidRequestError,
 } from "#core/errors";
 import { toPublicImageJob, verifyDeleteToken } from "#core/image-job";
-import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 import {
   MAX_UPLOAD_BYTES,
   processImageJob,
@@ -43,8 +42,6 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const createApp = (
   deps: ProcessImageJobDeps & {
-    appOrigin: string;
-    rawBucket?: R2Bucket;
     assets?: Fetcher;
   },
 ) => {
@@ -86,8 +83,7 @@ export const createApp = (
         }
         // Derive the user-facing origin from the actual request so /i/:id and the
         // pollUrl come back same-origin (CSP 'self' works in both production and
-        // local dev). The provider's cf.image sub-request still uses env.APP_ORIGIN
-        // because it needs a publicly resolvable URL for the CDN to fetch.
+        // local dev).
         const requestOrigin = new URL(c.req.url).origin;
         const { job, deleteToken } = await processImageJob(
           { file: files[0], appOrigin: requestOrigin },
@@ -144,22 +140,7 @@ export const createApp = (
     }
   });
 
-  // Internal: serves the transient SEGMENT_TMP_PREFIX only, so cf.image can apply
-  // CDN transforms via sub-request. Any other key (jobs/*.json, images/*) is rejected
-  // — those R2 paths hold the persisted ImageJob and original uploads and must never
-  // be readable through this route.
-  app.get("/internal/raw/:key", async (c) => {
-    if (!deps.rawBucket) return new Response("not available", { status: 404 });
-    const key = decodeURIComponent(c.req.param("key"));
-    if (!key.startsWith(SEGMENT_TMP_PREFIX)) {
-      return new Response("not found", { status: 404 });
-    }
-    const obj = await deps.rawBucket.get(key);
-    if (!obj) return new Response("not found", { status: 404 });
-    return new Response(obj.body, {
-      headers: { "content-type": obj.httpMetadata?.contentType ?? "image/jpeg" },
-    });
-  });
+  app.all("/internal/*", () => new Response("not found", { status: 404 }));
 
   // Catch-all: SPA shell + static assets. With `assets.run_worker_first = true`
   // in wrangler.toml, every request hits the Worker first; we proxy non-API routes

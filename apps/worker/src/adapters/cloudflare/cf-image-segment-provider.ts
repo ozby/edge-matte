@@ -1,41 +1,29 @@
 import { AppError } from "#core/errors";
-import { SEGMENT_TMP_PREFIX } from "#core/object-keys";
 import { cleanPngMatteEdges } from "./png-matte-edge-cleaner";
+import type { ImagesBinding } from "./images-binding";
 import type { BackgroundRemovalProvider } from "#ports";
 
-const randomKey = () => `${SEGMENT_TMP_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
 export class CfImageSegmentProvider implements BackgroundRemovalProvider {
-  constructor(
-    private readonly bucket: R2Bucket,
-    private readonly appOrigin: string,
-  ) {}
+  constructor(private readonly images: ImagesBinding | null) {}
 
-  async removeBackground(input: Blob, signal?: AbortSignal): Promise<Blob> {
-    const key = randomKey();
+  async removeBackground(input: Blob, _signal?: AbortSignal): Promise<Blob> {
     try {
-      // Store the original temporarily so the CDN path can serve it.
-      await this.bucket.put(key, await input.arrayBuffer(), {
-        httpMetadata: { contentType: input.type || "image/jpeg" },
-      });
-
-      // Sub-request to the Worker's own serving route triggers Cloudflare's
-      // CDN image transform pipeline (cf.image), which is distinct from the
-      // Workers Images binding and produces solid-mask background removal.
-      // Pass `signal` so the upstream call cancels when the caller's deadline trips.
-      const response = await fetch(`${this.appOrigin}/internal/raw/${encodeURIComponent(key)}`, {
-        signal,
-        cf: {
-          image: { segment: "foreground" },
-        } as RequestInitCfProperties,
-      });
+      if (!this.images) {
+        throw new AppError(502, "background_provider_failed", "missing IMAGES binding");
+      }
+      const response = await (
+        await this.images
+          .input(input.stream())
+          .transform({ segment: "foreground" })
+          .output({ format: "image/png" })
+      ).response();
 
       if (!response.ok) {
         const body = await response.text().catch(() => "");
         throw new AppError(
           502,
           "background_provider_failed",
-          `cf.image segment failed: ${response.status} ${body}`,
+          `images segment failed: ${response.status} ${body}`,
         );
       }
 
@@ -43,19 +31,6 @@ export class CfImageSegmentProvider implements BackgroundRemovalProvider {
     } catch (error) {
       if (error instanceof AppError) throw error;
       throw new AppError(502, "background_provider_failed", String(error));
-    } finally {
-      // Best-effort cleanup. Skip when the bucket is missing (only reachable in the
-      // missing-binding contract test); for real failures, log instead of swallowing.
-      if (this.bucket) {
-        try {
-          await this.bucket.delete(key);
-        } catch (cleanupError) {
-          console.warn(`${SEGMENT_TMP_PREFIX}cleanup failed`, {
-            key,
-            error: String(cleanupError),
-          });
-        }
-      }
     }
   }
 }

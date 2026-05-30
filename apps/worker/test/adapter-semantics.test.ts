@@ -5,8 +5,8 @@ import { CloudflareImagesTransformer } from "#adapters/cloudflare/images-transfo
 const PNG_BYTES = Uint8Array.of(0x89, 0x50, 0x4e, 0x47);
 
 describe("worker adapter semantics", () => {
-  it("fails loudly when the R2 bucket is missing (cf.image segment provider)", async () => {
-    const provider = new CfImageSegmentProvider(null as never, "https://example.com");
+  it("fails loudly when the IMAGES binding is missing (background removal)", async () => {
+    const provider = new CfImageSegmentProvider(null);
 
     await expect(
       provider.removeBackground(new Blob([PNG_BYTES], { type: "image/png" })),

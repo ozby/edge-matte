@@ -12,11 +12,10 @@ type WorkerEnv = Env & {
   E2E_MOCK_PIPELINE?: string;
 };
 
-const createInMemoryDeps = (appOrigin: string): ProcessImageJobDeps & { appOrigin: string } => {
+const createInMemoryDeps = (): ProcessImageJobDeps => {
   const jobs = new Map<string, unknown>();
   const images = new Map<string, Response>();
   return {
-    appOrigin,
     repository: {
       async create(job) {
         jobs.set(job.id, job);
@@ -58,20 +57,18 @@ const createInMemoryDeps = (appOrigin: string): ProcessImageJobDeps & { appOrigi
 
 export const createWorkerApp = (env?: WorkerEnv) => {
   if (!env) {
-    return createApp(createInMemoryDeps("https://edge-matte.ozby.dev"));
+    return createApp(createInMemoryDeps());
   }
 
   const useExplicitMockPipeline = env.E2E_MOCK_PIPELINE === "1";
 
   return createApp({
-    appOrigin: env.APP_ORIGIN,
     repository: new R2JobRepository(env.IMAGES_BUCKET),
     objectStore: new R2ImageObjectStore(env.IMAGES_BUCKET),
-    rawBucket: env.IMAGES_BUCKET,
     assets: env.ASSETS,
     provider: useExplicitMockPipeline
       ? new MockBackgroundRemovalProvider()
-      : new CfImageSegmentProvider(env.IMAGES_BUCKET, env.APP_ORIGIN),
+      : new CfImageSegmentProvider((env.IMAGES ?? null) as never),
     transformer: useExplicitMockPipeline
       ? new MockTransformer()
       : new CloudflareImagesTransformer((env.IMAGES ?? null) as never),
