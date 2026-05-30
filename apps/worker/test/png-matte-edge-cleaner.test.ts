@@ -12,24 +12,7 @@ describe("PNG matte edge cleaner", () => {
     const input = await encodePngRgba({
       width: 4,
       height: 1,
-      rgba: Uint8Array.of(
-        0,
-        0,
-        255,
-        255,
-        255,
-        0,
-        0,
-        96,
-        0,
-        0,
-        255,
-        96,
-        255,
-        0,
-        0,
-        255,
-      ),
+      rgba: Uint8Array.of(0, 0, 255, 255, 255, 0, 0, 96, 0, 0, 255, 96, 255, 0, 0, 255),
     });
 
     const cleaned = await cleanPngMatteEdges(input);

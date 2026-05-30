@@ -64,12 +64,16 @@ const toArrayBuffer = (bytes: Uint8Array<ArrayBufferLike>): ArrayBuffer =>
   new Uint8Array(bytes).buffer as ArrayBuffer;
 
 const inflate = async (bytes: Uint8Array<ArrayBufferLike>): Promise<Uint8Array> => {
-  const stream = new Blob([toArrayBuffer(bytes)]).stream().pipeThrough(new DecompressionStream("deflate"));
+  const stream = new Blob([toArrayBuffer(bytes)])
+    .stream()
+    .pipeThrough(new DecompressionStream("deflate"));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 };
 
 const deflate = async (bytes: Uint8Array<ArrayBufferLike>): Promise<Uint8Array> => {
-  const stream = new Blob([toArrayBuffer(bytes)]).stream().pipeThrough(new CompressionStream("deflate"));
+  const stream = new Blob([toArrayBuffer(bytes)])
+    .stream()
+    .pipeThrough(new CompressionStream("deflate"));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 };
 
@@ -83,7 +87,12 @@ const paethPredictor = (left: number, above: number, upperLeft: number): number 
   return upperLeft;
 };
 
-const unfilter = (filtered: Uint8Array, width: number, height: number, channels: number): Uint8Array => {
+const unfilter = (
+  filtered: Uint8Array,
+  width: number,
+  height: number,
+  channels: number,
+): Uint8Array => {
   const stride = width * channels;
   const raw = new Uint8Array(stride * height);
   let inputOffset = 0;
@@ -96,7 +105,8 @@ const unfilter = (filtered: Uint8Array, width: number, height: number, channels:
       const value = filtered[inputOffset + column] ?? 0;
       const left = column >= channels ? (raw[rowOffset + column - channels] ?? 0) : 0;
       const above = row > 0 ? (raw[priorRowOffset + column] ?? 0) : 0;
-      const upperLeft = row > 0 && column >= channels ? (raw[priorRowOffset + column - channels] ?? 0) : 0;
+      const upperLeft =
+        row > 0 && column >= channels ? (raw[priorRowOffset + column - channels] ?? 0) : 0;
       switch (filter) {
         case 0:
           raw[rowOffset + column] = value;
@@ -141,7 +151,9 @@ export const decodePngRgba = async (input: Blob): Promise<DecodedPngRgba> => {
     throw new Error(`unsupported PNG color type ${colorType}`);
   }
 
-  const idatBytes = chunks.filter((chunk) => chunk.type === "IDAT").reduce((size, chunk) => size + chunk.data.length, 0);
+  const idatBytes = chunks
+    .filter((chunk) => chunk.type === "IDAT")
+    .reduce((size, chunk) => size + chunk.data.length, 0);
   if (idatBytes === 0) throw new Error("missing PNG IDAT");
   const idat = new Uint8Array(idatBytes);
   let idatOffset = 0;
@@ -189,7 +201,10 @@ const crc32 = (parts: Uint8Array<ArrayBufferLike>[]): number => {
   return (crc ^ 0xffffffff) >>> 0;
 };
 
-const makeChunk = (type: string, data: Uint8Array<ArrayBufferLike> = new Uint8Array()): Uint8Array => {
+const makeChunk = (
+  type: string,
+  data: Uint8Array<ArrayBufferLike> = new Uint8Array(),
+): Uint8Array => {
   const typeBytes = textEncoder.encode(type);
   const chunk = new Uint8Array(12 + data.length);
   writeUint32(chunk, 0, data.length);
@@ -227,8 +242,14 @@ export const encodePngRgba = async ({ width, height, rgba }: DecodedPngRgba): Pr
   );
 };
 
-const colorDistance = (r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number =>
-  Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+const colorDistance = (
+  r1: number,
+  g1: number,
+  b1: number,
+  r2: number,
+  g2: number,
+  b2: number,
+): number => Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
 
 const dominantLowAlphaColor = (rgba: Uint8Array): [number, number, number] | null => {
   const counts = new Map<string, { color: [number, number, number]; count: number }>();
@@ -262,7 +283,11 @@ export const cleanPngMatteEdges = async (input: Blob): Promise<Blob> => {
   for (let index = 0; index < decoded.rgba.length; index += 4) {
     const alpha = decoded.rgba[index + 3] ?? 0;
     if (alpha === 0) {
-      if (decoded.rgba[index] !== 0 || decoded.rgba[index + 1] !== 0 || decoded.rgba[index + 2] !== 0) {
+      if (
+        decoded.rgba[index] !== 0 ||
+        decoded.rgba[index + 1] !== 0 ||
+        decoded.rgba[index + 2] !== 0
+      ) {
         decoded.rgba[index] = 0;
         decoded.rgba[index + 1] = 0;
         decoded.rgba[index + 2] = 0;

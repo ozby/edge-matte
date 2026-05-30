@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-const repoRoot = "/Users/ozby/repos/ozby/edge-matte";
+const repoRoot = process.cwd();
 
 function read(relativePath) {
   return readFileSync(resolve(repoRoot, relativePath), "utf8");
