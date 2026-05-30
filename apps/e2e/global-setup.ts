@@ -20,7 +20,7 @@ async function waitForHealth(baseUrl: string, timeoutMs: number): Promise<void> 
 }
 
 export default async function globalSetup(): Promise<() => Promise<void>> {
-  if (process.env.E2E_BASE_URL?.trim()) {
+  if (process.env.E2E_BASE_URL?.trim() || process.env.E2E_RUN_PRODUCTION === "1") {
     return async () => undefined;
   }
 
