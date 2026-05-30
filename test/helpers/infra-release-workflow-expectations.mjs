@@ -9,6 +9,10 @@ export const PR_CI_WORKFLOW = ".github/workflows/ci.webpresso.yml";
 
 export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy.production.yml";
 
+export const CODEOWNERS_WORKFLOW_GOVERNANCE_PATH = ".github/CODEOWNERS";
+
+export const FULL_SHA_ACTION_REFERENCE_PATTERN = /^[^@\s]+@[0-9a-f]{40}$/u;
+
 /** PR CI must prove deployability without mutating production (IR-1 / blueprint task 5). */
 export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
   { label: "frozen install", pattern: /vp install(?: --frozen-lockfile)?/u },
@@ -78,6 +82,43 @@ export function collectWorkflowRunSteps(contents) {
 }
 
 /**
+ * Collect `uses:` references from a GitHub Actions workflow file.
+ *
+ * @param {string} contents
+ */
+export function collectWorkflowUses(contents) {
+  return contents
+    .split("\n")
+    .flatMap((line) => {
+      const match = line.match(/^\s*(?:-\s+)?uses:\s*([^\s#]+)\s*(?:#.*)?$/u);
+      return match ? [match[1]] : [];
+    });
+}
+
+/**
+ * @param {string} actionReference
+ */
+export function isImmutableActionReference(actionReference) {
+  if (
+    actionReference.startsWith("./") ||
+    actionReference.startsWith("../") ||
+    actionReference.startsWith("docker://")
+  ) {
+    return true;
+  }
+  return FULL_SHA_ACTION_REFERENCE_PATTERN.test(actionReference);
+}
+
+/**
+ * @param {string} contents
+ */
+export function findMutableUsesReferences(contents) {
+  return collectWorkflowUses(contents).filter(
+    (actionReference) => !isImmutableActionReference(actionReference),
+  );
+}
+
+/**
  * @param {string} contents
  * @param {WorkflowExpectation[]} expectations
  */
@@ -100,6 +141,30 @@ export function listWorkflowFiles(repoRoot) {
 }
 
 /**
+ * @param {string} repoRoot
+ */
+export function readCodeowners(repoRoot) {
+  return readWorkflow(repoRoot, CODEOWNERS_WORKFLOW_GOVERNANCE_PATH);
+}
+
+/**
+ * @param {string} contents
+ */
+export function findMissingCodeownersProtections(contents) {
+  const expectations = [
+    {
+      label: "workflow ownership",
+      pattern: /^(?!\s*#)\s*\/?\.github\/workflows\/\*\*\s+@[\w./-]+/mu,
+    },
+    {
+      label: "CODEOWNERS self-protection",
+      pattern: /^(?!\s*#)\s*\/?\.github\/CODEOWNERS\s+@[\w./-]+/mu,
+    },
+  ];
+  return expectations.filter(({ pattern }) => !pattern.test(contents));
+}
+
+/**
  * @param {WorkflowExpectation[]} missing
  * @param {string} workflowPath
  */
@@ -109,4 +174,16 @@ export function formatMissingExpectations(missing, workflowPath) {
   }
   const labels = missing.map(({ label }) => `- ${label}`).join("\n");
   return `${workflowPath} is missing IR-1 release expectations:\n${labels}`;
+}
+
+/**
+ * @param {string[]} mutableUses
+ * @param {string} workflowPath
+ */
+export function formatMutableUses(mutableUses, workflowPath) {
+  if (mutableUses.length === 0) {
+    return "";
+  }
+  const list = mutableUses.map((entry) => `- ${entry}`).join("\n");
+  return `${workflowPath} contains mutable GitHub Actions references:\n${list}`;
 }

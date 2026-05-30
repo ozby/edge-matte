@@ -3,7 +3,7 @@ type: guide
 title: EdgeMatte secrets
 status: draft
 created: 2026-05-27
-last_updated: 2026-05-27
+last_updated: 2026-05-30
 ---
 
 # EdgeMatte secrets
@@ -107,6 +107,12 @@ never land in repo files. GitHub stores a single bootstrap token:
 
 Workflows run `dopplerhq/secrets-fetch-action`, inject env vars for the job
 only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` as a GitHub repository secret.
+
+The workflow files that consume this action are intentionally pinned to full
+40-character commit SHAs, and workflow-path review ownership lives in
+[`.github/CODEOWNERS`](../.github/CODEOWNERS). To make that ownership
+mandatory, maintainers must enable GitHub branch protection or rulesets with
+**Require review from Code Owners**.
 
 The deploy workflow runs `scripts/verify-cloudflare-deploy-creds.sh` after
 injection:

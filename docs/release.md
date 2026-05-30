@@ -3,7 +3,7 @@ type: guide
 title: EdgeMatte release and deploy
 status: draft
 created: 2026-05-27
-last_updated: 2026-05-27
+last_updated: 2026-05-30
 ---
 
 # EdgeMatte release and deploy
@@ -149,22 +149,33 @@ Implemented in [`.github/workflows/ci.webpresso.yml`](../.github/workflows/ci.we
 1. **check** job — install, `verify:secrets`, shared path-policy audit,
    `audit:secret-provider-quarantine`, format, typecheck, lint, docs/blueprint audits
 2. **test** job — `vp run test`
-3. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
+3. **e2e** job — hermetic PR gate for `upload-delete-contract`, `smoke`, and
+   `upload-delete` using local `wrangler dev` + `E2E_MOCK_PIPELINE:1`
+4. **mutation** job — affected-only mutation run on pull requests
+5. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
 
-E2E (`smoke`, `upload-delete`) runs locally or in maintainer bootstrap — not in PR CI yet.
+All workflow `uses:` references are intentionally pinned to full 40-character
+commit SHAs, including GitHub-authored actions, so the repo can enforce
+immutable-action policy without another migration.
 
 PRs must not write production secrets or deploy to `edge-matte.ozby.dev`.
+
+Workflow ownership is declared in [`.github/CODEOWNERS`](../.github/CODEOWNERS),
+but Git alone cannot enforce that review. Maintainers must also enable GitHub
+branch protection or rulesets with **Require review from Code Owners** for that
+protection to become mandatory.
 
 ### `main` branch deploy
 
 Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
 1. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
-2. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-3. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
-4. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
+2. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
+3. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
+4. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
+5. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
    (`cancel-in-progress: false`)
-5. **Post-deploy smoke** — after deploy succeeds:
+6. **Post-deploy smoke** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
@@ -190,7 +201,10 @@ Use before merging infra/release changes or after cutover:
 - [ ] Bindings present: `ASSETS`, `IMAGES_BUCKET`, `IMAGES`
 - [ ] `PHOTOROOM_API_KEY` set in Cloudflare (not GitHub)
 - [ ] PR CI includes dry-run deploy
+- [ ] PR CI includes hermetic e2e gate (`upload-delete-contract`, `smoke`, `upload-delete`)
 - [ ] `main` deploy uses concurrency serialization
+- [ ] Workflow `uses:` references stay pinned to full SHAs
+- [ ] GitHub branch protection / rulesets require Code Owner review for workflow changes
 - [ ] Post-deploy smoke runs `production-smoke` against public URL
 - [ ] No `.dev.vars*` / `.env*` files in repo (except documented `.env.example` if any)
 - [ ] `wp audit architecture-drift --root .` passes

@@ -14,11 +14,16 @@ import {
   PRODUCTION_DEPLOY_WORKFLOW,
   PR_CI_REQUIRED_RUNS,
   PRODUCTION_DEPLOY_REQUIREMENTS,
+  CODEOWNERS_WORKFLOW_GOVERNANCE_PATH,
   PRODUCTION_DOMAIN,
   readWorkflow,
+  readCodeowners,
   collectWorkflowRunSteps,
   findMissingExpectations,
+  findMissingCodeownersProtections,
+  findMutableUsesReferences,
   formatMissingExpectations,
+  formatMutableUses,
   listWorkflowFiles,
 } from "./helpers/infra-release-workflow-expectations.mjs";
 
@@ -31,6 +36,31 @@ test("workflow governance directory exists", () => {
     "expected at least one GitHub Actions workflow under .github/workflows",
   );
   assert.ok(workflows.includes(PR_CI_WORKFLOW), `expected PR CI workflow at ${PR_CI_WORKFLOW}`);
+});
+
+test("all workflow action uses references are pinned to full commit SHAs", () => {
+  const workflows = listWorkflowFiles(root);
+  assert.ok(workflows.length > 0, "expected at least one workflow to validate");
+
+  for (const workflowPath of workflows) {
+    const workflow = readWorkflow(root, workflowPath);
+    assert.equal(workflow.exists, true, `${workflowPath} must exist`);
+
+    const mutableUses = findMutableUsesReferences(workflow.contents);
+    assert.equal(mutableUses.length, 0, formatMutableUses(mutableUses, workflowPath));
+  }
+});
+
+test("workflow governance has CODEOWNERS coverage and self-protection", () => {
+  const codeowners = readCodeowners(root);
+  assert.equal(codeowners.exists, true, `${CODEOWNERS_WORKFLOW_GOVERNANCE_PATH} must exist`);
+
+  const missing = findMissingCodeownersProtections(codeowners.contents);
+  assert.equal(
+    missing.length,
+    0,
+    formatMissingExpectations(missing, CODEOWNERS_WORKFLOW_GOVERNANCE_PATH),
+  );
 });
 
 test("PR CI workflow triggers on pull_request", () => {
