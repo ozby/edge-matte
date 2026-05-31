@@ -38,6 +38,10 @@ credentials.json
 .DS_Store
 *.log
 
+# Browser automation / MCP session artifacts
+.playwright-mcp/
+*-upload-result.png
+
 # >>> managed by webpresso (rule-sync)
 .agent/rules/
 .cursor/rules/
