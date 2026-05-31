@@ -8,10 +8,10 @@ progress: "0% (drafted)"
 cross_repo_depends_on:
   - repo: webpresso/agent-kit
     slug: 2026-05-30-cross-project-wp-execution-map
-    require_status: planned
+    require_status: completed
   - repo: webpresso/agent-kit
     slug: 2026-05-30-agent-kit-base-wp-core
-    require_status: planned
+    require_status: completed
 tags:
   - wp
   - edge-matte
@@ -239,6 +239,7 @@ Pin the actual intended split:
 | -------- | ------------------------------------------- | ------------------------------------ |
 | Upstream | `2026-05-30-cross-project-wp-execution-map` | umbrella execution order             |
 | Upstream | `2026-05-30-agent-kit-base-wp-core`         | current shared `wp` capability scope |
+| Related  | `2026-05-29-edge-matte-shared-cloudflare-deploy-contract` | thin-consumer cleanup must stay aligned with the in-progress deploy-contract lane |
 
 ## Edge Cases and Error Handling
 

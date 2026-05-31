@@ -92,6 +92,10 @@ test("root command surface keeps vp as substrate and wp as owned quality lane", 
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
   assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle --legacy-omx");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
+  assert.equal(
+    pkg.scripts["act:ci:e2e"],
+    "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
+  );
 });
 
 test("package-local typecheck scripts are either wp-backed or explicitly blocked exceptions", () => {
