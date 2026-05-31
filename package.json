@@ -9,10 +9,10 @@
   "scripts": {
     "setup:agent": "wp setup",
     "build": "vp run -r build",
-    "catalog:check": "WP_SKIP_UPDATE_CHECK=1 wp audit catalog-drift",
+    "catalog:check": "wp audit catalog-drift",
     "check": "vp check",
     "check-types": "vp run -r check-types",
-    "typecheck": "vp run -r check-types",
+    "typecheck": "wp typecheck",
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "lint": "vp run -r lint",
@@ -24,20 +24,25 @@
     "pulumi:preview": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi preview",
     "pulumi:up": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
-    "verify:paths": "WP_SKIP_UPDATE_CHECK=1 wp audit absolute-path-policy --root .",
+    "verify:paths": "wp audit absolute-path-policy --root .",
     "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
     "audit:blueprint-links": "bun scripts/audit-blueprint-link-policy.ts",
-    "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
-    "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
+    "docs:check": "wp audit docs-frontmatter",
+    "blueprints:check": "wp audit blueprint-lifecycle --legacy-omx",
     "prepare": "husky && bun scripts/sync-webpresso-config.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
+    "oxlint": "^1.36.0",
     "typescript": "catalog:",
-    "vite-plus": "^0.1.22"
+    "vite-plus": "^0.1.22",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24"

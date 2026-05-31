@@ -15,7 +15,7 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
-progress: "0% (0/8 implementation tasks done, 0 blocked, refreshed 2026-05-30)"
+progress: "38% (3/8 tasks done, 0 blocked, ownership boundary + fact-check findings + package-surface guard locked 2026-05-30)"
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -26,7 +26,18 @@ contract surface and a separate private Cloudflare/Pulumi package owning
 provider-specific deploy plumbing.
 
 This blueprint is intentionally **not** a gstack or OMX change. Those codebases
-stay out of scope even when they expose nearby bugs or stale assumptions.
+stay out of scope even when they expose nearby bugs or stale assumptions. The
+only upstream shared-policy surface in scope is **agent-kit**; provider-specific
+Cloudflare/Pulumi plumbing belongs in the separate private infra package.
+
+## Locked ownership boundary (2026-05-30)
+
+- **In scope:** `agent-kit` workflow templates, audits, docs, and the
+  repo-local blueprint/docs updates that define the shared deployment contract.
+- **In scope, but private:** the separate Cloudflare/Pulumi helper package that
+  owns provider-specific sync/render/deploy plumbing.
+- **Out of scope:** gstack, OMX, Claude skill repos, and unrelated workspace
+  tooling churn outside what this blueprint explicitly adopts.
 
 ## Multi-agent coordination
 
@@ -130,6 +141,7 @@ deploy code into agent-kit.
 | F4 | MEDIUM | EdgeMatte’s deterministic-name deploy path proves sync/render is unnecessary everywhere. | EdgeMatte deploys today without output patching, but the repo already depends on a Pulumi-durable / Wrangler-deploy split and downstream blueprints need shared lane semantics. | Require the contract to support deterministic no-op repos and richer generated-ID repos through one declared sync/render boundary. |
 | F5 | MEDIUM | This repo verifies the exact future `wrangler-sync` successor module layout and package version. | The monorepo contains consumer evidence only; `wrangler-sync` and any successor package live upstream, so exact filenames/versions are not repo-verified here. | Keep the blueprint at capability/API-boundary level and verify exact upstream file/module names during implementation kickoff. |
 | F6 | LOW | Consumer adoption can assume a stable local tooling surface while extraction work lands. | The working tree currently has uncommitted package, tsconfig, vitest, lockfile, and oxlint alignment changes across the workspace. | Keep this blueprint scoped to deployment-contract extraction and call out tooling-file coordination explicitly in lane boundaries and repo adoption tasks. |
+| F7 | MEDIUM | Reusability means the Cloudflare/Pulumi helper should become part of `agent-kit` or be treated as public package surface by default. | The locked ownership split and repo policy gates separate shared workflow/audit policy from provider-specific plumbing, and reusable private packages still require explicit public-package-safety review before any promotion. | Keep the helper package private-by-default, keep provider-specific plumbing out of `agent-kit`, and treat any future public promotion as separate package-surface work. |
 
 Reference docs used during this refresh:
 
@@ -179,7 +191,7 @@ the shared findings are locked. Parallelization score: **C**.
 
 #### [docs] Task 1.1: Lock the shared ownership boundary in the blueprint
 
-**Status:** todo
+**Status:** done
 
 **Depends:** None
 
@@ -200,13 +212,13 @@ silently widening scope into unrelated external code.
 
 **Acceptance:**
 
-- [ ] Active-work docs name `agent-kit` as in-scope and gstack/OMX as out-of-scope.
-- [ ] Blueprint link audit passes.
-- [ ] Blueprint lifecycle audit passes.
+- [x] Active-work docs name `agent-kit` as in-scope and gstack/OMX as out-of-scope.
+- [x] Blueprint link audit passes.
+- [x] Blueprint lifecycle audit passes.
 
 #### [docs] Task 1.2: Record the fact-check findings that block wrong abstractions
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -221,18 +233,18 @@ seed role.
 
 **Steps (TDD):**
 
-1. Add explicit F1–F6 findings with severity, reality, and fix.
+1. Add explicit F1–F7 findings with severity, reality, and fix.
 2. Link official Cloudflare and GitHub deployment docs plus repo-local evidence.
 3. Run `wp audit architecture-drift --root .` — verify PASS.
 
 **Acceptance:**
 
-- [ ] The blueprint contains explicit findings for preview URLs, Durable Objects, sync/render ownership, and package-surface constraints.
-- [ ] The architecture drift check passes after the wording update.
+- [x] The blueprint contains explicit findings for preview URLs, Durable Objects, sync/render ownership, and package-surface constraints.
+- [x] The architecture drift check passes after the wording update.
 
 #### [docs] Task 1.3: Capture the package-surface constraint for the private infra package
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -254,8 +266,8 @@ an automatically public package just because it is reusable.
 
 **Acceptance:**
 
-- [ ] Local docs repeat that the infra package is private/internal by default.
-- [ ] Public-package safety is called out as a gate, not a footnote.
+- [x] Local docs repeat that the infra package is private/internal by default.
+- [x] Public-package safety is called out as a gate, not a footnote.
 
 ## Phase 2: define the reusable contract [Complexity: M]
 
@@ -438,7 +450,7 @@ are tracked as upstream bugs rather than quietly re-entering this lane.
 
 - Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
 - Modify: `blueprints/README.md`
-- Modify: `blueprints/planned/2026-05-28-edge-matte-security-hardening.md`
+- Modify: `blueprints/in-progress/2026-05-28-edge-matte-security-hardening.md`
 - Modify: `blueprints/in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`
 
 **Steps (TDD):**
@@ -597,7 +609,7 @@ dead code by this blueprint.
 | ---------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | Upstream   | [`EdgeMatte: infrastructure, CI, and production release`](../completed/2026-05-27-edge-matte-infra-and-release.md) | Supplies the current single-repo deploy truth surface, including Pulumi/Wrangler ownership split |
 | Upstream   | [`EdgeMatte: audit remediation and confidence hardening`](./2026-05-27-edge-matte-audit-remediation.md)            | Supplies the now-hardened workflow, `IMAGES` binding semantics, and production confidence gates |
-| Downstream | [`EdgeMatte: private-beta security hardening`](../planned/2026-05-28-edge-matte-security-hardening.md)             | Should consume shared lane semantics for Access-protected preview/prod flows, not invent a second taxonomy |
+| Downstream | [`EdgeMatte: private-beta security hardening`](../in-progress/2026-05-28-edge-matte-security-hardening.md)         | Should consume shared lane semantics for Access-protected preview/prod flows, not invent a second taxonomy |
 | Downstream | [`EdgeMatte: end-to-end confidence suite`](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)           | Should consume shared lane semantics for PR preview and post-deploy confidence while preserving explicit suite selection |
 | Downstream | `agent-kit` deployment-contract work (external upstream)                                                           | Will own the reusable contract templates, rules, and audits                    |
 | Downstream | `wrangler-sync` expansion / private Cloudflare deploy package (external upstream)                                  | Will own provider-specific sync/render plumbing                                |
@@ -611,6 +623,7 @@ dead code by this blueprint.
 | F2 — Shared contract assumes provider secrets for EdgeMatte’s image pipeline | Extraction preserves obsolete provider-env semantics | Keep runtime-secret assumptions out of the shared contract for the current consumer and rely on stable binding names instead | 2.3 |
 | F3 — Workflow extraction drops pinned SHAs, frozen installs, or explicit deploy-lane verification | Supply-chain or CI truthfulness regresses during reuse | Keep workflow hardening in the `agent-kit` lane and audit for it there | 2.1 |
 | F4 — EdgeMatte’s simple deploy path is mistaken for proof that sync/render is unnecessary everywhere | Shared contract becomes too narrow for richer repos | Support no-op/simple repos and generated-ID repos in the private package | 2.2 |
+| F7 — Reusability is mistaken for automatic public-package scope | Provider-specific plumbing leaks across the ownership boundary or gets published without review | Keep the helper package private-by-default and require separate public-package-safety review for any promotion | 1.2, 1.3 |
 | F6 — Consumer adoption ignores ongoing toolchain churn | Adoption work stomps package / tsconfig / vitest / oxlint alignment work | Coordinate through the tooling-churn lane and avoid stale pre-change assumptions | 2.3 |
 | External gstack bug gets silently pulled into this lane | Scope creep and ownership confusion | Record it explicitly as external and excluded | 3.2 |
 
@@ -633,6 +646,7 @@ dead code by this blueprint.
 | Risk | Impact | Mitigation |
 | ---- | ------ | ---------- |
 | Agent-kit tries to absorb deploy execution code | Medium | Keep the contract/plumbing split explicit in tasks and verification |
+| The private package is treated as public by default because it is reusable | High | Keep private-package wording explicit in the blueprint and require separate public-package-safety review before any promotion |
 | Workflow extraction weakens pinned-action / frozen-install / concurrency discipline | High | Preserve those behaviors in the `agent-kit` workflow lane and include them in drift auditing |
 | The private package remains too narrow and only solves today’s `wrangler-sync` case | High | Require support for simple repos and generated-ID repos in Task 2.2 |
 | Cross-repo exactness is interpreted as identical app topology | Medium | Write adoption rules explicitly and preserve repo-specific topology as a first-class constraint |
@@ -652,15 +666,15 @@ dead code by this blueprint.
 
 | Metric                    | Value                                |
 | ------------------------- | ------------------------------------ |
-| Findings total            | 6                                    |
+| Findings total            | 7                                    |
 | Critical                  | 0                                    |
 | High                      | 3                                    |
-| Medium                    | 2                                    |
+| Medium                    | 3                                    |
 | Low                       | 1                                    |
-| Fixes applied             | 6/6 in blueprint wording             |
+| Fixes applied             | 7/7 in blueprint wording             |
 | Cross-plans updated       | 0 (recommendations recorded only)    |
-| Edge cases documented     | 6                                    |
-| Risks documented          | 5                                    |
+| Edge cases documented     | 7                                    |
+| Risks documented          | 6                                    |
 | **Parallelization score** | C                                    |
 | **Critical path**         | 5 waves                              |
 | **Max parallel agents**   | 3                                    |

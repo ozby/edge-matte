@@ -10,6 +10,13 @@ Cloudflare-native TypeScript reference app for image matting pipelines: upload o
 curl -sf https://edge-matte.ozby.dev/health
 ```
 
+Private-beta rollout note: `edge-matte.ozby.dev` is slated to sit behind
+Cloudflare Access for both browser sessions and operator automation. When that
+cutover lands, bare `curl` checks to `/health` or `/` are no longer the
+maintained verification path; use the Access service-token contract documented
+in [`docs/release.md`](./docs/release.md#cloudflare-access-private-beta-contract)
+and [`docs/secrets.md`](./docs/secrets.md#cloudflare-access-automation-secrets).
+
 ## Architecture at a glance
 
 ```mermaid
@@ -145,7 +152,7 @@ vp run verify:secrets
 wp audit absolute-path-policy --root .
 vp run audit:secret-provider-quarantine
 wp audit architecture-drift --root .
-WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
+wp audit guardrails
 ```
 
 </details>
@@ -168,6 +175,22 @@ vp run deploy:production
 Post-deploy verification:
 
 ```
+# Before Cloudflare Access rollout
 curl -sf https://edge-matte.ozby.dev/health
+
+# After Cloudflare Access rollout
+curl -sf \
+  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+  https://edge-matte.ozby.dev/health
+curl -sf \
+  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+  https://edge-matte.ozby.dev/
+CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
+CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
 E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 ```
+
+See [`docs/release.md#cloudflare-access-private-beta-contract`](./docs/release.md#cloudflare-access-private-beta-contract)
+for the policy matrix, deny fallback, and break-glass rollback path.

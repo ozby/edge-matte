@@ -66,22 +66,55 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 
 ## Where each credential lives
 
-| Secret / credential     | Where the value lives                           | Who sets it                     | Used by                                   |
-| ----------------------- | ----------------------------------------------- | ------------------------------- | ----------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`  | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy` |
-| `CLOUDFLARE_ACCOUNT_ID` | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`      |
+| Secret / credential       | Where the value lives                           | Who sets it                     | Used by                                                                 |
+| ------------------------- | ----------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                 |
+| `CLOUDFLARE_ACCOUNT_ID`   | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`                                    |
+| `CF_ACCESS_CLIENT_ID`     | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Id` for Access-protected `/health`, `/`, API, and image verification |
+| `CF_ACCESS_CLIENT_SECRET` | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows  |
 
 ### Rules
 
-1. **Deploy capability comes from `ozby-shell`.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only Doppler project. No per-app Worker secrets required.
-2. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
+1. **Deploy capability comes from `ozby-shell`.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only Doppler project.
+2. **Access automation also comes from `ozby-shell`.** Store
+   `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` beside the deploy
+   credentials, then inject them into local deploy smoke, GitHub Actions, and
+   production-only E2E as headers — never as cookies or checked-in files.
+3. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
    TypeScript `Env` types reference binding names and non-secret vars. Secret
    values are not part of the current runtime contract.
-3. **Local bootstrap uses committed defaults through wp.** Edit
+4. **Local bootstrap uses committed defaults through wp.** Edit
    `.webpresso/secrets.config.json` (metadata only) in git. `vp install`
    runs `wp config secrets set` when no runtime selection exists; local overrides
    from an earlier `wp config secrets set` are preserved. Refresh after changing
    the committed default: `vp run setup:secrets`.
+5. **Reusable Cloudflare/Pulumi deploy helpers stay private by default.** If a
+   separate infra helper package is introduced for sync/render/deploy plumbing,
+   keep it private/internal unless a later package-surface blueprint explicitly
+   promotes it. Any such promotion must pass
+   `catalog/agent/rules/public-package-safety.md` expectations plus tarball and
+   denied-content review; reusability alone is not a publishing justification.
+
+## Cloudflare Access automation secrets
+
+These values are for the Cloudflare Access **service token** that authenticates
+non-browser verification against `edge-matte.ozby.dev` during private beta.
+They are not Worker bindings and must never be committed.
+
+| Name | Owner | Where the value lives | Consumed by |
+| ---- | ----- | --------------------- | ----------- |
+| `CF_ACCESS_CLIENT_ID` | Cloudflare Zero Trust owner | Doppler `ozby-shell` | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
+| `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Doppler `ozby-shell` | Same flows; sent only as `CF-Access-Client-Secret` at runtime |
+
+Rules:
+
+- Send these values only as `CF-Access-Client-Id` /
+  `CF-Access-Client-Secret` headers.
+- Do not copy Access cookies or browser session artifacts into the repo or CI.
+- Keep the Access application policy aligned with the release guide’s matrix:
+  browser allowlist + service-token automation + deny fallback.
+- If break-glass bypass is used during an incident, rotate
+  `CF_ACCESS_CLIENT_SECRET` afterward if exposure scope is uncertain.
 
 ## Worker secrets and bindings
 
@@ -185,15 +218,21 @@ Minimum token permissions on the **ozby** account:
    vp run deploy:production:wrangler
    ```
 
+   When Cloudflare Access private-beta protection is enabled for
+   `edge-matte.ozby.dev`, the same local secret-manager selection must also
+   provide `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` so `/health`, `/`,
+   and production-only E2E can authenticate without disabling Access.
+
 See [README.md](../README.md) for the full local verification surface and
 [`docs/release.md`](./release.md) for maintainer bootstrap from a clean clone.
 
 ## Rotation
 
-| Secret                 | Rotation path                                                         |
-| ---------------------- | --------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN` | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy    |
-| Doppler service token  | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub |
+| Secret                    | Rotation path                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy            |
+| `CF_ACCESS_CLIENT_SECRET` | Rotate the Cloudflare Access service token, update `ozby-shell`, re-run smoke |
+| Doppler service token     | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub         |
 
 ## Related
 

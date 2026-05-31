@@ -15,7 +15,9 @@ import {
   PR_CI_REQUIRED_RUNS,
   PRODUCTION_DEPLOY_REQUIREMENTS,
   CODEOWNERS_WORKFLOW_GOVERNANCE_PATH,
+  DEPLOY_PRODUCTION_SCRIPT,
   PRODUCTION_DOMAIN,
+  LOCAL_DEPLOY_REQUIREMENTS,
   readWorkflow,
   readCodeowners,
   collectWorkflowRunSteps,
@@ -25,6 +27,8 @@ import {
   formatMissingExpectations,
   formatMutableUses,
   listWorkflowFiles,
+  WAIT_FOR_HTTP_REQUIREMENTS,
+  WAIT_FOR_HTTP_SCRIPT,
 } from "./helpers/infra-release-workflow-expectations.mjs";
 
 const root = findRepoRoot(import.meta.dirname);
@@ -109,4 +113,20 @@ test("production deploy workflow targets the architecture production domain", ()
     new RegExp(PRODUCTION_DOMAIN.replace(".", "\\."), "u"),
     `${PRODUCTION_DEPLOY_WORKFLOW} must reference ${PRODUCTION_DOMAIN}`,
   );
+});
+
+test("wait-for-http supports optional access auth and rejects non-2xx responses", () => {
+  const script = readWorkflow(root, WAIT_FOR_HTTP_SCRIPT);
+  assert.equal(script.exists, true, `${WAIT_FOR_HTTP_SCRIPT} must exist`);
+
+  const missing = findMissingExpectations(script.contents, WAIT_FOR_HTTP_REQUIREMENTS);
+  assert.equal(missing.length, 0, formatMissingExpectations(missing, WAIT_FOR_HTTP_SCRIPT));
+});
+
+test("local deploy script keeps truthful smoke and production suites behind with-secrets", () => {
+  const script = readWorkflow(root, DEPLOY_PRODUCTION_SCRIPT);
+  assert.equal(script.exists, true, `${DEPLOY_PRODUCTION_SCRIPT} must exist`);
+
+  const missing = findMissingExpectations(script.contents, LOCAL_DEPLOY_REQUIREMENTS);
+  assert.equal(missing.length, 0, formatMissingExpectations(missing, DEPLOY_PRODUCTION_SCRIPT));
 });

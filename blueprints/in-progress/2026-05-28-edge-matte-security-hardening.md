@@ -1,13 +1,14 @@
 ---
 type: blueprint
 title: "EdgeMatte: private-beta security hardening"
-status: planned
+status: in-progress
 created: 2026-05-28
 last_updated: 2026-05-30
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
+progress: "100% repo-local tasks landed; external Cloudflare rollout/evidence still pending (updated 2026-05-30)"
 ---
 
 # EdgeMatte: private-beta security hardening
@@ -88,6 +89,9 @@ Refined on **2026-05-30** against the current repo state:
 - `wp audit architecture-drift --root .` is the canonical shared drift audit;
 - active package/tsconfig/vitest alignment edits exist in the working tree, so
   this blueprint must stay narrowly scoped and avoid assuming a clean tree.
+- Repo-local implementation for Access docs, public security config, client
+  Turnstile plumbing, Siteverify enforcement, and abuse-response docs is now
+  landed; what remains is external Cloudflare enablement plus live evidence.
 
 ## Hard fact-check findings
 
@@ -144,7 +148,7 @@ workflow/local-smoke vs production-E2E lanes to keep post-deploy proof honest.
 
 #### [edge] Task 1.1: Access policy matrix and operator docs
 
-**Status:** todo
+**Status:** done
 
 **Depends:** None
 
@@ -170,13 +174,13 @@ and how maintainers roll back quickly if Access blocks legitimate use.
 
 **Acceptance:**
 
-- [ ] Access bootstrap, policy matrix, and rollback steps are explicit
-- [ ] `/health` and `/` behavior under Access is documented
-- [ ] Secret ownership/rotation remains consistent with repo secret policy
+- [x] Access bootstrap, policy matrix, and rollback steps are explicit
+- [x] `/health` and `/` behavior under Access is documented
+- [x] Secret ownership/rotation remains consistent with repo secret policy
 
 #### [ci] Task 1.2: Access-aware deploy smoke and local deploy verification
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -206,13 +210,13 @@ task must cover both GitHub Actions post-deploy smoke and
 
 **Acceptance:**
 
-- [ ] CI post-deploy smoke can authenticate to Access-protected `/health` and `/`
-- [ ] `vp run deploy:production` retains an operator-local smoke path
-- [ ] No workflow action pinning or deploy serialization regression is introduced
+- [x] CI post-deploy smoke can authenticate to Access-protected `/health` and `/`
+- [x] `vp run deploy:production` retains an operator-local smoke path
+- [x] No workflow action pinning or deploy serialization regression is introduced
 
 #### [qa] Task 1.3: Access-aware production smoke and journey suites
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.2
 
@@ -242,9 +246,9 @@ local bootstrap.
 
 **Acceptance:**
 
-- [ ] Both production suites can authenticate to Access
-- [ ] Production suites remain gated behind `E2E_RUN_PRODUCTION=1` / `CI=true`
-- [ ] Local/PR hermetic suites remain unchanged
+- [x] Both production suites can authenticate to Access
+- [x] Production suites remain gated behind `E2E_RUN_PRODUCTION=1` / `CI=true`
+- [x] Local/PR hermetic suites remain unchanged
 
 #### [worker] Task 2.1: Public security-config contract for the SPA
 
@@ -275,13 +279,13 @@ injection or repo `.env*` files for static assets that are built before deploy.
 
 **Acceptance:**
 
-- [ ] The SPA can fetch non-secret security config from the Worker
-- [ ] No secret value is exposed in the response
-- [ ] Existing security headers and `run_worker_first` behavior remain intact
+- [x] The SPA can fetch non-secret security config from the Worker
+- [x] No secret value is exposed in the response
+- [x] Existing security headers and `run_worker_first` behavior remain intact
 
 #### [ui] Task 2.2: Turnstile challenge and upload token plumbing
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 2.1
 
@@ -311,13 +315,13 @@ drag/drop, paste, ready, copy-URL, or delete flows.
 
 **Acceptance:**
 
-- [ ] Uploads cannot proceed without a valid challenge token
-- [ ] The token is appended to `POST /api/jobs`
-- [ ] Existing non-security client flows still pass
+- [x] Uploads cannot proceed without a valid challenge token
+- [x] The token is appended to `POST /api/jobs`
+- [x] Existing non-security client flows still pass
 
 #### [worker] Task 2.3: Siteverify middleware and runtime secret contract
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 2.1
 
@@ -345,13 +349,13 @@ secrets are absent in production rather than silently accepting uploads.
 
 **Acceptance:**
 
-- [ ] Invalid or absent challenge tokens are rejected before processing
-- [ ] Hostname/action checks are enforced when configured
-- [ ] Missing production secret contract fails loudly instead of silently bypassing verification
+- [x] Invalid or absent challenge tokens are rejected before processing
+- [x] Hostname/action checks are enforced when configured
+- [x] Missing production secret contract fails loudly instead of silently bypassing verification
 
 #### [edge] Task 3.1: WAF/rate limiting and abuse-response runbook
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1, Task 2.3
 
@@ -377,9 +381,9 @@ roll back safely without changing the current one-Worker runtime topology.
 
 **Acceptance:**
 
-- [ ] Abuse-response runbook is actionable for on-call maintainers
-- [ ] `/api/jobs` WAF/rate-limit posture is explicit
-- [ ] Rollback and credential-rotation guidance is documented
+- [x] Abuse-response runbook is actionable for on-call maintainers
+- [x] `/api/jobs` WAF/rate-limit posture is explicit
+- [x] Rollback and credential-rotation guidance is documented
 
 ## Edge cases and error handling
 

@@ -30,6 +30,24 @@ const PNG_BYTES = Uint8Array.of(
 );
 
 describe("worker routes", () => {
+  it("serves a stable public security-config contract in explicit local/mock mode", async () => {
+    const app = createWorkerApp();
+
+    const response = await app.fetch(
+      new Request("https://edge-matte.ozby.dev/api/security-config"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      turnstile: {
+        enabled: false,
+        siteKey: null,
+        action: "upload",
+      },
+    });
+    expect(response.headers.get("content-security-policy")).toContain("default-src 'self'");
+  });
+
   it("handles create, status, image, and delete routes in explicit local/mock mode", async () => {
     const app = createWorkerApp();
 

@@ -14,7 +14,7 @@
     "test": "vp run --filter @edge-matte/client build && vitest run",
     "mutation": "stryker run",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "oxlint src"
+    "lint": "vp lint src"
   },
   "dependencies": {
     "hono": "^4.12.23"

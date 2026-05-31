@@ -8,7 +8,7 @@ review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
-progress: "57% (4 complete, 1 in progress, 1 todo, 1 blocked; refined against current repo state on 2026-05-30)"
+progress: "71% (5 complete, 1 in progress, 1 blocked; refined against current repo state on 2026-05-30)"
 ---
 
 # EdgeMatte: end-to-end confidence suite
@@ -294,7 +294,7 @@ on `edge-matte.ozby.dev` with truthful deploy evidence.
 
 #### [docs] Task 3.1: Release docs parity for the new confidence contract
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 2.1
 
@@ -317,8 +317,8 @@ post-deploy proof.
 
 **Acceptance:**
 
-- [ ] Release docs describe the hermetic PR gate plus both post-deploy production suites.
-- [ ] Blueprint/lifecycle docs no longer hide this blueprint’s partially landed status.
+- [x] Release docs describe the hermetic PR gate plus both post-deploy production suites.
+- [x] Blueprint/lifecycle docs no longer hide this blueprint’s partially landed status.
 
 #### [ops] Task 3.2: External required-check and completion evidence follow-through
 

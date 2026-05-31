@@ -47,15 +47,21 @@ function requireCommand(name: string) {
 
 requireCommand("with-secrets");
 
+function runWithSecrets(
+  command: string,
+  commandArgs: string[],
+  env: NodeJS.ProcessEnv = process.env,
+) {
+  run("with-secrets", ["--", command, ...commandArgs], env);
+}
+
 if (!skipBuild) {
   console.log("\n▶ Building workspace…\n");
   run("pnpm", ["run", "build"]);
 }
 
 console.log("\n▶ Deploying Worker to production via with-secrets (ozby-shell)…\n");
-run("with-secrets", [
-  "--",
-  "pnpm",
+runWithSecrets("pnpm", [
   "--filter",
   "@edge-matte/worker",
   "exec",
@@ -71,13 +77,21 @@ if (skipSmoke) {
 }
 
 console.log("\n▶ Post-deploy smoke…\n");
-run("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/health`, "24", "5"]);
-run("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
+runWithSecrets("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/health`, "24", "5"]);
+runWithSecrets("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
 
 console.log("\n▶ production-smoke e2e…\n");
-run("pnpm", ["e2e", "--", "--suite", "production-smoke"], {
+runWithSecrets("pnpm", ["e2e", "--", "--suite", "production-smoke"], {
   ...process.env,
   E2E_RUN_PRODUCTION: "1",
 });
 
-console.log(`\n✅ Production deploy healthy at ${PRODUCTION_URL}\n`);
+console.log("\n▶ production-journey e2e…\n");
+runWithSecrets("pnpm", ["e2e", "--", "--suite", "production-journey"], {
+  ...process.env,
+  E2E_RUN_PRODUCTION: "1",
+});
+
+console.log(
+  `\n✅ Production deploy healthy at ${PRODUCTION_URL} (/health, /, production-smoke, production-journey)\n`,
+);

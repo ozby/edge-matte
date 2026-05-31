@@ -36,6 +36,13 @@ resources; Wrangler owns Worker-scoped deployment.**
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
 
+Reusable provider-specific deploy plumbing stays on a separate
+**private/internal** Cloudflare/Pulumi package boundary. Do not treat that
+package as part of `agent-kit`, and do not treat reuse as automatic permission
+to publish it. Any later public promotion must be planned separately and pass
+`catalog/agent/rules/public-package-safety.md` expectations plus tarball and
+denied-content review before release.
+
 For the visual version of this split, see the Mermaid charts in
 [`docs/architecture.md#infrastructure-deployment-ownership`](./architecture.md#infrastructure-deployment-ownership)
 and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
@@ -49,10 +56,95 @@ and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 | Wrangler env | `production`                                                          |
 | R2 bucket    | `edge-matte-images`                                                   |
 | Health check | `GET /health`                                                         |
-| Smoke suites | `smoke`, `upload-delete` (CI/local), `production-smoke` (post-deploy) |
+| Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy) |
 
-A deployment is **not healthy** until `production-smoke` passes against the
-public URL.
+A deployment is **not healthy** until both `production-smoke` and
+`production-journey` pass against the public URL.
+
+## Cloudflare Access private-beta contract
+
+Cloudflare Access is the planned private-beta gate for
+`https://edge-matte.ozby.dev`. Document the policy before enabling it so deploy
+smoke, local operator checks, and production-only E2E do not regress.
+
+### Policy matrix
+
+| Surface | Interactive browser policy | Automation / service-token policy | Deny fallback |
+| ------- | -------------------------- | --------------------------------- | ------------- |
+| `GET /` | Allow only maintainers and approved beta users through the Cloudflare Access application for `edge-matte.ozby.dev` | Allow with `CF-Access-Client-Id` / `CF-Access-Client-Secret` headers sourced from `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` for deploy smoke and scripted verification | Any request without an allow rule or valid service-token headers is treated as denied; do not rely on bare `curl` once Access is on |
+| `GET /health` | Same browser allow policy as `/`; useful for maintainers verifying the app interactively | Same service-token header contract as `/`; this is the canonical automation health probe | Same deny fallback as `/` |
+| `POST /api/jobs`, `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same browser allow policy; the SPA, XHR, and hosted image route all stay behind the same Access boundary | Production-only automation (for example `production-journey`) reuses the same service-token headers; no cookie jars or copied browser sessions on disk | Same deny fallback; do not carve out public bypasses for API/image paths |
+
+### Operator rules
+
+- **Browser allow rules**: keep the Access app scoped to `edge-matte.ozby.dev`
+  and limit interactive access to maintainers plus the explicit beta allowlist.
+- **Automation rules**: local `vp run deploy:production`, GitHub Actions
+  post-deploy smoke, and any production-only E2E must source
+  `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` from the secret manager,
+  then send them as `CF-Access-Client-Id` / `CF-Access-Client-Secret`
+  headers.
+- **Secret storage**: Access service-token values follow the repo secret
+  policy — values live in Doppler/Cloudflare only, never in `.env*`,
+  `.dev.vars*`, or repo-tracked files.
+- **Current workflow reality**: until the Access rollout is actually enabled,
+  the existing bare `/health` smoke remains valid. At cutover, update the
+  workflow/local smoke implementation and treat unauthenticated `/` + `/health`
+  checks as intentionally unsupported.
+
+### Break-glass rollback
+
+Use this only when Access itself is blocking a legitimate deploy, smoke run, or
+maintainer incident response:
+
+1. In Cloudflare Zero Trust, disable the `edge-matte.ozby.dev` Access
+   application **or** move a time-boxed break-glass bypass policy above the deny
+   rule.
+2. Re-run the blocked verification path (`GET /health`, `GET /`, or the
+   production E2E suite) to restore operator access.
+3. Finish the incident deploy / rollback work, then remove the bypass or
+   re-enable the Access application immediately.
+4. If the bypass scope was wider than intended, rotate
+   `CF_ACCESS_CLIENT_SECRET`, confirm `CF_ACCESS_CLIENT_ID` still matches the
+   active service token, and re-run post-deploy smoke.
+
+
+## `/api/jobs` abuse-control posture
+
+Private beta should treat `POST /api/jobs` as the only high-cost public action
+inside the existing Worker topology. Keep the rest of the app behind the same
+Cloudflare Access boundary, then apply route-specific abuse controls only to job
+creation so smoke checks and normal polling do not trip false positives.
+
+### Default posture
+
+| Surface | Access | Turnstile | WAF / rate limit | Operator notes |
+| ------- | ------ | ---------- | ---------------- | -------------- |
+| `POST /api/jobs` | Same Access allowlist + service-token contract as `/` and `/health`; never add a public bypass for uploads | Require `cf-turnstile-response` whenever `TURNSTILE_SITE_KEY` is enabled; reject missing, invalid, hostname-mismatch, action-mismatch, replayed, or timed-out verification | Start with a route-specific Cloudflare rule: **Managed Challenge above 10 `POST /api/jobs` requests per client IP per minute**. If one source keeps pushing after challenge or creates sustained cost pressure, escalate to a short-lived block rule at **30 requests per client IP per 10 minutes** while collecting evidence. | Keep thresholds narrow and private-beta-biased; tune only this route before touching broader site controls. |
+| `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same Access contract | No extra challenge beyond the upload-created token lifecycle | No custom private-beta rate limit by default | These routes are part of the normal UX and production suites; observe first before adding custom limits. |
+| `GET /`, `GET /health` | Same Access contract | None | No custom abuse rule | Smoke and manual verification must stay predictable; do not reuse upload thresholds here. |
+
+### Tuning and rollback rules
+
+- **Triage order:** check Access first, then Turnstile runtime health, then
+  WAF/rate-limit rules. Roll back the narrowest layer that explains the
+  symptom.
+- **False positives on upload creation:** loosen or temporarily disable the
+  `/api/jobs` rate-limit / WAF rule before disabling Access or removing
+  Turnstile enforcement.
+- **Turnstile runtime failures:** if the Worker returns `400 invalid_request`
+  or `500 internal_error` for valid uploads, verify `TURNSTILE_SECRET_KEY`,
+  `TURNSTILE_ACTION`, `TURNSTILE_EXPECTED_HOSTNAME`, and Siteverify reachability
+  before relaxing edge protections.
+- **Access failures:** if smoke, `/health`, or `/` fail because auth headers or
+  the Access app are wrong, use the Access break-glass path above; do not mask
+  an auth outage by weakening upload abuse controls.
+- **Evidence first:** capture Cloudflare Security Events, Ray IDs, affected
+  timestamps, sample responses, and whether `production-smoke` /
+  `production-journey` were impacted before changing thresholds.
+
+Use [`docs/runbooks/abuse-response.md`](./runbooks/abuse-response.md) for the
+incident checklist, evidence requirements, and credential-rotation procedure.
 
 ## Maintainer bootstrap (clean clone)
 
@@ -70,7 +162,7 @@ git clone <repo-url> edge-matte && cd edge-matte
 vp install --frozen-lockfile
 
 # Agent surfaces + policy (no secrets written to disk)
-wp setup --yes
+wp setup
 wp config secrets show   # should report ozby-shell after vp install
 
 # Quality gates (same surface CI uses)
@@ -90,7 +182,7 @@ vp run e2e -- --suite upload-delete
 wp audit docs-frontmatter
 wp audit blueprint-lifecycle --legacy-omx
 wp audit architecture-drift --root .
-WP_SKIP_UPDATE_CHECK=1 wp audit guardrails
+wp audit guardrails
 ```
 
 One-time platform setup (before first production deploy):
@@ -115,8 +207,9 @@ vp run deploy:production
 ```
 
 This builds the workspace, runs `with-secrets -- wrangler deploy --env production`
-(loading `CLOUDFLARE_*` from `ozby-shell`), then curls `/health` and runs
-`production-smoke` e2e.
+(loading `CLOUDFLARE_*` from `ozby-shell`), then verifies `/health` and runs
+both post-deploy production suites: `production-smoke` and
+`production-journey`.
 
 Wrangler-only (no smoke):
 
@@ -166,22 +259,50 @@ Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/
 4. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
 5. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
    (`cancel-in-progress: false`)
-6. **Post-deploy smoke** — after deploy succeeds:
+6. **Post-deploy production evidence** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
+   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
 
-If post-deploy smoke fails, treat the release as unhealthy and investigate
-before declaring success.
+Today those probes are bare requests. Once Cloudflare Access is enabled for
+private beta, the same checks must send `CF-Access-Client-Id` /
+`CF-Access-Client-Secret` from `CF_ACCESS_CLIENT_ID` /
+`CF_ACCESS_CLIENT_SECRET` instead of falling back to unauthenticated curls.
+
+If either post-deploy production suite fails, treat the release as unhealthy
+and investigate before declaring success.
 
 ### Manual production verification
 
 After any deploy (CI or emergency manual):
 
 ```bash
+# Before Cloudflare Access rollout
 curl -sf https://edge-matte.ozby.dev/health
+
+# After Cloudflare Access rollout
+curl -sf \
+  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+  https://edge-matte.ozby.dev/health
+curl -sf \
+  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+  https://edge-matte.ozby.dev/
+CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
+CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
 E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
+CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 ```
+
+Under Access, `/health` and `/` stay valid probes, but only through the
+service-token headers documented above. Production-only E2E should reuse the
+same env vars rather than copied cookies or manual browser sessions. Bare
+requests should be treated as expected denials, not as evidence that production
+is down.
 
 ## Release checklist
 
@@ -192,10 +313,13 @@ Use before merging infra/release changes or after cutover:
 - [ ] Bindings present: `ASSETS`, `IMAGES_BUCKET`, `IMAGES`
 - [ ] PR CI includes dry-run deploy
 - [ ] PR CI includes hermetic e2e gate (`upload-delete-contract`, `smoke`, `upload-delete`)
+- [ ] Cloudflare Access policy matrix is defined before private-beta cutover
+- [ ] `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` are available to automation via Doppler, not repo files
+- [ ] `/api/jobs` abuse-control posture and `docs/runbooks/abuse-response.md` are current before private-beta cutover
 - [ ] `main` deploy uses concurrency serialization
 - [ ] Workflow `uses:` references stay pinned to full SHAs
 - [ ] GitHub branch protection / rulesets require Code Owner review for workflow changes
-- [ ] Post-deploy smoke runs `production-smoke` against public URL
+- [ ] Post-deploy verification runs both `production-smoke` and `production-journey` against the public URL
 - [ ] No `.dev.vars*` / `.env*` files in repo (except documented `.env.example` if any)
 - [ ] `wp audit architecture-drift --root .` passes
 
@@ -203,10 +327,10 @@ Use before merging infra/release changes or after cutover:
 
 v1 rollback is redeploy of the last known-good Worker revision:
 
-1. Identify last green commit on `main` (CI + `production-smoke` green)
+1. Identify last green commit on `main` (hermetic PR gate green and both `production-smoke` + `production-journey` green after deploy)
 2. Re-run deploy workflow on that commit, or:
    `vp run deploy:production` from that checkout
-3. Re-run post-deploy smoke
+3. Re-run post-deploy verification (`/health`, `/`, `production-smoke`, and `production-journey`)
 
 R2 data is not rolled back with Worker deploys; job artifacts persist until
 delete TTL or lifecycle rules apply.
@@ -216,4 +340,5 @@ delete TTL or lifecycle rules apply.
 - [`docs/architecture.md`](./architecture.md) — deployment ownership diagram
 - [`infra/README.md`](../infra/README.md) — Pulumi bootstrap + infra deployment chart
 - [`docs/secrets.md`](./secrets.md) — secret stores and bootstrap
+- [`docs/runbooks/abuse-response.md`](./runbooks/abuse-response.md) — upload abuse triage, rollback, and credential rotation
 - [`blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/completed/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint

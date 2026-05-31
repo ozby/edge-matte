@@ -58,6 +58,40 @@ describe("security headers", () => {
 });
 
 describe("static asset delegation (run_worker_first)", () => {
+  it("serves public security config directly and never leaks secret-like fields", async () => {
+    const assets: Fetcher = {
+      fetch: vi.fn(async () => new Response("unexpected asset fallback")),
+    } as unknown as Fetcher;
+
+    const app = createApp({
+      ...stubDeps(),
+      assets,
+      securityConfig: {
+        turnstile: {
+          siteKey: "site_public_123",
+          action: "upload",
+          secretKey: "do-not-leak",
+        },
+        secret: "do-not-leak",
+      } as never,
+    });
+
+    const response = await app.fetch(
+      new Request("https://edge-matte.ozby.dev/api/security-config"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      turnstile: {
+        enabled: true,
+        siteKey: "site_public_123",
+        action: "upload",
+      },
+    });
+    expect(assets.fetch).not.toHaveBeenCalled();
+    expect(response.headers.get("content-security-policy")).toContain("default-src 'self'");
+  });
+
   it("proxies unmatched routes to the ASSETS binding and applies security headers", async () => {
     const assetBody = "<!doctype html><title>EdgeMatte</title>";
     const assets: Fetcher = {

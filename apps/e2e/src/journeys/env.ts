@@ -27,5 +27,8 @@ export const getE2EBaseUrlOrThrow = (testFile: string): string => {
 export const getProductionBaseUrl = (): string =>
   process.env.E2E_PRODUCTION_URL?.trim().replace(/\/$/u, "") || PRODUCTION_BASE_URL;
 
+export const readProductionTurnstileToken = (): string | null =>
+  process.env.E2E_TURNSTILE_TOKEN?.trim() || null;
+
 export const shouldRunProductionSmoke = (): boolean =>
   process.env.E2E_RUN_PRODUCTION === "1" || process.env.CI === "true";

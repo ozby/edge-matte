@@ -10,9 +10,19 @@ const parseError = async (response: Response): Promise<string> => {
   }
 };
 
-export const createJob = async (file: File): Promise<CreateJobResponse> => {
+export interface CreateJobOptions {
+  turnstileToken?: string | null;
+}
+
+export const createJob = async (
+  file: File,
+  options: CreateJobOptions = {},
+): Promise<CreateJobResponse> => {
   const form = new FormData();
   form.set("file", file);
+  if (options.turnstileToken) {
+    form.set("turnstileToken", options.turnstileToken);
+  }
   const response = await fetch("/api/jobs", { method: "POST", body: form });
   if (!response.ok) {
     throw new Error(await parseError(response));

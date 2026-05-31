@@ -1,5 +1,6 @@
 import { createJob, deleteJob, pollJobUntilTerminal } from "./api";
 import { errorCodeToMessage, validateSelectedFile } from "./format";
+import { createSecurityController } from "./security";
 import { canSelectFile, canSubmitUpload, initialUiState, type UiPhase } from "./state";
 import { createUi, renderUi, type UiElements } from "./ui";
 
@@ -40,10 +41,27 @@ const buildApp = (ui: UiElements): AppController => {
   let selectedFile: File | null = null;
   let deleteToken: string | null = null;
 
+  const syncUi = (): void => {
+    renderUi(ui, state);
+    const canRetrySubmit =
+      state.phase === "preview" || (state.phase === "error" && state.recoverable);
+    const disableForSecurity =
+      canRetrySubmit &&
+      security.requiresToken() &&
+      !security.isPending() &&
+      !security.isUnavailable() &&
+      !security.getToken();
+    if (disableForSecurity) {
+      ui.submitButton.disabled = true;
+    }
+  };
+
+  const security = createSecurityController(ui.securityChallenge, syncUi);
+
   const setState = (next: UiPhase): void => {
     revokeReplacedBlob(state, next);
     state = next;
-    renderUi(ui, state);
+    syncUi();
   };
 
   const selectFile = (file: File): void => {
@@ -65,12 +83,34 @@ const buildApp = (ui: UiElements): AppController => {
 
   const submitUpload = async (): Promise<void> => {
     if (!canSubmitUpload(state) || !selectedFile) return;
+    await security.ready;
+    if (security.requiresToken()) {
+      if (security.isUnavailable()) {
+        setState({
+          phase: "error",
+          message: "Verification is unavailable right now. Refresh and try again.",
+          recoverable: true,
+        });
+        return;
+      }
+      if (!security.getToken()) {
+        setState({
+          phase: "error",
+          message: "Complete the verification challenge before uploading.",
+          recoverable: true,
+        });
+        return;
+      }
+    }
     const previewUrl =
       state.phase === "preview" ? state.previewUrl : URL.createObjectURL(selectedFile);
     const fileName = selectedFile.name;
     setState({ phase: "uploading", previewUrl, fileName });
     try {
-      const created = await createJob(selectedFile);
+      const created = await createJob(selectedFile, {
+        turnstileToken: security.getToken(),
+      });
+      security.reset();
       deleteToken = created.deleteToken;
       if (created.status === "ready") {
         setState({
@@ -109,6 +149,7 @@ const buildApp = (ui: UiElements): AppController => {
         deleteToken: deleteToken ?? created.deleteToken,
       });
     } catch (error) {
+      security.reset();
       setState({
         phase: "error",
         message: error instanceof Error ? error.message : errorCodeToMessage(null),
@@ -131,10 +172,12 @@ const buildApp = (ui: UiElements): AppController => {
     if (state.phase !== "confirm-delete" || !deleteToken) return;
     try {
       await deleteJob(state.job.id, deleteToken);
+      security.reset();
       selectedFile = null;
       deleteToken = null;
       setState({ phase: "deleted" });
     } catch (error) {
+      security.reset();
       setState({
         phase: "error",
         message: error instanceof Error ? error.message : errorCodeToMessage(null),
@@ -146,6 +189,7 @@ const buildApp = (ui: UiElements): AppController => {
   const reset = (): void => {
     selectedFile = null;
     deleteToken = null;
+    security.reset();
     ui.fileInput.value = "";
     setState(initialUiState());
   };
@@ -159,7 +203,7 @@ const buildApp = (ui: UiElements): AppController => {
     }, 1500);
   };
 
-  renderUi(ui, state);
+  syncUi();
 
   return {
     getState: () => state,

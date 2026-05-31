@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import {
+  createTurnstileAbuseGuard,
+  type TurnstileSecurityConfig,
+} from "./abuse-guard";
+import {
   errorResponse,
   fileTooLargeError,
   imageNotFoundError,
@@ -40,12 +44,47 @@ const SECURITY_HEADERS: Record<string, string> = {
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
 };
 
+type PublicSecurityConfig = {
+  turnstile: {
+    enabled: boolean;
+    siteKey: string | null;
+    action: string;
+  };
+};
+
+type WorkerSecurityConfigInput = {
+  turnstile?: TurnstileSecurityConfig;
+};
+
+const DEFAULT_TURNSTILE_ACTION = "upload";
+
+const toPublicSecurityConfig = (config?: WorkerSecurityConfigInput): PublicSecurityConfig => {
+  const siteKey = config?.turnstile?.siteKey ?? null;
+  const action = config?.turnstile?.action ?? DEFAULT_TURNSTILE_ACTION;
+
+  return {
+    turnstile: {
+      enabled: typeof siteKey === "string" && siteKey.length > 0,
+      siteKey,
+      action,
+    },
+  };
+};
+
 export const createApp = (
   deps: ProcessImageJobDeps & {
     assets?: Fetcher;
+    securityConfig?: WorkerSecurityConfigInput;
+    fetchImpl?: typeof fetch;
   },
 ) => {
   const app = new Hono();
+  const publicSecurityConfig = toPublicSecurityConfig(deps.securityConfig);
+
+  app.onError((error) => {
+    const mapped = errorResponse(error);
+    return toJsonResponse(mapped.body, mapped.status);
+  });
 
   // Reconstruct the response so headers apply even on responses returned from
   // env.ASSETS.fetch() (Workers Static Assets returns Response objects with
@@ -65,6 +104,8 @@ export const createApp = (
 
   app.get("/health", (c) => c.json({ status: "ok", version: "0.1.0" }));
 
+  app.get("/api/security-config", (c) => c.json(publicSecurityConfig));
+
   app.post(
     "/api/jobs",
     bodyLimit({
@@ -73,6 +114,10 @@ export const createApp = (
         const mapped = errorResponse(fileTooLargeError());
         return toJsonResponse(mapped.body, mapped.status);
       },
+    }),
+    createTurnstileAbuseGuard({
+      turnstile: deps.securityConfig?.turnstile,
+      fetchImpl: deps.fetchImpl,
     }),
     async (c) => {
       try {
