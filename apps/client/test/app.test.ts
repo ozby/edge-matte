@@ -35,6 +35,7 @@ describe("upload flow controller", () => {
   let createJobResponse: Response;
   let deleteJobResponse: Response;
   let receivedCreateJobForm: FormData | null;
+  let revokeObjectUrlMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     securityConfig = {
@@ -60,7 +61,8 @@ describe("upload flow controller", () => {
     deleteJobResponse = new Response(null, { status: 204 });
     receivedCreateJobForm = null;
     URL.createObjectURL = vi.fn(() => "blob:preview") as typeof URL.createObjectURL;
-    URL.revokeObjectURL = vi.fn() as typeof URL.revokeObjectURL;
+    revokeObjectUrlMock = vi.fn();
+    URL.revokeObjectURL = revokeObjectUrlMock as typeof URL.revokeObjectURL;
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo, init?: RequestInit) => {
@@ -133,7 +135,7 @@ describe("upload flow controller", () => {
     const pending = app.submitUpload();
     // The blob URL the <img> is still showing must NOT have been revoked — revoking
     // it mid-flight is what rendered the preview broken until processing finished.
-    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(displayedBlob);
+    expect(revokeObjectUrlMock).not.toHaveBeenCalledWith(displayedBlob);
 
     await pending;
     expect(ui.compareBeforeImage.src).toBe("blob:preview");
@@ -156,8 +158,9 @@ describe("upload flow controller", () => {
         action: "upload",
       },
     };
+    const renderMock = vi.fn(() => "widget-1");
     window.turnstile = {
-      render: vi.fn(() => "widget-1"),
+      render: renderMock,
       reset: vi.fn(),
     };
 
@@ -190,11 +193,12 @@ describe("upload flow controller", () => {
     };
     let onToken: ((token: string) => void) | undefined;
     const reset = vi.fn();
+    const renderMock = vi.fn((_, options) => {
+      onToken = options.callback;
+      return "widget-1";
+    });
     window.turnstile = {
-      render: vi.fn((_, options) => {
-        onToken = options.callback;
-        return "widget-1";
-      }),
+      render: renderMock,
       reset,
     };
 
@@ -203,7 +207,7 @@ describe("upload flow controller", () => {
     const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
 
     await vi.waitFor(() => {
-      expect(window.turnstile?.render).toHaveBeenCalledTimes(1);
+      expect(renderMock).toHaveBeenCalledTimes(1);
     });
     onToken?.("token-123");
     app.selectFile(file);
@@ -236,11 +240,12 @@ describe("upload flow controller", () => {
 
     let onToken: ((token: string) => void) | undefined;
     const reset = vi.fn();
+    const renderMock = vi.fn((_, options) => {
+      onToken = options.callback;
+      return "widget-1";
+    });
     window.turnstile = {
-      render: vi.fn((_, options) => {
-        onToken = options.callback;
-        return "widget-1";
-      }),
+      render: renderMock,
       reset,
     };
 
@@ -249,7 +254,7 @@ describe("upload flow controller", () => {
     const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
 
     await vi.waitFor(() => {
-      expect(window.turnstile?.render).toHaveBeenCalledTimes(1);
+      expect(renderMock).toHaveBeenCalledTimes(1);
     });
     onToken?.("token-123");
     app.selectFile(file);
