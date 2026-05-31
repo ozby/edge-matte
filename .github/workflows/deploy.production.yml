@@ -35,7 +35,7 @@ jobs:
       - run: vp run audit:secret-provider-quarantine
       - run: vp run audit:blueprint-links
       - run: vp run format:check
-      - run: vp run typecheck
+      - run: vp run check-types
       - run: vp run lint
       - run: wp audit docs-frontmatter
       - run: wp audit blueprint-lifecycle --legacy-omx
