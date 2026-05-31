@@ -21,6 +21,7 @@
     "act:ci:e2e": "act -W .github/workflows/ci.webpresso.yml -j e2e",
     "deploy:production": "bun scripts/deploy-production.ts",
     "deploy:production:wrangler": "with-secrets -- vp exec --filter @edge-matte/worker -- wrangler deploy --env production",
+    "verify:deploy-contract": "bun scripts/verify-deploy-contract.ts",
     "pulumi:preview": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi preview",
     "pulumi:up": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",

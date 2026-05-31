@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,
@@ -10,5 +11,17 @@
     "noEmit": true,
     "types": ["node"]
   },
+  "include": [
+    "agent-kit.config.ts",
+    "commitlint.config.ts",
+    "oxlint.config.ts",
+    "playwright.config.ts",
+    "stryker.config.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "webpresso.config.ts",
+    "worker-configuration.d.ts",
+    "scripts/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist", ".agent", ".agents", ".claude", ".husky", "coverage", ".git"]
 }

@@ -60,6 +60,9 @@ if (!skipBuild) {
   run("pnpm", ["run", "build"]);
 }
 
+console.log("\n▶ Verifying shared deploy contract…\n");
+run("pnpm", ["run", "verify:deploy-contract"]);
+
 console.log("\n▶ Deploying Worker to production via with-secrets (ozby-shell)…\n");
 runWithSecrets("pnpm", [
   "--filter",

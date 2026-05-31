@@ -29,6 +29,7 @@ test("required workspace config files exist", () => {
     "tsconfig.json",
     "wrangler.toml",
     "agent-kit.config.ts",
+    "webpresso.config.ts",
     "apps/worker/package.json",
     "apps/client/package.json",
     "apps/e2e/package.json",
@@ -48,6 +49,14 @@ test("agent-kit.config.ts wires the e2e host adapter", () => {
   const config = readText("agent-kit.config.ts");
   assert.match(config, /hostAdapterModule/u);
   assert.match(config, /\.\/apps\/e2e\/src\/agent-kit-host-adapter/u);
+  assert.match(config, /deploy:\s*\{/u);
+  assert.match(config, /metadataPath:\s*"infra\/release-metadata\.production\.json"/u);
+});
+
+test("webpresso.config.ts re-exports the repo config on the canonical upstream surface", () => {
+  const config = readText("webpresso.config.ts");
+  assert.match(config, /webpressoConfig/u);
+  assert.match(config, /agent-kit\.config/u);
 });
 
 test("scaffolded hooks use global wp binaries and vp-first recovery guidance", () => {

@@ -47,6 +47,10 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
     label: "wrangler deploy",
     pattern: /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/u,
   },
+  {
+    label: "deploy contract verify",
+    pattern: /vp run verify:deploy-contract/u,
+  },
   { label: "production domain target", pattern: /edge-matte\.ozby\.dev/u },
   { label: "post-deploy /health smoke", pattern: /wait-for-http\.sh.*\/health|\/health/u },
   {
@@ -91,6 +95,10 @@ export const LOCAL_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
   {
     label: "with-secrets deploy",
     pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/su,
+  },
+  {
+    label: "deploy contract verify",
+    pattern: /run\("pnpm",\s*\["run",\s*"verify:deploy-contract"\]\)/u,
   },
   {
     label: "with-secrets smoke probes",

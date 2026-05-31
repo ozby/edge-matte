@@ -54,12 +54,31 @@ and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 | Public URL        | `https://edge-matte.ozby.dev`                                                                                                         |
 | Worker name       | `edge-matte`                                                                                                                          |
 | Wrangler env      | `production`                                                                                                                          |
+| Shared lane ID    | `prd` (mapped to Wrangler env `production`)                                                                                           |
 | R2 bucket         | `edge-matte-images`                                                                                                                   |
 | Health check      | `GET /health`                                                                                                                         |
 | Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy) |
 
 A deployment is **not healthy** until both `production-smoke` and
 `production-journey` pass against the public URL.
+
+## Shared deploy-contract adoption
+
+EdgeMatte now adopts the shared deploy-contract surface on the canonical
+`webpresso.config.ts` path while keeping local compatibility with
+`agent-kit.config.ts`.
+
+- Internal shared lane IDs stay `dev`, `preview_main`, `preview_pr_<n>`, `prd`
+- Cloudflare-facing env names are derived separately and dash-safe
+- `prd` maps to Wrangler env `production`
+- the stable production Worker name remains `edge-matte`
+- production release gating is driven by
+  `infra/release-metadata.production.json`
+
+Current EdgeMatte remains a **non-DO consumer**, so it does not declare Durable
+Object bindings yet. Preview transport is currently declared as
+`workers_dev_env` for the shared contract adoption surface; the later DO
+consumer proof remains owned by IngestLens.
 
 ## Cloudflare Access private-beta contract
 
@@ -209,6 +228,9 @@ This builds the workspace, runs `with-secrets -- wrangler deploy --env productio
 (loading `CLOUDFLARE_*` from `ozby-shell`), then verifies `/health` and runs
 both post-deploy production suites: `production-smoke` and
 `production-journey`.
+Before deploy, it also runs `vp run verify:deploy-contract`, which verifies the
+shared release metadata gate and confirms `env.production` / stable production
+Worker naming remain intact.
 
 Wrangler-only (no smoke):
 
@@ -253,12 +275,14 @@ protection to become mandatory.
 Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
 1. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
-2. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
-3. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-4. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
-5. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
+2. Run `vp run verify:deploy-contract` so production release metadata is
+   present and valid before any deploy
+3. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
+4. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
+5. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
+6. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
    (`cancel-in-progress: false`)
-6. **Post-deploy production evidence** — after deploy succeeds:
+7. **Post-deploy production evidence** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
