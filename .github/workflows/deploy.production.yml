@@ -40,6 +40,7 @@ jobs:
       - run: wp audit docs-frontmatter
       - run: wp audit blueprint-lifecycle --legacy-omx
       - run: wp audit architecture-drift --root .
+      - run: vp run verify:deploy-contract
       - run: vp run build
       - run: vp run test
 
