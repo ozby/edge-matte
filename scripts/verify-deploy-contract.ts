@@ -36,17 +36,16 @@ function main() {
     fail("release metadata must declare at least one required check");
   }
 
-  if (
-    metadata.durableObjectMigration === "required" &&
-    metadata.rolloutMode !== "direct"
-  ) {
+  if (metadata.durableObjectMigration === "required" && metadata.rolloutMode !== "direct") {
     fail("migration-bearing Durable Object releases must use rolloutMode=direct");
   }
 
   const wrangler = readFileSync(WRANGLER_PATH, "utf8");
   const productionSection = findSection(wrangler, "[env.production]");
   if (!/name\s*=\s*"edge-matte"/u.test(productionSection)) {
-    fail('wrangler.toml [env.production] must preserve the stable production Worker name "edge-matte"');
+    fail(
+      'wrangler.toml [env.production] must preserve the stable production Worker name "edge-matte"',
+    );
   }
   if (!/\[\[env\.production\.routes\]\]/u.test(wrangler)) {
     fail("wrangler.toml must keep [[env.production.routes]]");
