@@ -39,6 +39,23 @@ test("pick-file: upload -> ready -> copy/download -> delete -> 404", async ({
   await expect(page.locator("#result")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("#status-text")).toContainText("Done. Your image is live.");
 
+  // Compare divider is visible and draggable on the image.
+  await expect(page.locator("#compare")).toBeVisible();
+  await expect(page.locator("#compare-slider")).toBeVisible();
+  const initialSplit = await page
+    .locator("#compare-frame")
+    .evaluate((el) => el.style.getPropertyValue("--compare-split"));
+  expect(initialSplit).toBe("50%");
+
+  await page.locator("#compare-slider").focus();
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("ArrowLeft");
+  const movedSplit = await page
+    .locator("#compare-frame")
+    .evaluate((el) => el.style.getPropertyValue("--compare-split"));
+  expect(movedSplit).not.toBe("50%");
+
   // Hosted URL is real and serves an image.
   const resultHref = await page.locator("#result-url").getAttribute("href");
   expect(resultHref).not.toBeNull();

@@ -120,6 +120,46 @@ describe("ui rendering", () => {
     expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
   });
 
+  it("compare slider lives inside the frame and drives the split position", () => {
+    const mount = document.createElement("div");
+    const ui = createUi(mount);
+
+    expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("50%");
+
+    expect(ui.compareFrame.contains(ui.compareSlider)).toBe(true);
+    expect(ui.compareSlider.getAttribute("aria-label")).toBe(
+      "Reveal original versus transformed image",
+    );
+
+    ui.compareSlider.value = "30";
+    ui.compareSlider.dispatchEvent(new Event("input"));
+    expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("30%");
+
+    const job = {
+      id: "job_test",
+      status: "ready" as const,
+      imageUrl: "https://edge-matte.ozby.dev/i/job_test",
+      pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
+      errorCode: null,
+      createdAt: "2026-05-31T00:00:00.000Z",
+      updatedAt: "2026-05-31T00:00:00.000Z",
+    };
+    renderUi(ui, { phase: "ready", previewUrl: "blob:preview", job, deleteToken: "t" });
+    ui.compareSlider.value = "70";
+    ui.compareSlider.dispatchEvent(new Event("input"));
+    expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("70%");
+
+    renderUi(ui, { phase: "idle" });
+    expect(ui.compareSlider.value).toBe("50");
+    expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("50%");
+
+    ui.compareSlider.value = "80";
+    ui.compareSlider.dispatchEvent(new Event("input"));
+    renderUi(ui, { phase: "deleted" });
+    expect(ui.compareSlider.value).toBe("50");
+    expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("50%");
+  });
+
   it("renders the Ozby network footer links", () => {
     const mount = document.createElement("div");
     createUi(mount);

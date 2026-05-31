@@ -110,17 +110,16 @@ export const createUi = (mount: HTMLElement): UiElements => {
               <div class="compare-handle" aria-hidden="true"></div>
               <div class="compare-label compare-label--before">Original</div>
               <div class="compare-label compare-label--after">Transformed</div>
+              <input
+                id="compare-slider"
+                class="compare-slider"
+                type="range"
+                min="0"
+                max="100"
+                value="50"
+                aria-label="Reveal original versus transformed image"
+              />
             </div>
-            <label class="compare-slider-label" for="compare-slider">Compare original and transformed image</label>
-            <input
-              id="compare-slider"
-              class="compare-slider"
-              type="range"
-              min="0"
-              max="100"
-              value="50"
-              aria-label="Compare original and transformed image"
-            />
           </div>
           <img id="preview-image" alt="Image preview" />
           <figcaption id="preview-meta"></figcaption>
