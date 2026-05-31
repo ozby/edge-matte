@@ -12,7 +12,7 @@ const FIXTURE_DIR = join(findRepoRoot(import.meta.dirname), "apps/e2e/fixtures")
  */
 export const readFixture = (name: string): Buffer => readFileSync(join(FIXTURE_DIR, name));
 
-/** The canonical sample upload: an asymmetric 8x8 PNG so a horizontal flip is observable. */
+/** The canonical sample upload: an asymmetric 256x256 PNG large enough for real background-removal verification. */
 export const SAMPLE_PNG_NAME = "sample.png";
 
 export const readSamplePng = (): Buffer => readFixture(SAMPLE_PNG_NAME);
