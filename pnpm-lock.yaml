@@ -69,9 +69,6 @@ importers:
         specifier: ^5.2.7
         version: 5.2.7
     devDependencies:
-      '@webpresso/agent-kit':
-        specifier: 'catalog:'
-        version: 0.21.5(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(valibot@1.4.1(typescript@6.0.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
@@ -81,9 +78,6 @@ importers:
       vite:
         specifier: ^8.0.14
         version: 8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0)
-      vite-plus:
-        specifier: ^0.1.22
-        version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))(yaml@2.9.0)
       vitest:
         specifier: 'catalog:'
         version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@29.1.1)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
@@ -93,15 +87,9 @@ importers:
       '@playwright/test':
         specifier: ^1.55.0
         version: 1.60.0
-      '@webpresso/agent-kit':
-        specifier: 'catalog:'
-        version: 0.21.5(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(valibot@1.4.1(typescript@6.0.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
-      vite-plus:
-        specifier: ^0.1.22
-        version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))(yaml@2.9.0)
       vitest:
         specifier: 'catalog:'
         version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@29.1.1)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
@@ -127,15 +115,12 @@ importers:
       '@stryker-mutator/vitest-runner':
         specifier: 'catalog:'
         version: 9.6.1(@stryker-mutator/core@9.6.1(@types/node@24.12.4))(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@29.1.1)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0)))
-      '@webpresso/agent-kit':
-        specifier: 'catalog:'
-        version: 0.21.5(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(valibot@1.4.1(typescript@6.0.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
+      oxlint:
+        specifier: ^1.36.0
+        version: 1.67.0(oxlint-tsgolint@0.22.1)(vite-plus@0.1.22(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))(yaml@2.9.0))
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
-      vite-plus:
-        specifier: ^0.1.22
-        version: 0.1.22(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))(yaml@2.9.0)
       vitest:
         specifier: 'catalog:'
         version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@29.1.1)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
@@ -155,9 +140,6 @@ importers:
       '@types/node':
         specifier: ^24.3.0
         version: 24.12.4
-      '@webpresso/agent-kit':
-        specifier: 'catalog:'
-        version: 0.21.5(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(jsdom@29.1.1)(tsx@4.22.3)(typescript@6.0.3)(valibot@1.4.1(typescript@6.0.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3)(yaml@2.9.0))
       tsx:
         specifier: ^4.21.0
         version: 4.22.3
