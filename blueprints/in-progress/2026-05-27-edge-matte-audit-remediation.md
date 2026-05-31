@@ -24,11 +24,11 @@ truthfulness, CI green, and boundary-faithful verification.
 If multiple agents work this repo in parallel, treat these paths as **lane
 boundaries** — coordinate before crossing them:
 
-| Lane             | Primary paths                                                                                                                                                                     | Notes                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Secrets / policy | `scripts/verify-secrets-policy.ts`, `scripts/lib/secrets-policy.ts`, `scripts/sync-webpresso-config.ts`, `docs/secrets.md`, `.webpresso/secrets.config.json`, `.husky/pre-commit` | Wave 0 largely complete in working tree — avoid drive-by edits      |
-| Production CI    | `.github/workflows/deploy.production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts`                                                                             | Wave 0.5 — health polling after wrangler deploy                     |
-| E2E boundaries   | `apps/e2e/**`, `agent-kit.config.ts`                                                                                                                                              | Browser + contract suite split landed — keep reviewer-flow boundaries intact |
+| Lane             | Primary paths                                                                                                                                                                     | Notes                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Secrets / policy | `scripts/verify-secrets-policy.ts`, `scripts/lib/secrets-policy.ts`, `scripts/sync-webpresso-config.ts`, `docs/secrets.md`, `.webpresso/secrets.config.json`, `.husky/pre-commit` | Wave 0 largely complete in working tree — avoid drive-by edits                  |
+| Production CI    | `.github/workflows/deploy.production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts`                                                                             | Wave 0.5 — health polling after wrangler deploy                                 |
+| E2E boundaries   | `apps/e2e/**`, `agent-kit.config.ts`                                                                                                                                              | Browser + contract suite split landed — keep reviewer-flow boundaries intact    |
 | Worker runtime   | `apps/worker/src/adapters/**`, `apps/worker/src/core/process-image-job.ts`, `apps/worker/test/**`                                                                                 | Fail-loud adapters + cleanup/deadline behavior landed — avoid overlapping edits |
 | Docs truth       | `README.md`, `docs/release.md`, `blueprints/README.md`, completion notes in `blueprints/completed/*.md`                                                                           | Truth lane mostly closed — reopen only if final verification changes status     |
 
@@ -175,14 +175,14 @@ only touch them again if final verification changes the truth state.
 
 ## Refinement findings (2026-05-30)
 
-| ID | Severity | Claim in older draft | Current repo reality | Blueprint fix |
-| --- | --- | --- | --- | --- |
-| F1 | MEDIUM | Browser-boundary reviewer flow still needs to be created. | `apps/e2e/journeys/upload-delete.spec.ts` is a Playwright journey and `upload-delete.contract.test.ts` is now explicitly contract-only. | Mark Task 2.1 done and narrow remaining work to verification + CI proof. |
-| F2 | MEDIUM | Cleanup/deadline behavior is only partially implemented. | `processImageJob()` now cleans orphaned blobs, preserves failed metadata, and enforces a background-removal deadline with tests. | Mark Task 2.3 done and remove the stale "partial" wording. |
-| F3 | MEDIUM | Quality-gate remediation is only about package scripts and one workflow. | Current working tree also aligns root/app/infra `tsconfig`, Vitest config, and lint rails around shared `agent-kit` / `vite-plus` surfaces. | Expand Task 3.2 file scope and keep it in progress. |
-| F4 | LOW | Production proof ends at `/health` + `production-smoke`. | Deploy workflow now also runs `production-journey`, and E2E global setup explicitly skips local boot for production suites. | Update Wave 0.5, Task 3.3, and Verification commands to include both production suites. |
-| F5 | LOW | This blueprint can omit explicit `agent-kit` / `vite-plus` references. | `docs/architecture.contract.json` requires active blueprints to mention the shared quality-contract surfaces. | Add explicit `agent-kit` / `vite-plus` wording to the objective and quality-gate task. |
-| F6 | LOW | Docs-truth remediation and Photoroom-removal cleanup are still open work. | README/release/completed-blueprint notes already reflect truthful state and Photoroom remnants were removed in `a28a842`. | Mark Task 1.2 done and keep doc edits closed unless final verification changes truth. |
+| ID  | Severity | Claim in older draft                                                      | Current repo reality                                                                                                                        | Blueprint fix                                                                           |
+| --- | -------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| F1  | MEDIUM   | Browser-boundary reviewer flow still needs to be created.                 | `apps/e2e/journeys/upload-delete.spec.ts` is a Playwright journey and `upload-delete.contract.test.ts` is now explicitly contract-only.     | Mark Task 2.1 done and narrow remaining work to verification + CI proof.                |
+| F2  | MEDIUM   | Cleanup/deadline behavior is only partially implemented.                  | `processImageJob()` now cleans orphaned blobs, preserves failed metadata, and enforces a background-removal deadline with tests.            | Mark Task 2.3 done and remove the stale "partial" wording.                              |
+| F3  | MEDIUM   | Quality-gate remediation is only about package scripts and one workflow.  | Current working tree also aligns root/app/infra `tsconfig`, Vitest config, and lint rails around shared `agent-kit` / `vite-plus` surfaces. | Expand Task 3.2 file scope and keep it in progress.                                     |
+| F4  | LOW      | Production proof ends at `/health` + `production-smoke`.                  | Deploy workflow now also runs `production-journey`, and E2E global setup explicitly skips local boot for production suites.                 | Update Wave 0.5, Task 3.3, and Verification commands to include both production suites. |
+| F5  | LOW      | This blueprint can omit explicit `agent-kit` / `vite-plus` references.    | `docs/architecture.contract.json` requires active blueprints to mention the shared quality-contract surfaces.                               | Add explicit `agent-kit` / `vite-plus` wording to the objective and quality-gate task.  |
+| F6  | LOW      | Docs-truth remediation and Photoroom-removal cleanup are still open work. | README/release/completed-blueprint notes already reflect truthful state and Photoroom remnants were removed in `a28a842`.                   | Mark Task 1.2 done and keep doc edits closed unless final verification changes truth.   |
 
 ## Acceptance criteria
 
@@ -288,21 +288,21 @@ Exact stop condition:
 
 ## Quick Reference (Execution Waves)
 
-| Wave | Tasks | Dependencies | Parallelizable | Effort (T-shirt) |
-| --- | --- | --- | --- | --- |
-| **Wave 0** | 1.1, 1.2, 3.3 | None | 3 agents | XS-S |
-| **Wave 1** | 2.1, 2.2, 2.3, 3.1, 3.2 | Wave 0 (partial) | 5 agents | S-M |
-| **Wave 2** | 4.1 | Waves 0-1 | 1 agent | S |
-| **Critical path** | 1.2 → 3.2 → 4.1 | — | 3 waves | M |
+| Wave              | Tasks                   | Dependencies     | Parallelizable | Effort (T-shirt) |
+| ----------------- | ----------------------- | ---------------- | -------------- | ---------------- |
+| **Wave 0**        | 1.1, 1.2, 3.3           | None             | 3 agents       | XS-S             |
+| **Wave 1**        | 2.1, 2.2, 2.3, 3.1, 3.2 | Wave 0 (partial) | 5 agents       | S-M              |
+| **Wave 2**        | 4.1                     | Waves 0-1        | 1 agent        | S                |
+| **Critical path** | 1.2 → 3.2 → 4.1         | —                | 3 waves        | M                |
 
 ### Parallel Metrics Snapshot
 
-| Metric | Formula / Meaning | Target | Actual |
-| --- | --- | --- | --- |
-| RW0 | Ready tasks in Wave 0 | ≥ planned agents / 2 | 3 |
-| CPR | total_tasks / critical_path_length | ≥ 2.5 | 3.0 |
-| DD | dependency_edges / total_tasks | ≤ 2.0 | 1.22 |
-| CP | same-file overlaps per wave | 0 | 0 |
+| Metric | Formula / Meaning                  | Target               | Actual |
+| ------ | ---------------------------------- | -------------------- | ------ |
+| RW0    | Ready tasks in Wave 0              | ≥ planned agents / 2 | 3      |
+| CPR    | total_tasks / critical_path_length | ≥ 2.5                | 3.0    |
+| DD     | dependency_edges / total_tasks     | ≤ 2.0                | 1.22   |
+| CP     | same-file overlaps per wave        | 0                    | 0      |
 
 Refinement delta: moved Task 3.3 into the real parallel wave, marked the
 already-landed browser/runtime and cleanup work complete, and expanded Task 3.2
@@ -668,13 +668,13 @@ E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| Browser-faithful E2E adds cost and latency | Slower CI and local runs | Keep non-browser contract tests, but name them honestly and reserve browser E2E for the reviewer-critical path. |
-| Louder config failures may break local demos | Short-term friction | Keep explicit mock/test wiring separate from production-sensitive wiring (`E2E_MOCK_PIPELINE=1`). |
-| Workspace quality-rail alignment exposes hidden config drift | Short-term red CI / local checks | Land root/app/infra `agent-kit` / `vite-plus` config changes together and verify workflow expectations in lockstep. |
+| Risk                                                             | Impact                             | Mitigation                                                                                                                    |
+| ---------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Browser-faithful E2E adds cost and latency                       | Slower CI and local runs           | Keep non-browser contract tests, but name them honestly and reserve browser E2E for the reviewer-critical path.               |
+| Louder config failures may break local demos                     | Short-term friction                | Keep explicit mock/test wiring separate from production-sensitive wiring (`E2E_MOCK_PIPELINE=1`).                             |
+| Workspace quality-rail alignment exposes hidden config drift     | Short-term red CI / local checks   | Land root/app/infra `agent-kit` / `vite-plus` config changes together and verify workflow expectations in lockstep.           |
 | Production deploy remains blocked on external credential pairing | Closure depends on operator action | Rotate the ozby-account token, re-run `Deploy production`, and do not mark the lane complete without recorded green evidence. |
-| Truthfulness updates may make the repo look less "done" | Social discomfort | Prefer accurate status now over compound rework later. |
+| Truthfulness updates may make the repo look less "done"          | Social discomfort                  | Prefer accurate status now over compound rework later.                                                                        |
 
 ## ADR
 

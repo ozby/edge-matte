@@ -1,10 +1,10 @@
-import { defineConfig } from '@playwright/test'
+import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: true,
-  reporter: [['list']],
+  reporter: [["list"]],
   use: {
-    trace: 'retain-on-failure',
+    trace: "retain-on-failure",
   },
-})
+});

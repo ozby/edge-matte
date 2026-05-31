@@ -48,9 +48,7 @@ describe("e2e-suite-manifest", () => {
       normalizedPath: "apps/e2e/journeys/production-smoke.smoke.test.ts",
       suiteId: "production-smoke",
     });
-    expect(
-      resolveE2ESuiteForFile("apps/e2e/journeys/production-journey.smoke.test.ts"),
-    ).toEqual({
+    expect(resolveE2ESuiteForFile("apps/e2e/journeys/production-journey.smoke.test.ts")).toEqual({
       normalizedPath: "apps/e2e/journeys/production-journey.smoke.test.ts",
       suiteId: "production-journey",
     });

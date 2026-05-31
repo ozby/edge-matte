@@ -74,7 +74,8 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
 export const WAIT_FOR_HTTP_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
   {
     label: "partial access env guard",
-    pattern: /CF_ACCESS_CLIENT_ID.*CF_ACCESS_CLIENT_SECRET|CF_ACCESS_CLIENT_SECRET.*CF_ACCESS_CLIENT_ID/us,
+    pattern:
+      /CF_ACCESS_CLIENT_ID.*CF_ACCESS_CLIENT_SECRET|CF_ACCESS_CLIENT_SECRET.*CF_ACCESS_CLIENT_ID/su,
   },
   {
     label: "access headers for smoke probes",
@@ -82,18 +83,18 @@ export const WAIT_FOR_HTTP_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ (
   },
   {
     label: "2xx-only success contract",
-    pattern: /status.*\^2.*0-9.*0-9.*\$/us,
+    pattern: /status.*\^2.*0-9.*0-9.*\$/su,
   },
 ]);
 
 export const LOCAL_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
   {
     label: "with-secrets deploy",
-    pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/us,
+    pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/su,
   },
   {
     label: "with-secrets smoke probes",
-    pattern: /runWithSecrets\("bash".*scripts\/wait-for-http\.sh.*PRODUCTION_URL/us,
+    pattern: /runWithSecrets\("bash".*scripts\/wait-for-http\.sh.*PRODUCTION_URL/su,
   },
   {
     label: "production-smoke suite",
@@ -139,12 +140,10 @@ export function collectWorkflowRunSteps(contents) {
  * @param {string} contents
  */
 export function collectWorkflowUses(contents) {
-  return contents
-    .split("\n")
-    .flatMap((line) => {
-      const match = line.match(/^\s*(?:-\s+)?uses:\s*([^\s#]+)\s*(?:#.*)?$/u);
-      return match ? [match[1]] : [];
-    });
+  return contents.split("\n").flatMap((line) => {
+    const match = line.match(/^\s*(?:-\s+)?uses:\s*([^\s#]+)\s*(?:#.*)?$/u);
+    return match ? [match[1]] : [];
+  });
 }
 
 /**

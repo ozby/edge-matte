@@ -66,12 +66,12 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 
 ## Where each credential lives
 
-| Secret / credential       | Where the value lives                           | Who sets it                     | Used by                                                                 |
-| ------------------------- | ----------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`    | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                 |
-| `CLOUDFLARE_ACCOUNT_ID`   | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`                                    |
+| Secret / credential       | Where the value lives                           | Who sets it                     | Used by                                                                                        |
+| ------------------------- | ----------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                                      |
+| `CLOUDFLARE_ACCOUNT_ID`   | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`                                                           |
 | `CF_ACCESS_CLIENT_ID`     | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Id` for Access-protected `/health`, `/`, API, and image verification |
-| `CF_ACCESS_CLIENT_SECRET` | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows  |
+| `CF_ACCESS_CLIENT_SECRET` | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows                         |
 
 ### Rules
 
@@ -101,10 +101,10 @@ These values are for the Cloudflare Access **service token** that authenticates
 non-browser verification against `edge-matte.ozby.dev` during private beta.
 They are not Worker bindings and must never be committed.
 
-| Name | Owner | Where the value lives | Consumed by |
-| ---- | ----- | --------------------- | ----------- |
-| `CF_ACCESS_CLIENT_ID` | Cloudflare Zero Trust owner | Doppler `ozby-shell` | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
-| `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Doppler `ozby-shell` | Same flows; sent only as `CF-Access-Client-Secret` at runtime |
+| Name                      | Owner                       | Where the value lives | Consumed by                                                                                            |
+| ------------------------- | --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `CF_ACCESS_CLIENT_ID`     | Cloudflare Zero Trust owner | Doppler `ozby-shell`  | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
+| `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Doppler `ozby-shell`  | Same flows; sent only as `CF-Access-Client-Secret` at runtime                                          |
 
 Rules:
 

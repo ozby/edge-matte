@@ -21,7 +21,8 @@ type TurnstileSiteverifyResponse = {
   "error-codes"?: string[];
 };
 
-const hasValue = (value: string | null | undefined): value is string => value != null && value.length > 0;
+const hasValue = (value: string | null | undefined): value is string =>
+  value != null && value.length > 0;
 
 export const isTurnstileEnabled = (config?: TurnstileSecurityConfig): boolean =>
   hasValue(config?.siteKey);

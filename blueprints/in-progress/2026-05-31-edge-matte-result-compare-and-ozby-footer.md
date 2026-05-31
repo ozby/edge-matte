@@ -3,9 +3,9 @@ type: blueprint
 title: "EdgeMatte: result compare slider and Ozby network footer"
 status: in-progress
 complexity: S
-created: '2026-05-31'
-last_updated: '2026-05-31'
-progress: '67% (2 of 3 tasks completed)'
+created: "2026-05-31"
+last_updated: "2026-05-31"
+progress: "67% (2 of 3 tasks completed)"
 tags:
   - ui
   - product
@@ -58,10 +58,10 @@ presence.
 
 ## Cross-plan references
 
-| Type | Blueprint | Relationship |
-| ---- | --------- | ------------ |
-| Adjacent | `2026-05-29-edge-matte-e2e-confidence-suite` | UI assertions may later expand browser coverage for the new compare-ready states |
-| Adjacent | `2026-05-28-edge-matte-security-hardening` | No new public config or secret surface; footer/client work must stay within the existing client/runtime contract |
+| Type     | Blueprint                                    | Relationship                                                                                                     |
+| -------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Adjacent | `2026-05-29-edge-matte-e2e-confidence-suite` | UI assertions may later expand browser coverage for the new compare-ready states                                 |
+| Adjacent | `2026-05-28-edge-matte-security-hardening`   | No new public config or secret surface; footer/client work must stay within the existing client/runtime contract |
 
 ## Tasks
 

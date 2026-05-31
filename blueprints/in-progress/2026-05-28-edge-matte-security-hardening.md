@@ -95,41 +95,41 @@ Refined on **2026-05-30** against the current repo state:
 
 ## Hard fact-check findings
 
-| ID  | Severity | Claim                                                     | Reality                                                                                                                                   | Fix                                                                                                                                   |
-| --- | -------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| F1  | HIGH     | Access can be enabled without changing verification paths | Current deploy workflow, local deploy smoke, `production-smoke`, and `production-journey` all hit protected routes without auth headers | Add a shared Access machine-auth contract across workflow, local deploy smoke, and production E2E before enforcing Access            |
-| F2  | HIGH     | Turnstile validation is only a Worker concern             | Current SPA only uploads a file; it never renders a challenge or sends a token, and the Worker never verifies one                        | Add both client challenge/token plumbing and server-side Siteverify enforcement                                                      |
-| F3  | HIGH     | The SPA can get a site key “later” from secrets injection | Client assets are built before Doppler injection in deploy CI and the repo forbids `.env*` secret files                                  | Add a Worker-owned public config surface (non-secret only) instead of relying on late build-time secret injection                    |
-| F4  | MEDIUM   | Security env contract belongs in `wrangler.toml`          | Repo policy keeps secret values only in platform stores; docs currently state “No Worker secrets required”                               | Document new security secret names/ownership in docs and runtime checks; limit `wrangler.toml` changes to non-secret vars/bindings  |
-| F5  | MEDIUM   | `/health` and `/` policy can stay implicit under Access   | Release docs, shell smoke, and manual verification currently assume bare curls to both paths                                             | Define an explicit health/shell policy matrix and test it in docs, smoke scripts, and production suites                              |
-| F6  | LOW      | Generic verification steps are good enough                | Repo already has pinned-workflow policy, direct architecture-drift audit usage, and production-journey coverage                           | Preserve those exact rails in task steps and final verification commands instead of reverting to stale generic checks                |
+| ID  | Severity | Claim                                                     | Reality                                                                                                                                 | Fix                                                                                                                                |
+| --- | -------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | HIGH     | Access can be enabled without changing verification paths | Current deploy workflow, local deploy smoke, `production-smoke`, and `production-journey` all hit protected routes without auth headers | Add a shared Access machine-auth contract across workflow, local deploy smoke, and production E2E before enforcing Access          |
+| F2  | HIGH     | Turnstile validation is only a Worker concern             | Current SPA only uploads a file; it never renders a challenge or sends a token, and the Worker never verifies one                       | Add both client challenge/token plumbing and server-side Siteverify enforcement                                                    |
+| F3  | HIGH     | The SPA can get a site key “later” from secrets injection | Client assets are built before Doppler injection in deploy CI and the repo forbids `.env*` secret files                                 | Add a Worker-owned public config surface (non-secret only) instead of relying on late build-time secret injection                  |
+| F4  | MEDIUM   | Security env contract belongs in `wrangler.toml`          | Repo policy keeps secret values only in platform stores; docs currently state “No Worker secrets required”                              | Document new security secret names/ownership in docs and runtime checks; limit `wrangler.toml` changes to non-secret vars/bindings |
+| F5  | MEDIUM   | `/health` and `/` policy can stay implicit under Access   | Release docs, shell smoke, and manual verification currently assume bare curls to both paths                                            | Define an explicit health/shell policy matrix and test it in docs, smoke scripts, and production suites                            |
+| F6  | LOW      | Generic verification steps are good enough                | Repo already has pinned-workflow policy, direct architecture-drift audit usage, and production-journey coverage                         | Preserve those exact rails in task steps and final verification commands instead of reverting to stale generic checks              |
 
 ## Key decisions
 
-| ID | Decision | Why |
-| -- | -------- | --- |
-| D1 | Use Cloudflare Access service tokens for automation via `CF-Access-Client-Id` / `CF-Access-Client-Secret` | Matches Cloudflare’s documented machine-auth path and fits both CI and local smoke verification |
-| D2 | Expose the Turnstile site key through a Worker-owned public config contract, not build-time secret injection | The SPA is static, builds before Doppler injection, and the repo forbids secret-on-disk workflows |
-| D3 | Keep one Worker + static assets topology | Current architecture already applies security headers and `run_worker_first`; security should harden this surface, not add a second app tier |
-| D4 | Preserve production-only real-transform verification | `production-journey` is the only suite that proves live background removal + flip; Access must authenticate it, not remove or localize it |
+| ID  | Decision                                                                                                     | Why                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Use Cloudflare Access service tokens for automation via `CF-Access-Client-Id` / `CF-Access-Client-Secret`    | Matches Cloudflare’s documented machine-auth path and fits both CI and local smoke verification                                              |
+| D2  | Expose the Turnstile site key through a Worker-owned public config contract, not build-time secret injection | The SPA is static, builds before Doppler injection, and the repo forbids secret-on-disk workflows                                            |
+| D3  | Keep one Worker + static assets topology                                                                     | Current architecture already applies security headers and `run_worker_first`; security should harden this surface, not add a second app tier |
+| D4  | Preserve production-only real-transform verification                                                         | `production-journey` is the only suite that proves live background removal + flip; Access must authenticate it, not remove or localize it    |
 
 ## Technology choices
 
-| Component | Technology | Version / surface | Why |
-| --------- | ---------- | ----------------- | --- |
-| Private-beta access control | Cloudflare Access service tokens + allow policies | Current Cloudflare One docs | Machine-auth path for CI/local automation without storing cookies on disk |
-| Human verification | Cloudflare Turnstile + Siteverify | Current Turnstile docs | One-time token verification with hostname/action validation |
-| Edge abuse controls | Cloudflare WAF / rate limiting | Current Cloudflare edge controls | Reduce bot/burst abuse before Worker compute/R2 cost |
-| Verification rails | Existing pinned GitHub Actions + `wp` / `vp` surfaces | Current repo workflow | Reuses current quality/deploy contract instead of inventing a second one |
+| Component                   | Technology                                            | Version / surface                | Why                                                                       |
+| --------------------------- | ----------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| Private-beta access control | Cloudflare Access service tokens + allow policies     | Current Cloudflare One docs      | Machine-auth path for CI/local automation without storing cookies on disk |
+| Human verification          | Cloudflare Turnstile + Siteverify                     | Current Turnstile docs           | One-time token verification with hostname/action validation               |
+| Edge abuse controls         | Cloudflare WAF / rate limiting                        | Current Cloudflare edge controls | Reduce bot/burst abuse before Worker compute/R2 cost                      |
+| Verification rails          | Existing pinned GitHub Actions + `wp` / `vp` surfaces | Current repo workflow            | Reuses current quality/deploy contract instead of inventing a second one  |
 
 ## Quick Reference (Execution Waves)
 
-| Wave              | Tasks                        | Dependencies   | Parallelizable | Effort (T-shirt) |
-| ----------------- | ---------------------------- | -------------- | -------------- | ---------------- |
-| **Wave 0**        | 1.1, 2.1                     | None           | 2 agents       | S, S             |
-| **Wave 1**        | 1.2, 1.3, 2.2, 2.3          | 1.1 / 2.1      | 4 agents       | S-M              |
-| **Wave 2**        | 3.1                          | 1.1, 2.3       | 1 agent        | S                |
-| **Critical path** | 2.1 → 2.3 → 3.1             | —              | 3 waves        | M                |
+| Wave              | Tasks              | Dependencies | Parallelizable | Effort (T-shirt) |
+| ----------------- | ------------------ | ------------ | -------------- | ---------------- |
+| **Wave 0**        | 1.1, 2.1           | None         | 2 agents       | S, S             |
+| **Wave 1**        | 1.2, 1.3, 2.2, 2.3 | 1.1 / 2.1    | 4 agents       | S-M              |
+| **Wave 2**        | 3.1                | 1.1, 2.3     | 1 agent        | S                |
+| **Critical path** | 2.1 → 2.3 → 3.1    | —            | 3 waves        | M                |
 
 ### Parallel metrics snapshot
 
@@ -387,30 +387,30 @@ roll back safely without changing the current one-Worker runtime topology.
 
 ## Edge cases and error handling
 
-| Edge case | Risk | Solution | Task |
-| --------- | ---- | -------- | ---- |
-| Access protects `/health` and `/` but smoke paths still use bare requests | False-negative deploy failures and blocked maintainer verification | Reuse one header-based Access auth contract in workflow, local deploy, and production suites | 1.2, 1.3 |
-| Turnstile token expires or is replayed during upload | Legitimate users get confusing failures or bots bypass checks | Surface user-facing retry/reset behavior in the SPA and enforce strict Siteverify response handling | 2.2, 2.3 |
-| Static SPA cannot see a site key at runtime | Widget never boots in production because build-time env arrives too late | Serve a non-secret config payload from the Worker at request time | 2.1, 2.2 |
-| Production secrets are documented incorrectly as `wrangler.toml` config | Secret values leak into the wrong surface or operators misconfigure deploys | Keep secret names/ownership in docs and runtime checks only; never write values to repo files | 1.1, 2.3 |
-| Access, Turnstile, and WAF all fire at once during an incident | Operators tighten the wrong layer or cannot roll back safely | Add a response-order runbook: Access first, then Turnstile runtime, then WAF/rate-limit tuning | 3.1 |
+| Edge case                                                                 | Risk                                                                        | Solution                                                                                            | Task     |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -------- |
+| Access protects `/health` and `/` but smoke paths still use bare requests | False-negative deploy failures and blocked maintainer verification          | Reuse one header-based Access auth contract in workflow, local deploy, and production suites        | 1.2, 1.3 |
+| Turnstile token expires or is replayed during upload                      | Legitimate users get confusing failures or bots bypass checks               | Surface user-facing retry/reset behavior in the SPA and enforce strict Siteverify response handling | 2.2, 2.3 |
+| Static SPA cannot see a site key at runtime                               | Widget never boots in production because build-time env arrives too late    | Serve a non-secret config payload from the Worker at request time                                   | 2.1, 2.2 |
+| Production secrets are documented incorrectly as `wrangler.toml` config   | Secret values leak into the wrong surface or operators misconfigure deploys | Keep secret names/ownership in docs and runtime checks only; never write values to repo files       | 1.1, 2.3 |
+| Access, Turnstile, and WAF all fire at once during an incident            | Operators tighten the wrong layer or cannot roll back safely                | Add a response-order runbook: Access first, then Turnstile runtime, then WAF/rate-limit tuning      | 3.1      |
 
 ## Risks
 
-| Risk | Severity | Mitigation |
-| ---- | -------- | ---------- |
-| Access rollout breaks deploy smoke or manual production verification | HIGH | Land Task 1.2 and Task 1.3 before enforcing Access on the production app |
-| Turnstile is added only on the server or only in the client | HIGH | Keep Task 2.2 and Task 2.3 as a paired rollout with explicit acceptance criteria |
-| Public site-key exposure is solved with an ad hoc build-time secret path | HIGH | Use Task 2.1’s Worker-served public config surface and preserve the repo secret policy |
-| WAF/rate-limit rules create false positives during private beta | MEDIUM | Start conservative, capture evidence, and document rollback/tuning in Task 3.1 |
+| Risk                                                                     | Severity | Mitigation                                                                             |
+| ------------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------- |
+| Access rollout breaks deploy smoke or manual production verification     | HIGH     | Land Task 1.2 and Task 1.3 before enforcing Access on the production app               |
+| Turnstile is added only on the server or only in the client              | HIGH     | Keep Task 2.2 and Task 2.3 as a paired rollout with explicit acceptance criteria       |
+| Public site-key exposure is solved with an ad hoc build-time secret path | HIGH     | Use Task 2.1’s Worker-served public config surface and preserve the repo secret policy |
+| WAF/rate-limit rules create false positives during private beta          | MEDIUM   | Start conservative, capture evidence, and document rollback/tuning in Task 3.1         |
 
 ## Cross-plan references
 
-| Type | Blueprint / source | Relationship |
-| ---- | ------------------ | ------------ |
-| Upstream | [EdgeMatte: audit remediation and confidence hardening](../in-progress/2026-05-27-edge-matte-audit-remediation.md) | Supplies the truthful production-verification baseline this blueprint must preserve |
-| Upstream | [EdgeMatte: shared Cloudflare deploy contract](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Supplies shared lane semantics this blueprint should consume for Access-protected deploys |
-| Downstream | [EdgeMatte: end-to-end confidence suite](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md) | Should inherit the Access-auth production verification contract once defined here |
+| Type       | Blueprint / source                                                                                                        | Relationship                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Upstream   | [EdgeMatte: audit remediation and confidence hardening](../in-progress/2026-05-27-edge-matte-audit-remediation.md)        | Supplies the truthful production-verification baseline this blueprint must preserve       |
+| Upstream   | [EdgeMatte: shared Cloudflare deploy contract](../in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Supplies shared lane semantics this blueprint should consume for Access-protected deploys |
+| Downstream | [EdgeMatte: end-to-end confidence suite](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)                    | Should inherit the Access-auth production verification contract once defined here         |
 
 ## Verification commands
 
@@ -429,19 +429,19 @@ wp audit architecture-drift --root .
 
 ## Refinement summary
 
-| Metric | Value |
-| ------ | ----- |
-| Findings total | 6 |
-| Critical | 0 |
-| High | 3 |
-| Medium | 2 |
-| Low | 1 |
-| Fixes applied | 6/6 in blueprint wording |
+| Metric                      | Value                                                        |
+| --------------------------- | ------------------------------------------------------------ |
+| Findings total              | 6                                                            |
+| Critical                    | 0                                                            |
+| High                        | 3                                                            |
+| Medium                      | 2                                                            |
+| Low                         | 1                                                            |
+| Fixes applied               | 6/6 in blueprint wording                                     |
 | Cross-plan updates required | 2 downstream recommendations noted, no external files edited |
-| Edge cases documented | 5 |
-| Risks documented | 4 |
-| Parallelization score | B |
-| Critical path | 3 waves |
-| Max parallel agents | 4 in Wave 1 |
-| Total tasks | 7 |
-| Blueprint compliant | 7/7 tasks include status, depends, files, steps, acceptance |
+| Edge cases documented       | 5                                                            |
+| Risks documented            | 4                                                            |
+| Parallelization score       | B                                                            |
+| Critical path               | 3 waves                                                      |
+| Max parallel agents         | 4 in Wave 1                                                  |
+| Total tasks                 | 7                                                            |
+| Blueprint compliant         | 7/7 tasks include status, depends, files, steps, acceptance  |

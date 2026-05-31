@@ -27,9 +27,7 @@ export const readProductionAccessCredentials = (
   return { clientId, clientSecret };
 };
 
-export const buildProductionAccessHeaders = (
-  env: NodeJS.ProcessEnv = process.env,
-): Headers => {
+export const buildProductionAccessHeaders = (env: NodeJS.ProcessEnv = process.env): Headers => {
   const headers = new Headers();
   const credentials = readProductionAccessCredentials(env);
   if (!credentials) {

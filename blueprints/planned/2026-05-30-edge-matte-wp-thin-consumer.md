@@ -2,9 +2,9 @@
 type: blueprint
 status: planned
 complexity: M
-created: '2026-05-30'
-last_updated: '2026-05-30'
-progress: '0% (drafted)'
+created: "2026-05-30"
+last_updated: "2026-05-30"
+progress: "0% (drafted)"
 cross_repo_depends_on:
   - repo: webpresso/agent-kit
     slug: 2026-05-30-cross-project-wp-execution-map
@@ -63,20 +63,20 @@ is reduced after verification proves the wrapper surface is stable.
 
 ## Key Decisions
 
-| Decision | Choice | Rationale |
-| -------- | ------ | --------- |
-| Consumer class | thin consumer | EdgeMatte should not need framework extension behavior |
-| Generic workflow owner | `agent-kit` | Shared quality/setup flows belong upstream |
-| Drift enforcement | keep architecture checks in the loop | repo contract requires architecture consistency on active blueprints |
+| Decision               | Choice                               | Rationale                                                            |
+| ---------------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| Consumer class         | thin consumer                        | EdgeMatte should not need framework extension behavior               |
+| Generic workflow owner | `agent-kit`                          | Shared quality/setup flows belong upstream                           |
+| Drift enforcement      | keep architecture checks in the loop | repo contract requires architecture consistency on active blueprints |
 
 ## Quick Reference (Execution Waves)
 
-| Wave | Tasks | Dependencies | Parallelizable | Effort (T-shirt) |
-| ---- | ----- | ------------ | -------------- | ---------------- |
-| **Wave 0** | 1.1 | None | 1 agent | S |
-| **Wave 1** | 1.2, 1.3 | Task 1.1 | 2 agents | S |
-| **Wave 2** | 2.1 | Wave 1 | 1 agent | S |
-| **Critical path** | 1.1 → 1.2 → 2.1 | -- | 3 waves | M |
+| Wave              | Tasks           | Dependencies | Parallelizable | Effort (T-shirt) |
+| ----------------- | --------------- | ------------ | -------------- | ---------------- |
+| **Wave 0**        | 1.1             | None         | 1 agent        | S                |
+| **Wave 1**        | 1.2, 1.3        | Task 1.1     | 2 agents       | S                |
+| **Wave 2**        | 2.1             | Wave 1       | 1 agent        | S                |
+| **Critical path** | 1.1 → 1.2 → 2.1 | --           | 3 waves        | M                |
 
 ### Phase 1: public-surface migration [Complexity: M]
 
@@ -195,26 +195,26 @@ future changes do not reintroduce public raw `pnpm`, direct `vitest`, or bare
 
 ## Verification Gates
 
-| Gate | Command | Success Criteria |
-| ---- | ------- | ---------------- |
-| Architecture drift | `wp audit architecture-drift --root .` | No drift |
-| Type safety | repo typecheck recipe | Zero errors |
-| Lint | repo lint recipe | Zero violations |
-| Tests | repo test recipe | Targeted suites pass |
+| Gate               | Command                                | Success Criteria     |
+| ------------------ | -------------------------------------- | -------------------- |
+| Architecture drift | `wp audit architecture-drift --root .` | No drift             |
+| Type safety        | repo typecheck recipe                  | Zero errors          |
+| Lint               | repo lint recipe                       | Zero violations      |
+| Tests              | repo test recipe                       | Targeted suites pass |
 
 ## Cross-Plan References
 
-| Type | Blueprint | Relationship |
-| ---- | --------- | ------------ |
-| Upstream | `2026-05-30-cross-project-wp-execution-map` | umbrella execution order |
-| Upstream | `2026-05-30-agent-kit-base-wp-core` | base `wp` command contract |
+| Type     | Blueprint                                   | Relationship               |
+| -------- | ------------------------------------------- | -------------------------- |
+| Upstream | `2026-05-30-cross-project-wp-execution-map` | umbrella execution order   |
+| Upstream | `2026-05-30-agent-kit-base-wp-core`         | base `wp` command contract |
 
 ## Edge Cases and Error Handling
 
-| Edge Case | Risk | Solution | Task |
-| --------- | ---- | -------- | ---- |
-| Wrapper migration breaks local deploy/e2e helper behavior | broken repo-specific lanes | keep app/runtime/deploy-specific behavior local | 1.2, 1.3 |
-| Active blueprint/docs drift during command cleanup | contract inconsistency | keep architecture drift audit in final verification | 2.1 |
+| Edge Case                                                 | Risk                       | Solution                                            | Task     |
+| --------------------------------------------------------- | -------------------------- | --------------------------------------------------- | -------- |
+| Wrapper migration breaks local deploy/e2e helper behavior | broken repo-specific lanes | keep app/runtime/deploy-specific behavior local     | 1.2, 1.3 |
+| Active blueprint/docs drift during command cleanup        | contract inconsistency     | keep architecture drift audit in final verification | 2.1      |
 
 ## Non-goals
 
@@ -223,14 +223,14 @@ future changes do not reintroduce public raw `pnpm`, direct `vitest`, or bare
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-| ---- | ------ | ---------- |
-| Public command cleanup collides with in-flight security/deploy work | High | keep this blueprint focused on generic workflow ownership only |
-| Architecture docs drift while commands change | Medium | run architecture drift audit as part of verification |
+| Risk                                                                | Impact | Mitigation                                                     |
+| ------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
+| Public command cleanup collides with in-flight security/deploy work | High   | keep this blueprint focused on generic workflow ownership only |
+| Architecture docs drift while commands change                       | Medium | run architecture drift audit as part of verification           |
 
 ## Technology Choices
 
-| Component | Technology | Version | Why |
-| --------- | ---------- | ------- | --- |
-| Generic workflow owner | `@webpresso/agent-kit` | workspace consumer | Upstream `wp` surface |
-| Local substrate | `pnpm` | repo-declared | Structural workspace dependency only |
+| Component              | Technology             | Version            | Why                                  |
+| ---------------------- | ---------------------- | ------------------ | ------------------------------------ |
+| Generic workflow owner | `@webpresso/agent-kit` | workspace consumer | Upstream `wp` surface                |
+| Local substrate        | `pnpm`                 | repo-declared      | Structural workspace dependency only |

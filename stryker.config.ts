@@ -1,4 +1,4 @@
-import { baseConfig } from '@webpresso/agent-kit/stryker'
+import { baseConfig } from "@webpresso/agent-kit/stryker";
 
 export default {
   ...baseConfig,
@@ -8,7 +8,7 @@ export default {
     break: 0,
   },
   vitest: {
-    configFile: 'vitest.config.ts',
+    configFile: "vitest.config.ts",
   },
-  mutate: ['src/**/*.ts', '!src/**/*.test.ts', '!src/**/*.d.ts'],
-}
+  mutate: ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/*.d.ts"],
+};

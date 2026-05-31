@@ -76,7 +76,7 @@ optional polish ever conflicts with the take-home brief, the brief wins.
 | `task.pdf` requirement                                  | EdgeMatte contract                                                                                                |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Upload a single image file                              | One-file upload UI and `POST /api/jobs` multipart API.                                                            |
-| Remove the background using the Cloudflare-native path  | `CfImageSegmentProvider` behind the `BackgroundRemovalProvider` port.                                              |
+| Remove the background using the Cloudflare-native path  | `CfImageSegmentProvider` behind the `BackgroundRemovalProvider` port.                                             |
 | Horizontally flip after background removal              | `CloudflareImagesTransformer` uses the Workers Images binding to apply `flip=h` after cutout.                     |
 | Host the processed image online and return a unique URL | The processed artifact is stored in R2 and served at `https://edge-matte.ozby.dev/i/:id`.                         |
 | Allow deletion of uploaded and processed images         | `DELETE /api/jobs/:id` deletes original object, processed object, and metadata using the capability delete token. |

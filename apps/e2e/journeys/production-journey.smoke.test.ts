@@ -80,8 +80,8 @@ describeProduction("production journey — real transform", () => {
     );
     expect(deleteResponse.status).toBe(204);
 
-    expect(
-      (await fetchWithProductionAccess(new URL(`/i/${created.id}`, baseUrl))).status,
-    ).toBe(404);
+    expect((await fetchWithProductionAccess(new URL(`/i/${created.id}`, baseUrl))).status).toBe(
+      404,
+    );
   });
 });

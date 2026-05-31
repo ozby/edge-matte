@@ -210,4 +210,4 @@ Implementation posture:
 10. [Pulumi Cloudflare Worker tutorial](https://developers.cloudflare.com/pulumi/tutorial/hello-world/) — official docs, high credibility, positive for IaC.
 11. [remove.bg API page](https://www.remove.bg/tr/i/api) — vendor docs, medium-high credibility, positive but vendor-biased.
 12. `/Users/ozby/repos/webpresso/monorepo/docs/research/product/VISION.md` — local product vision, high repo-local relevance.
-15. `/Users/ozby/repos/ozby/ingest-lens/README.md` and `infra/src/resources/main.ts` — local reuse evidence, high repo-local relevance.
+13. `/Users/ozby/repos/ozby/ingest-lens/README.md` and `infra/src/resources/main.ts` — local reuse evidence, high repo-local relevance.

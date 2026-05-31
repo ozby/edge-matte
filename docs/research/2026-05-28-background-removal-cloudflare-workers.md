@@ -73,15 +73,15 @@ BiRefNet holds top spots on PapersWithCode leaderboards for DIS, HRSOD, COD, UHR
 
 ## Alternatives Considered
 
-| Option                       | Quality             | Free tier               | Latency                     | Rejection reason                                            |
-| ---------------------------- | ------------------- | ----------------------- | --------------------------- | ----------------------------------------------------------- |
-| **Cloudflare Images native** | BiRefNet (SOTA)     | included in Images plan | 351–821ms                   | **Selected**                                                |
-| Legacy external provider     | proprietary         | 10 images/trial         | ~450ms                      | External key, rate limits, outage history                   |
-| remove.bg                    | proprietary         | 50/month                | unknown                     | External key, not SOTA                                      |
-| Replicate + BiRefNet (MIT)   | BiRefNet (SOTA)     | none                    | 93–165ms warm, minutes cold | Cold starts; min_instances adds idle cost; external billing |
-| fal.ai (rembg)               | rembg (older model) | none public             | unknown                     | Not SOTA, per-image pricing opaque                          |
-| ClipDrop / Jasper            | below legacy external quality | 100 credits     | ~2s                         | Slower, weaker edge quality                                 |
-| WASM/ONNX in Worker          | ISNet-quant8        | free                    | unknown                     | 128MB bundle limit risk; beta tooling (`workers-wonnx`)     |
+| Option                       | Quality                       | Free tier               | Latency                     | Rejection reason                                            |
+| ---------------------------- | ----------------------------- | ----------------------- | --------------------------- | ----------------------------------------------------------- |
+| **Cloudflare Images native** | BiRefNet (SOTA)               | included in Images plan | 351–821ms                   | **Selected**                                                |
+| Legacy external provider     | proprietary                   | 10 images/trial         | ~450ms                      | External key, rate limits, outage history                   |
+| remove.bg                    | proprietary                   | 50/month                | unknown                     | External key, not SOTA                                      |
+| Replicate + BiRefNet (MIT)   | BiRefNet (SOTA)               | none                    | 93–165ms warm, minutes cold | Cold starts; min_instances adds idle cost; external billing |
+| fal.ai (rembg)               | rembg (older model)           | none public             | unknown                     | Not SOTA, per-image pricing opaque                          |
+| ClipDrop / Jasper            | below legacy external quality | 100 credits             | ~2s                         | Slower, weaker edge quality                                 |
+| WASM/ONNX in Worker          | ISNet-quant8                  | free                    | unknown                     | 128MB bundle limit risk; beta tooling (`workers-wonnx`)     |
 
 ## Project Alignment
 

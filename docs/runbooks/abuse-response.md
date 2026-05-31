@@ -27,12 +27,12 @@ last_updated: 2026-05-30
 
 ## Default private-beta posture
 
-| Layer | Expected state |
-| ----- | -------------- |
-| Access | `edge-matte.ozby.dev` stays behind the documented Cloudflare Access browser allowlist and service-token contract. No upload-specific public bypasses. |
-| Turnstile | `POST /api/jobs` requires `cf-turnstile-response` whenever `TURNSTILE_SITE_KEY` is enabled. The Worker rejects missing, invalid, replayed, hostname-mismatch, action-mismatch, and timed-out Siteverify results. |
-| WAF / rate limit | Route-specific control on `POST /api/jobs` only: start with **Managed Challenge above 10 requests per client IP per minute**; escalate to a short-lived **block above 30 requests per client IP per 10 minutes** only after evidence shows the challenge is not enough. |
-| Non-upload routes | `/`, `/health`, `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, and `GET /i/:id` keep the Access contract but do not inherit the upload-specific private-beta rate limit by default. |
+| Layer             | Expected state                                                                                                                                                                                                                                                          |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Access            | `edge-matte.ozby.dev` stays behind the documented Cloudflare Access browser allowlist and service-token contract. No upload-specific public bypasses.                                                                                                                   |
+| Turnstile         | `POST /api/jobs` requires `cf-turnstile-response` whenever `TURNSTILE_SITE_KEY` is enabled. The Worker rejects missing, invalid, replayed, hostname-mismatch, action-mismatch, and timed-out Siteverify results.                                                        |
+| WAF / rate limit  | Route-specific control on `POST /api/jobs` only: start with **Managed Challenge above 10 requests per client IP per minute**; escalate to a short-lived **block above 30 requests per client IP per 10 minutes** only after evidence shows the challenge is not enough. |
+| Non-upload routes | `/`, `/health`, `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, and `GET /i/:id` keep the Access contract but do not inherit the upload-specific private-beta rate limit by default.                                                                                       |
 
 ## Evidence to collect before changing controls
 

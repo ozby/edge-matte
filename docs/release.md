@@ -49,13 +49,13 @@ and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 
 ## Production target
 
-| Item         | Value                                                                 |
-| ------------ | --------------------------------------------------------------------- |
-| Public URL   | `https://edge-matte.ozby.dev`                                         |
-| Worker name  | `edge-matte`                                                          |
-| Wrangler env | `production`                                                          |
-| R2 bucket    | `edge-matte-images`                                                   |
-| Health check | `GET /health`                                                         |
+| Item              | Value                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Public URL        | `https://edge-matte.ozby.dev`                                                                                                         |
+| Worker name       | `edge-matte`                                                                                                                          |
+| Wrangler env      | `production`                                                                                                                          |
+| R2 bucket         | `edge-matte-images`                                                                                                                   |
+| Health check      | `GET /health`                                                                                                                         |
 | Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy) |
 
 A deployment is **not healthy** until both `production-smoke` and
@@ -69,11 +69,11 @@ smoke, local operator checks, and production-only E2E do not regress.
 
 ### Policy matrix
 
-| Surface | Interactive browser policy | Automation / service-token policy | Deny fallback |
-| ------- | -------------------------- | --------------------------------- | ------------- |
-| `GET /` | Allow only maintainers and approved beta users through the Cloudflare Access application for `edge-matte.ozby.dev` | Allow with `CF-Access-Client-Id` / `CF-Access-Client-Secret` headers sourced from `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` for deploy smoke and scripted verification | Any request without an allow rule or valid service-token headers is treated as denied; do not rely on bare `curl` once Access is on |
-| `GET /health` | Same browser allow policy as `/`; useful for maintainers verifying the app interactively | Same service-token header contract as `/`; this is the canonical automation health probe | Same deny fallback as `/` |
-| `POST /api/jobs`, `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same browser allow policy; the SPA, XHR, and hosted image route all stay behind the same Access boundary | Production-only automation (for example `production-journey`) reuses the same service-token headers; no cookie jars or copied browser sessions on disk | Same deny fallback; do not carve out public bypasses for API/image paths |
+| Surface                                                                     | Interactive browser policy                                                                                         | Automation / service-token policy                                                                                                                                              | Deny fallback                                                                                                                       |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /`                                                                     | Allow only maintainers and approved beta users through the Cloudflare Access application for `edge-matte.ozby.dev` | Allow with `CF-Access-Client-Id` / `CF-Access-Client-Secret` headers sourced from `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` for deploy smoke and scripted verification | Any request without an allow rule or valid service-token headers is treated as denied; do not rely on bare `curl` once Access is on |
+| `GET /health`                                                               | Same browser allow policy as `/`; useful for maintainers verifying the app interactively                           | Same service-token header contract as `/`; this is the canonical automation health probe                                                                                       | Same deny fallback as `/`                                                                                                           |
+| `POST /api/jobs`, `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same browser allow policy; the SPA, XHR, and hosted image route all stay behind the same Access boundary           | Production-only automation (for example `production-journey`) reuses the same service-token headers; no cookie jars or copied browser sessions on disk                         | Same deny fallback; do not carve out public bypasses for API/image paths                                                            |
 
 ### Operator rules
 
@@ -108,7 +108,6 @@ maintainer incident response:
    `CF_ACCESS_CLIENT_SECRET`, confirm `CF_ACCESS_CLIENT_ID` still matches the
    active service token, and re-run post-deploy smoke.
 
-
 ## `/api/jobs` abuse-control posture
 
 Private beta should treat `POST /api/jobs` as the only high-cost public action
@@ -118,11 +117,11 @@ creation so smoke checks and normal polling do not trip false positives.
 
 ### Default posture
 
-| Surface | Access | Turnstile | WAF / rate limit | Operator notes |
-| ------- | ------ | ---------- | ---------------- | -------------- |
-| `POST /api/jobs` | Same Access allowlist + service-token contract as `/` and `/health`; never add a public bypass for uploads | Require `cf-turnstile-response` whenever `TURNSTILE_SITE_KEY` is enabled; reject missing, invalid, hostname-mismatch, action-mismatch, replayed, or timed-out verification | Start with a route-specific Cloudflare rule: **Managed Challenge above 10 `POST /api/jobs` requests per client IP per minute**. If one source keeps pushing after challenge or creates sustained cost pressure, escalate to a short-lived block rule at **30 requests per client IP per 10 minutes** while collecting evidence. | Keep thresholds narrow and private-beta-biased; tune only this route before touching broader site controls. |
-| `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same Access contract | No extra challenge beyond the upload-created token lifecycle | No custom private-beta rate limit by default | These routes are part of the normal UX and production suites; observe first before adding custom limits. |
-| `GET /`, `GET /health` | Same Access contract | None | No custom abuse rule | Smoke and manual verification must stay predictable; do not reuse upload thresholds here. |
+| Surface                                                   | Access                                                                                                     | Turnstile                                                                                                                                                                  | WAF / rate limit                                                                                                                                                                                                                                                                                                                | Operator notes                                                                                              |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `POST /api/jobs`                                          | Same Access allowlist + service-token contract as `/` and `/health`; never add a public bypass for uploads | Require `cf-turnstile-response` whenever `TURNSTILE_SITE_KEY` is enabled; reject missing, invalid, hostname-mismatch, action-mismatch, replayed, or timed-out verification | Start with a route-specific Cloudflare rule: **Managed Challenge above 10 `POST /api/jobs` requests per client IP per minute**. If one source keeps pushing after challenge or creates sustained cost pressure, escalate to a short-lived block rule at **30 requests per client IP per 10 minutes** while collecting evidence. | Keep thresholds narrow and private-beta-biased; tune only this route before touching broader site controls. |
+| `GET /api/jobs/:id`, `DELETE /api/jobs/:id`, `GET /i/:id` | Same Access contract                                                                                       | No extra challenge beyond the upload-created token lifecycle                                                                                                               | No custom private-beta rate limit by default                                                                                                                                                                                                                                                                                    | These routes are part of the normal UX and production suites; observe first before adding custom limits.    |
+| `GET /`, `GET /health`                                    | Same Access contract                                                                                       | None                                                                                                                                                                       | No custom abuse rule                                                                                                                                                                                                                                                                                                            | Smoke and manual verification must stay predictable; do not reuse upload thresholds here.                   |
 
 ### Tuning and rollback rules
 

@@ -46,11 +46,11 @@ It owns confidence coverage, not reusable deploy-policy extraction itself.
 Current repo state already has concurrent config churn outside this blueprint.
 If execution resumes with multiple agents, treat these as lane boundaries:
 
-| Lane | Primary paths | Notes |
-| --- | --- | --- |
-| E2E runtime | `apps/e2e/**`, `apps/worker/**`, `.github/workflows/ci.webpresso.yml`, `.github/workflows/deploy.production.yml` | Main confidence-lane code already partly landed; avoid duplicate suite rewrites. |
-| Shared config | `apps/client/package.json`, `apps/client/tsconfig.json`, `apps/client/vitest.config.ts`, `apps/e2e/package.json`, `apps/e2e/tsconfig.json`, `apps/e2e/vitest.config.ts`, `apps/worker/package.json`, `apps/worker/tsconfig.json`, `apps/worker/vitest.config.ts`, `infra/package.json`, `infra/tsconfig.json`, `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `oxlint.config.ts` | Uncommitted config updates are in flight; do not revert them while closing this blueprint. |
-| Docs / lifecycle | `README.md`, `docs/architecture.md`, `docs/release.md`, `blueprints/README.md` | README + architecture are already largely updated; release/lifecycle docs still need parity cleanup. |
+| Lane             | Primary paths                                                                                                                                                                                                                                                                                                                                                                        | Notes                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| E2E runtime      | `apps/e2e/**`, `apps/worker/**`, `.github/workflows/ci.webpresso.yml`, `.github/workflows/deploy.production.yml`                                                                                                                                                                                                                                                                     | Main confidence-lane code already partly landed; avoid duplicate suite rewrites.                     |
+| Shared config    | `apps/client/package.json`, `apps/client/tsconfig.json`, `apps/client/vitest.config.ts`, `apps/e2e/package.json`, `apps/e2e/tsconfig.json`, `apps/e2e/vitest.config.ts`, `apps/worker/package.json`, `apps/worker/tsconfig.json`, `apps/worker/vitest.config.ts`, `infra/package.json`, `infra/tsconfig.json`, `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `oxlint.config.ts` | Uncommitted config updates are in flight; do not revert them while closing this blueprint.           |
+| Docs / lifecycle | `README.md`, `docs/architecture.md`, `docs/release.md`, `blueprints/README.md`                                                                                                                                                                                                                                                                                                       | README + architecture are already largely updated; release/lifecycle docs still need parity cleanup. |
 
 ## Architecture governance
 
@@ -98,15 +98,15 @@ release truth close the final gaps:
 
 ## Refinement findings (2026-05-30)
 
-| ID | Severity | Claim in older blueprint text | Current repo reality | Blueprint fix |
-| --- | --- | --- | --- | --- |
-| F1 | HIGH | "No PR-gating e2e" | [`.github/workflows/ci.webpresso.yml`](../../.github/workflows/ci.webpresso.yml) already has an `e2e` job running `upload-delete-contract`, `smoke`, and `upload-delete`, with pinned action SHAs and Playwright caching. | Mark repo wiring complete and narrow remaining work to required-check enforcement + evidence. |
-| F2 | HIGH | "Only production-smoke runs post-deploy" | [`.github/workflows/deploy.production.yml`](../../.github/workflows/deploy.production.yml) now runs both `production-smoke` and `production-journey`; [global-setup.test.ts](../../apps/e2e/src/global-setup.test.ts) proves production journeys skip local boot. | Mark suite/workflow wiring landed; track live-green verification separately. |
-| F3 | MEDIUM | "Browser spec is `.mjs` and stale" | [`apps/e2e/journeys/upload-delete.spec.ts`](../../apps/e2e/journeys/upload-delete.spec.ts) exists, uses current UI IDs/text, and no `.mjs` files remain in `apps/e2e/`. | Mark the browser rewrite complete and keep the current file paths authoritative. |
-| F4 | MEDIUM | "Contract test passes by accident on `length !==`" | [`apps/e2e/journeys/upload-delete.contract.test.ts`](../../apps/e2e/journeys/upload-delete.contract.test.ts) now checks PNG magic bytes, honest mock-mode expectations, error envelopes, security headers, and SPA delegation. | Mark the contract-suite correction complete. |
-| F5 | HIGH | Real transform proof still assumes the old provider path | [`cf-image-segment-provider.ts`](../../apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts) now uses the IMAGES binding for background removal, and [`production-journey.smoke.test.ts`](../../apps/e2e/journeys/production-journey.smoke.test.ts) asserts served bytes differ from input. | Update remaining work to "prove it green in production" rather than "design the suite." |
-| F6 | MEDIUM | Docs refresh only needs README + architecture | README + architecture already describe the hermetic gate and `production-journey`, but [`docs/release.md`](../../docs/release.md) still treats `production-smoke` as the only post-deploy proof in several spots. | Narrow the docs task to release/lifecycle parity. |
-| F7 | LOW | Verification commands can stay on older workflow wording | The repo now has `vp run act:ci:e2e`, direct `wp audit architecture-drift --root .`, pinned GitHub actions, and current `vp`/`wp` script naming. | Refresh verification commands and acceptance text to the current workflow surface. |
+| ID  | Severity | Claim in older blueprint text                            | Current repo reality                                                                                                                                                                                                                                                                                    | Blueprint fix                                                                                 |
+| --- | -------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| F1  | HIGH     | "No PR-gating e2e"                                       | [`.github/workflows/ci.webpresso.yml`](../../.github/workflows/ci.webpresso.yml) already has an `e2e` job running `upload-delete-contract`, `smoke`, and `upload-delete`, with pinned action SHAs and Playwright caching.                                                                               | Mark repo wiring complete and narrow remaining work to required-check enforcement + evidence. |
+| F2  | HIGH     | "Only production-smoke runs post-deploy"                 | [`.github/workflows/deploy.production.yml`](../../.github/workflows/deploy.production.yml) now runs both `production-smoke` and `production-journey`; [global-setup.test.ts](../../apps/e2e/src/global-setup.test.ts) proves production journeys skip local boot.                                       | Mark suite/workflow wiring landed; track live-green verification separately.                  |
+| F3  | MEDIUM   | "Browser spec is `.mjs` and stale"                       | [`apps/e2e/journeys/upload-delete.spec.ts`](../../apps/e2e/journeys/upload-delete.spec.ts) exists, uses current UI IDs/text, and no `.mjs` files remain in `apps/e2e/`.                                                                                                                                 | Mark the browser rewrite complete and keep the current file paths authoritative.              |
+| F4  | MEDIUM   | "Contract test passes by accident on `length !==`"       | [`apps/e2e/journeys/upload-delete.contract.test.ts`](../../apps/e2e/journeys/upload-delete.contract.test.ts) now checks PNG magic bytes, honest mock-mode expectations, error envelopes, security headers, and SPA delegation.                                                                          | Mark the contract-suite correction complete.                                                  |
+| F5  | HIGH     | Real transform proof still assumes the old provider path | [`cf-image-segment-provider.ts`](../../apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts) now uses the IMAGES binding for background removal, and [`production-journey.smoke.test.ts`](../../apps/e2e/journeys/production-journey.smoke.test.ts) asserts served bytes differ from input. | Update remaining work to "prove it green in production" rather than "design the suite."       |
+| F6  | MEDIUM   | Docs refresh only needs README + architecture            | README + architecture already describe the hermetic gate and `production-journey`, but [`docs/release.md`](../../docs/release.md) still treats `production-smoke` as the only post-deploy proof in several spots.                                                                                       | Narrow the docs task to release/lifecycle parity.                                             |
+| F7  | LOW      | Verification commands can stay on older workflow wording | The repo now has `vp run act:ci:e2e`, direct `wp audit architecture-drift --root .`, pinned GitHub actions, and current `vp`/`wp` script naming.                                                                                                                                                        | Refresh verification commands and acceptance text to the current workflow surface.            |
 
 ## Cross-plan alignment
 
@@ -125,22 +125,22 @@ release truth close the final gaps:
 
 ## Quick Reference (Execution Waves)
 
-| Wave | Tasks | Dependencies | Parallelizable | Effort (T-shirt) |
-| --- | --- | --- | --- | --- |
-| **Wave 0** | 1.1 | None | 1 agent | XS |
-| **Wave 1** | 1.2, 1.3 | 1.1 | 2 agents | S |
-| **Wave 2** | 2.1, 2.2 | 1.1-1.3 | 2 agents | S-M |
-| **Wave 3** | 3.1, 3.2 | 2.1 (and prod evidence context for 3.2) | 2 agents | XS-S |
-| **Critical path** | 1.1 → 1.2 → 2.1 → 3.1 | — | 4 waves | M |
+| Wave              | Tasks                 | Dependencies                            | Parallelizable | Effort (T-shirt) |
+| ----------------- | --------------------- | --------------------------------------- | -------------- | ---------------- |
+| **Wave 0**        | 1.1                   | None                                    | 1 agent        | XS               |
+| **Wave 1**        | 1.2, 1.3              | 1.1                                     | 2 agents       | S                |
+| **Wave 2**        | 2.1, 2.2              | 1.1-1.3                                 | 2 agents       | S-M              |
+| **Wave 3**        | 3.1, 3.2              | 2.1 (and prod evidence context for 3.2) | 2 agents       | XS-S             |
+| **Critical path** | 1.1 → 1.2 → 2.1 → 3.1 | —                                       | 4 waves        | M                |
 
 ### Parallel Metrics Snapshot
 
-| Metric | Formula / Meaning | Target | Actual |
-| --- | --- | --- | --- |
-| RW0 | Ready tasks in Wave 0 | ≥ planned agents / 2 | 1 |
-| CPR | total_tasks / critical_path_length | ≥ 2.5 | 1.75 |
-| DD | dependency_edges / total_tasks | ≤ 2.0 | 1.0 |
-| CP | same-file overlaps per wave | 0 | 0 |
+| Metric | Formula / Meaning                  | Target               | Actual |
+| ------ | ---------------------------------- | -------------------- | ------ |
+| RW0    | Ready tasks in Wave 0              | ≥ planned agents / 2 | 1      |
+| CPR    | total_tasks / critical_path_length | ≥ 2.5                | 1.75   |
+| DD     | dependency_edges / total_tasks     | ≤ 2.0                | 1.0    |
+| CP     | same-file overlaps per wave        | 0                    | 0      |
 
 Refinement delta: score is intentionally **C** because most code-path work has
 already landed in the repo outside this blueprint’s original sequence. The
@@ -350,20 +350,20 @@ explicit external follow-through item instead of over-claiming repo completion.
 
 ## Edge cases
 
-| ID | Severity | Scenario | Mitigation |
-| --- | --- | --- | --- |
-| E1 | HIGH | Mock mode is a byte pass-through, so browser/contract suites cannot prove the real transform. | Keep byte-difference assertions exclusive to `production-journey`; keep mock-mode assertions honest. |
-| E2 | HIGH | `CI=true` would auto-enable production suites if the workflow ran bare `vp run e2e`. | Keep explicit `--suite` usage in CI/deploy workflows and preserve this as a review invariant. |
-| E3 | MEDIUM | Missing `IMAGES` binding or credential drift can make live production proof fail after repo wiring looks correct. | Treat live-green evidence as a dependency on the remediation blueprint, not as already solved by the suite existing. |
-| E4 | MEDIUM | Release docs can lag the actual workflow and mislead operators about what counts as a healthy deploy. | Update `docs/release.md` together with any lifecycle-state change for this blueprint. |
+| ID  | Severity | Scenario                                                                                                          | Mitigation                                                                                                           |
+| --- | -------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| E1  | HIGH     | Mock mode is a byte pass-through, so browser/contract suites cannot prove the real transform.                     | Keep byte-difference assertions exclusive to `production-journey`; keep mock-mode assertions honest.                 |
+| E2  | HIGH     | `CI=true` would auto-enable production suites if the workflow ran bare `vp run e2e`.                              | Keep explicit `--suite` usage in CI/deploy workflows and preserve this as a review invariant.                        |
+| E3  | MEDIUM   | Missing `IMAGES` binding or credential drift can make live production proof fail after repo wiring looks correct. | Treat live-green evidence as a dependency on the remediation blueprint, not as already solved by the suite existing. |
+| E4  | MEDIUM   | Release docs can lag the actual workflow and mislead operators about what counts as a healthy deploy.             | Update `docs/release.md` together with any lifecycle-state change for this blueprint.                                |
 
 ## Risks
 
-| Risk | Severity | Why it matters | Mitigation |
-| --- | --- | --- | --- |
-| Repo claims outpace live production evidence | HIGH | A landed workflow file is not the same as a successful deploy journey. | Keep Task 2.2 open until a successful live run is evidenced. |
-| Required-check enforcement is invisible in git state | HIGH | The `e2e` job can exist without being required on `main`. | Track ruleset/branch-protection confirmation explicitly in Task 3.2 and release docs. |
-| Release docs drift from the shipped workflow | MEDIUM | Operators may stop at `production-smoke` and miss the real transform proof. | Finish Task 3.1 before marking this blueprint done. |
+| Risk                                                 | Severity | Why it matters                                                              | Mitigation                                                                            |
+| ---------------------------------------------------- | -------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Repo claims outpace live production evidence         | HIGH     | A landed workflow file is not the same as a successful deploy journey.      | Keep Task 2.2 open until a successful live run is evidenced.                          |
+| Required-check enforcement is invisible in git state | HIGH     | The `e2e` job can exist without being required on `main`.                   | Track ruleset/branch-protection confirmation explicitly in Task 3.2 and release docs. |
+| Release docs drift from the shipped workflow         | MEDIUM   | Operators may stop at `production-smoke` and miss the real transform proof. | Finish Task 3.1 before marking this blueprint done.                                   |
 
 ## Verification commands
 
