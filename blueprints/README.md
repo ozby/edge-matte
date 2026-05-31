@@ -29,18 +29,28 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
-## Active work (2026-05-30)
+## Active work (2026-05-31)
 
 | Blueprint | Path | Purpose |
 | --- | --- | --- |
 | Audit remediation | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md) | Truthful CI/E2E/runtime verification; remaining live work is quality-rail alignment, a green production deploy, and final truth-state capture |
-| Deploy contract | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: agent-kit policy + private infra plumbing |
-| Security hardening | [`planned/2026-05-28-edge-matte-security-hardening.md`](./planned/2026-05-28-edge-matte-security-hardening.md) | Private-beta security controls: Access, Turnstile, public security config, WAF/rate limiting |
-| E2E confidence suite | [`in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`](./in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md) | Narrowed follow-through lane for release/docs parity, live production-journey proof, and required-check evidence |
+| Deploy contract | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: `agent-kit` policy is in scope, private infra plumbing stays private, and gstack/OMX remain out of scope |
+| Security hardening | [`in-progress/2026-05-28-edge-matte-security-hardening.md`](./in-progress/2026-05-28-edge-matte-security-hardening.md) | Private-beta security controls: Access, Turnstile, public security config, WAF/rate limiting |
+| E2E confidence suite | [`in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`](./in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md) | Partially landed follow-through lane: hermetic PR `e2e` gate is shipped; remaining work is release/docs parity, live `production-smoke` + `production-journey` evidence, and required-check proof |
+| Result compare + Ozby footer | [`in-progress/2026-05-31-edge-matte-result-compare-and-ozby-footer.md`](./in-progress/2026-05-31-edge-matte-result-compare-and-ozby-footer.md) | Product/UI lane for before-after comparison in the ready state and sitewide Ozby network attribution/social links |
 
-Wave 0 (secrets governance) is complete in the working tree. All four active or
+Wave 0 (secrets governance) is complete in the working tree. All five active or
 next-up blueprints were refreshed against the current repo state on
-**2026-05-30**; use each blueprint’s lane-boundary notes before parallel edits.
+**2026-05-31**; use each blueprint’s lane-boundary notes before parallel edits.
+
+For the deploy-contract lane specifically, treat **agent-kit** as the only
+shared-policy upstream in scope; do not expand that blueprint into gstack or
+OMX work just because adjacent external bugs exist.
+The reusable Cloudflare/Pulumi helper package for that lane is
+**private/internal by default**. If it is ever proposed as a public package,
+that promotion must happen in a separate package-surface blueprint with
+`catalog/agent/rules/public-package-safety.md` review plus tarball and
+denied-content auditing; reusability alone is not permission to publish.
 
 ## Completed EdgeMatte blueprints (2026-05-27)
 

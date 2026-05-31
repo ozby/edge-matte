@@ -5,9 +5,13 @@ complexity: M
 created: '2026-05-30'
 last_updated: '2026-05-30'
 progress: '0% (drafted)'
-depends_on:
-  - /Users/ozby/repos/webpresso/agent-kit/blueprints/planned/2026-05-30-cross-project-wp-execution-map.md
-  - /Users/ozby/repos/webpresso/agent-kit/blueprints/planned/2026-05-30-agent-kit-base-wp-core.md
+cross_repo_depends_on:
+  - repo: webpresso/agent-kit
+    slug: 2026-05-30-cross-project-wp-execution-map
+    require_status: planned
+  - repo: webpresso/agent-kit
+    slug: 2026-05-30-agent-kit-base-wp-core
+    require_status: planned
 tags:
   - wp
   - edge-matte
@@ -16,6 +20,13 @@ tags:
 ---
 
 # EdgeMatte: `wp`-first thin-consumer migration
+
+## Architecture governance
+
+Architecture docs:
+
+- [`docs/architecture.md`](../../docs/architecture.md)
+- [`docs/architecture.contract.json`](../../docs/architecture.contract.json)
 
 **Goal:** Finish EdgeMatte’s transition to a `wp`-first thin-consumer surface by
 removing active public raw `pnpm`, direct `vitest`, and bare `tsc` from normal

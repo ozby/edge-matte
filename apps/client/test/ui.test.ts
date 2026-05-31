@@ -87,9 +87,52 @@ describe("ui rendering", () => {
     expect(ui.resultPanel.hidden).toBe(false);
     expect(ui.resultUrl.href).toBe("https://edge-matte.ozby.dev/i/job_123");
     expect(ui.copyButton.disabled).toBe(false);
-    // The preview must show the PROCESSED result, not the original upload.
-    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
+    expect(ui.previewImage.hidden).toBe(true);
+    expect(ui.compareEl.hidden).toBe(false);
+    expect(ui.compareBeforeImage.src).toBe("blob:preview");
+    expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
     // Spinner must be hidden once processing is complete.
     expect(ui.spinner.hidden).toBe(true);
+  });
+
+  it("shows the original and transformed images together during delete confirmation", () => {
+    const mount = document.createElement("div");
+    const ui = createUi(mount);
+    renderUi(ui, {
+      phase: "confirm-delete",
+      previewUrl: "blob:preview",
+      job: {
+        id: "job_123",
+        status: "ready",
+        imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+        pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
+        errorCode: null,
+        createdAt: "2026-05-27T00:00:00.000Z",
+        updatedAt: "2026-05-27T00:00:00.000Z",
+      },
+      deleteToken: "secret",
+    });
+
+    expect(ui.resultPanel.hidden).toBe(false);
+    expect(ui.deleteConfirm.hidden).toBe(false);
+    expect(ui.compareEl.hidden).toBe(false);
+    expect(ui.compareBeforeImage.src).toBe("blob:preview");
+    expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
+  });
+
+  it("renders the Ozby network footer links", () => {
+    const mount = document.createElement("div");
+    createUi(mount);
+
+    const ozbyLink = mount.querySelector<HTMLAnchorElement>('a[href="https://ozby.dev"]');
+    const githubLink = mount.querySelector<HTMLAnchorElement>('a[href="https://github.com/ozby"]');
+    const linkedInLink = mount.querySelector<HTMLAnchorElement>(
+      'a[href="http://linkedin.com/in/ozberk-ercin/"]',
+    );
+
+    expect(mount.textContent).toContain("Part of the Ozby network");
+    expect(ozbyLink?.textContent).toContain("Ozby");
+    expect(githubLink?.textContent).toContain("GitHub");
+    expect(linkedInLink?.textContent).toContain("LinkedIn");
   });
 });

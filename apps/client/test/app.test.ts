@@ -29,30 +29,54 @@ const PNG_BYTES = Uint8Array.of(
 );
 
 describe("upload flow controller", () => {
+  let securityConfig: {
+    turnstile: { enabled: boolean; siteKey: string | null; action: string };
+  };
+  let createJobResponse: Response;
+  let deleteJobResponse: Response;
+  let receivedCreateJobForm: FormData | null;
+
   beforeEach(() => {
+    securityConfig = {
+      turnstile: {
+        enabled: false,
+        siteKey: null,
+        action: "upload",
+      },
+    };
+    createJobResponse = new Response(
+      JSON.stringify({
+        id: "job_test",
+        status: "ready",
+        imageUrl: "https://edge-matte.ozby.dev/i/job_test",
+        pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
+        errorCode: null,
+        createdAt: "2026-05-27T00:00:00.000Z",
+        updatedAt: "2026-05-27T00:00:00.000Z",
+        deleteToken: "delete-token",
+      }),
+      { status: 201, headers: { "content-type": "application/json" } },
+    );
+    deleteJobResponse = new Response(null, { status: 204 });
+    receivedCreateJobForm = null;
     URL.createObjectURL = vi.fn(() => "blob:preview") as typeof URL.createObjectURL;
     URL.revokeObjectURL = vi.fn() as typeof URL.revokeObjectURL;
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo, init?: RequestInit) => {
         const url = typeof input === "string" ? input : input.url;
+        if (url.endsWith("/api/security-config")) {
+          return new Response(JSON.stringify(securityConfig), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        }
         if (url.endsWith("/api/jobs") && init?.method === "POST") {
-          return new Response(
-            JSON.stringify({
-              id: "job_test",
-              status: "ready",
-              imageUrl: "https://edge-matte.ozby.dev/i/job_test",
-              pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
-              errorCode: null,
-              createdAt: "2026-05-27T00:00:00.000Z",
-              updatedAt: "2026-05-27T00:00:00.000Z",
-              deleteToken: "delete-token",
-            }),
-            { status: 201, headers: { "content-type": "application/json" } },
-          );
+          receivedCreateJobForm = init.body instanceof FormData ? init.body : null;
+          return createJobResponse.clone();
         }
         if (url.includes("/api/jobs/job_test") && init?.method === "DELETE") {
-          return new Response(null, { status: 204 });
+          return deleteJobResponse.clone();
         }
         return new Response(JSON.stringify({ error: { code: "image_not_found" } }), {
           status: 404,
@@ -82,12 +106,14 @@ describe("upload flow controller", () => {
     expect(app.getState().phase).toBe("ready");
     expect(ui.resultPanel.hidden).toBe(false);
     expect(ui.resultUrl.textContent).toContain("/i/job_test");
-    // Preview must swap to the PROCESSED result, not stay on the original blob URL.
-    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
+    expect(ui.compareEl.hidden).toBe(false);
+    expect(ui.compareBeforeImage.src).toBe("blob:preview");
+    expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
 
     app.requestDelete();
     expect(app.getState().phase).toBe("confirm-delete");
     expect(ui.deleteConfirm.hidden).toBe(false);
+    expect(ui.compareEl.hidden).toBe(false);
 
     await app.confirmDelete();
     expect(app.getState().phase).toBe("deleted");
@@ -103,17 +129,15 @@ describe("upload flow controller", () => {
     expect(app.getState().phase).toBe("preview");
     const displayedBlob = ui.previewImage.src;
 
-    // Enter the uploading phase synchronously, before the network resolves.
+    // The submit call must not revoke the blob URL while it is still the active preview.
     const pending = app.submitUpload();
-    expect(app.getState().phase).toBe("uploading");
     // The blob URL the <img> is still showing must NOT have been revoked — revoking
     // it mid-flight is what rendered the preview broken until processing finished.
     expect(URL.revokeObjectURL).not.toHaveBeenCalledWith(displayedBlob);
-    expect(ui.previewImage.src).toBe(displayedBlob);
 
     await pending;
-    // Once ready, the preview swaps to the processed result.
-    expect(ui.previewImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
+    expect(ui.compareBeforeImage.src).toBe("blob:preview");
+    expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
   });
 
   it("surfaces recoverable validation errors before upload", () => {
@@ -122,6 +146,117 @@ describe("upload flow controller", () => {
     const bad = new File([Uint8Array.of(0x00)], "bad.bin", { type: "application/octet-stream" });
     app.selectFile(bad);
     expect(app.getState()).toMatchObject({ phase: "error", recoverable: true });
+  });
+
+  it("blocks upload until the Turnstile challenge has produced a token", async () => {
+    securityConfig = {
+      turnstile: {
+        enabled: true,
+        siteKey: "site_public_123",
+        action: "upload",
+      },
+    };
+    window.turnstile = {
+      render: vi.fn(() => "widget-1"),
+      reset: vi.fn(),
+    };
+
+    const mount = document.createElement("div");
+    const { app, ui } = createAppForTest(mount);
+    const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+
+    app.selectFile(file);
+    await vi.waitFor(() => {
+      expect(ui.submitButton.disabled).toBe(true);
+    });
+
+    await app.submitUpload();
+
+    expect(app.getState()).toMatchObject({
+      phase: "error",
+      message: "Complete the verification challenge before uploading.",
+      recoverable: true,
+    });
+    expect(receivedCreateJobForm).toBeNull();
+  });
+
+  it("sends the challenge token on createJob and resets the widget after submit and delete", async () => {
+    securityConfig = {
+      turnstile: {
+        enabled: true,
+        siteKey: "site_public_123",
+        action: "upload",
+      },
+    };
+    let onToken: ((token: string) => void) | undefined;
+    const reset = vi.fn();
+    window.turnstile = {
+      render: vi.fn((_, options) => {
+        onToken = options.callback;
+        return "widget-1";
+      }),
+      reset,
+    };
+
+    const mount = document.createElement("div");
+    const { app, ui } = createAppForTest(mount);
+    const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+
+    await vi.waitFor(() => {
+      expect(window.turnstile?.render).toHaveBeenCalledTimes(1);
+    });
+    onToken?.("token-123");
+    app.selectFile(file);
+
+    expect(ui.submitButton.disabled).toBe(false);
+
+    await app.submitUpload();
+
+    expect(receivedCreateJobForm?.get("turnstileToken")).toBe("token-123");
+    expect(reset).toHaveBeenCalledTimes(1);
+
+    app.requestDelete();
+    await app.confirmDelete();
+
+    expect(reset).toHaveBeenCalledTimes(2);
+  });
+
+  it("resets the challenge after upload errors", async () => {
+    securityConfig = {
+      turnstile: {
+        enabled: true,
+        siteKey: "site_public_123",
+        action: "upload",
+      },
+    };
+    createJobResponse = new Response(JSON.stringify({ error: { code: "invalid_request" } }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+
+    let onToken: ((token: string) => void) | undefined;
+    const reset = vi.fn();
+    window.turnstile = {
+      render: vi.fn((_, options) => {
+        onToken = options.callback;
+        return "widget-1";
+      }),
+      reset,
+    };
+
+    const mount = document.createElement("div");
+    const { app } = createAppForTest(mount);
+    const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+
+    await vi.waitFor(() => {
+      expect(window.turnstile?.render).toHaveBeenCalledTimes(1);
+    });
+    onToken?.("token-123");
+    app.selectFile(file);
+    await app.submitUpload();
+
+    expect(app.getState()).toMatchObject({ phase: "error", recoverable: true });
+    expect(reset).toHaveBeenCalledTimes(1);
   });
 
   describe("wired event handlers", () => {

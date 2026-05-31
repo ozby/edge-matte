@@ -4,6 +4,7 @@ import type { UiPhase } from "./state";
 export interface UiElements {
   root: HTMLElement;
   fileInput: HTMLInputElement;
+  securityChallenge: HTMLElement;
   pickButton: HTMLButtonElement;
   submitButton: HTMLButtonElement;
   resetButton: HTMLButtonElement;
@@ -12,6 +13,11 @@ export interface UiElements {
   spinner: HTMLElement;
   previewEl: HTMLElement;
   previewImage: HTMLImageElement;
+  compareEl: HTMLElement;
+  compareFrame: HTMLElement;
+  compareBeforeImage: HTMLImageElement;
+  compareAfterImage: HTMLImageElement;
+  compareSlider: HTMLInputElement;
   metaEl: HTMLElement;
   resultPanel: HTMLElement;
   resultUrl: HTMLAnchorElement;
@@ -24,6 +30,15 @@ export interface UiElements {
   errorEl: HTMLElement;
   dropZone: HTMLElement;
 }
+
+const updateCompareSplit = (ui: UiElements, value: string): void => {
+  ui.compareFrame.style.setProperty("--compare-split", `${value}%`);
+};
+
+const resetCompareSplit = (ui: UiElements): void => {
+  ui.compareSlider.value = "50";
+  updateCompareSplit(ui, ui.compareSlider.value);
+};
 
 export const createUi = (mount: HTMLElement): UiElements => {
   mount.innerHTML = `
@@ -61,6 +76,8 @@ export const createUi = (mount: HTMLElement): UiElements => {
           </div>
         </div>
 
+        <div id="security-challenge" hidden aria-live="polite"></div>
+
         <div class="action-bar">
           <button id="pick-file" type="button" class="btn btn-secondary">Choose file</button>
           <button id="submit-upload" type="button" class="btn btn-primary" disabled>
@@ -84,6 +101,27 @@ export const createUi = (mount: HTMLElement): UiElements => {
         <p id="error" class="error" role="alert" hidden></p>
 
         <figure id="preview" class="preview" hidden>
+          <div id="compare" class="compare" hidden>
+            <div id="compare-frame" class="compare-frame">
+              <img id="compare-after-image" class="compare-image compare-image--after" alt="Transformed image preview" />
+              <div class="compare-before-clip" aria-hidden="true">
+                <img id="compare-before-image" class="compare-image compare-image--before" alt="Original image preview" />
+              </div>
+              <div class="compare-handle" aria-hidden="true"></div>
+              <div class="compare-label compare-label--before">Original</div>
+              <div class="compare-label compare-label--after">Transformed</div>
+            </div>
+            <label class="compare-slider-label" for="compare-slider">Compare original and transformed image</label>
+            <input
+              id="compare-slider"
+              class="compare-slider"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare original and transformed image"
+            />
+          </div>
           <img id="preview-image" alt="Image preview" />
           <figcaption id="preview-meta"></figcaption>
         </figure>
@@ -129,7 +167,15 @@ export const createUi = (mount: HTMLElement): UiElements => {
       </div>
 
       <footer class="site-footer">
-        <p>Processed at the edge &middot; Cloudflare Workers</p>
+        <div class="site-footer__content">
+          <p class="site-footer__network">
+            Part of the <a href="https://ozby.dev" target="_blank" rel="noopener noreferrer">Ozby network</a>
+          </p>
+          <nav class="site-footer__links" aria-label="Ozby network links">
+            <a href="https://github.com/ozby" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="http://linkedin.com/in/ozberk-ercin/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          </nav>
+        </div>
       </footer>
     </main>
   `;
@@ -140,9 +186,10 @@ export const createUi = (mount: HTMLElement): UiElements => {
     return el as T;
   };
 
-  return {
+  const ui = {
     root: mount,
     fileInput: query("file-input"),
+    securityChallenge: query("security-challenge"),
     pickButton: query("pick-file"),
     submitButton: query("submit-upload"),
     resetButton: query("reset-flow"),
@@ -151,6 +198,11 @@ export const createUi = (mount: HTMLElement): UiElements => {
     spinner: query("spinner"),
     previewEl: query("preview"),
     previewImage: query("preview-image"),
+    compareEl: query("compare"),
+    compareFrame: query("compare-frame"),
+    compareBeforeImage: query("compare-before-image"),
+    compareAfterImage: query("compare-after-image"),
+    compareSlider: query("compare-slider"),
     metaEl: query("preview-meta"),
     resultPanel: query("result"),
     resultUrl: query("result-url"),
@@ -162,7 +214,14 @@ export const createUi = (mount: HTMLElement): UiElements => {
     cancelDeleteButton: query("cancel-delete"),
     errorEl: query("error"),
     dropZone: query("drop-zone"),
-  };
+  } satisfies UiElements;
+
+  updateCompareSplit(ui, ui.compareSlider.value);
+  ui.compareSlider.addEventListener("input", () => {
+    updateCompareSplit(ui, ui.compareSlider.value);
+  });
+
+  return ui;
 };
 
 const TRANSIENT_PHASES = new Set<UiPhase["phase"]>(["uploading", "processing"]);
@@ -177,8 +236,11 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
 
   switch (state.phase) {
     case "idle":
+      resetCompareSplit(ui);
       ui.statusText.textContent = "Select or drop an image to begin.";
       ui.previewEl.hidden = true;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
       ui.resultPanel.hidden = true;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = false;
@@ -188,6 +250,8 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "preview":
       ui.statusText.textContent = `Ready — ${state.fileName} (${formatFileSize(state.fileSize)})`;
       ui.previewEl.hidden = false;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = state.fileName;
       ui.resultPanel.hidden = true;
@@ -197,6 +261,8 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "uploading":
       ui.statusText.textContent = "Uploading…";
       ui.previewEl.hidden = false;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = state.fileName;
       ui.resultPanel.hidden = true;
@@ -206,6 +272,8 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "processing":
       ui.statusText.textContent = statusLabel(state.status);
       ui.previewEl.hidden = false;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
       ui.previewImage.src = state.previewUrl;
       ui.metaEl.textContent = `Job ${state.jobId}`;
       ui.resultPanel.hidden = true;
@@ -215,7 +283,10 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "ready":
       ui.statusText.textContent = "Done. Your image is live.";
       ui.previewEl.hidden = false;
-      ui.previewImage.src = state.job.imageUrl;
+      ui.previewImage.hidden = true;
+      ui.compareEl.hidden = false;
+      ui.compareBeforeImage.src = state.previewUrl;
+      ui.compareAfterImage.src = state.job.imageUrl;
       ui.metaEl.textContent = state.job.id;
       ui.resultPanel.hidden = false;
       ui.resultUrl.href = state.job.imageUrl;
@@ -230,15 +301,27 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
     case "confirm-delete":
       ui.statusText.textContent = "Confirm deletion below.";
       ui.previewEl.hidden = false;
+      ui.previewImage.hidden = true;
+      ui.compareEl.hidden = false;
+      ui.compareBeforeImage.src = state.previewUrl;
+      ui.compareAfterImage.src = state.job.imageUrl;
+      ui.metaEl.textContent = state.job.id;
       ui.resultPanel.hidden = false;
+      ui.resultUrl.href = state.job.imageUrl;
+      ui.resultUrl.textContent = state.job.imageUrl;
+      ui.downloadButton.href = state.job.imageUrl;
+      ui.downloadButton.download = `${state.job.id}.png`;
       ui.deleteButton.hidden = true;
       ui.deleteConfirm.hidden = false;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = true;
       break;
     case "deleted":
+      resetCompareSplit(ui);
       ui.statusText.textContent = "Artifacts deleted — the hosted URL now returns 404.";
       ui.previewEl.hidden = true;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
       ui.resultPanel.hidden = true;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = false;
