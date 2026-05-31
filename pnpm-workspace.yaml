@@ -4,6 +4,7 @@ packages:
 
 catalog:
   "@webpresso/agent-kit": ^0.21.5
+  vite-plus: "0.1.22"
   "@stryker-mutator/core": ^9.6.1
   "@stryker-mutator/typescript-checker": ^9.6.1
   "@stryker-mutator/vitest-runner": ^9.6.1

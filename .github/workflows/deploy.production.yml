@@ -24,10 +24,8 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: pnpm
-      - name: Install global Webpresso tooling
-        run: |
-          WP_VERSION=$(grep '"@webpresso/agent-kit"' pnpm-workspace.yaml | sed 's/.*: *//')
-          npm install -g "vite-plus@0.1.22" "@webpresso/agent-kit@${WP_VERSION}"
+      - name: Set up Webpresso tooling
+        uses: ./.github/actions/setup-webpresso
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: latest
