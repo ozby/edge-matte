@@ -1,27 +1,73 @@
 # EdgeMatte
 
-Cloudflare-native TypeScript reference app for image matting pipelines: upload one image, remove its background through a provider adapter, flip it at the edge, host the result in R2, and delete every artifact with a capability token.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/ozby/edge-matte/ci.webpresso.yml?branch=main&label=CI)](https://github.com/ozby/edge-matte/actions/workflows/ci.webpresso.yml)
 
-## Live demo
+## What it is
 
-**[https://edge-matte.ozby.dev](https://edge-matte.ozby.dev)** — drag an image in, watch the spinner cycle through the four processing phases, copy the hosted URL, then delete.
+EdgeMatte is a Cloudflare-native TypeScript reference app that takes one uploaded image, removes its background at the edge, flips it horizontally, hosts the result in R2, and lets you delete every artifact with a capability token.
 
+## Why use it
+
+- **Production-shaped, not a toy demo** — a complete upload → process → host → delete vertical slice with storage, status, cleanup, and deploy discipline.
+- **Cloudflare-native, zero external API keys** — background removal runs on the built-in `cf.image segment: "foreground"` (BiRefNet) CDN transform via a Worker sub-request.
+- **Hexagonal, swap-friendly core** — a pure `processImageJob` pipeline with dependency-injected adapters, so the processing logic knows nothing about Cloudflare.
+
+Live demo: **[edge-matte.ozby.dev](https://edge-matte.ozby.dev)** (private-beta cutover to Cloudflare Access in progress — see [`docs/release.md`](./docs/release.md#cloudflare-access-private-beta-contract)).
+
+## Quick start
+
+Requires Node `>=24` with `vp` (vite-plus) on `PATH`.
+
+```bash
+# Install workspace deps from the frozen lockfile
+vp install --frozen-lockfile
+# → pnpm@11.1.1 substrate installs all workspace deps; exits 0
+
+# Run the no-setup mock pipeline (no Cloudflare account or secrets needed)
+vp run --filter @edge-matte/worker dev:mock
+# → wrangler dev boots with E2E_MOCK_PIPELINE:1 and prints a local URL;
+#   the full upload → process → host → delete flow works end to end
+
+# Run the unit + integration suites
+vp run test
+# → worker, client, and root suites pass green
+
+# Run the hermetic smoke e2e suite
+vp run e2e -- --suite smoke
+# → wrangler dev (mock pipeline) boots; /health + SPA shell checks pass
+
+# Run the HTTP contract e2e suite
+vp run e2e -- --suite upload-delete-contract
+# → upload → serve → delete plus every error code pass
 ```
-curl -sf https://edge-matte.ozby.dev/health
-```
 
-Private-beta rollout note: `edge-matte.ozby.dev` is slated to sit behind
-Cloudflare Access for both browser sessions and operator automation. When that
-cutover lands, bare `curl` checks to `/health` or `/` are no longer the
-maintained verification path; use the Access service-token contract documented
-in [`docs/release.md`](./docs/release.md#cloudflare-access-private-beta-contract)
-and [`docs/secrets.md`](./docs/secrets.md#cloudflare-access-automation-secrets).
+The mock pipeline path needs no Cloudflare account, secrets, or network. (`dev:mock` is `wrangler dev --var E2E_MOCK_PIPELINE:1`; the shell-only `E2E_MOCK_PIPELINE=1` form does not propagate to Workers `env`.)
 
-## Architecture at a glance
+## Features
+
+| Feature                                                                                                                                    | Proof                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloudflare-native background removal via `cf.image segment: "foreground"` (BiRefNet), no external API key                                  | [`apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`](./apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts), [test](./apps/worker/test/cf-image-segment-provider.test.ts)         |
+| Pure hexagonal pipeline: validate → upload → bg-removal → flip → store → respond, DI adapters                                              | [`apps/worker/src/core/process-image-job.ts`](./apps/worker/src/core/process-image-job.ts), [test](./apps/worker/test/process-image-job.test.ts)                                                               |
+| Edge horizontal flip via the Workers Images binding (native, no library/upload)                                                            | [`apps/worker/src/adapters/cloudflare/images-transformer.ts`](./apps/worker/src/adapters/cloudflare/images-transformer.ts)                                                                                     |
+| Capability-token delete: response returns a SHA-256-verified `deleteToken`; only the hash persists                                         | [`apps/worker/src/core/image-job.ts`](./apps/worker/src/core/image-job.ts)                                                                                                                                     |
+| Five HTTP routes with a shared error envelope (`POST /api/jobs`, `GET /api/jobs/:id`, `GET /i/:id`, `DELETE /api/jobs/:id`, `GET /health`) | [`apps/worker/src/adapters/hono/app.ts`](./apps/worker/src/adapters/hono/app.ts), [routes test](./apps/worker/test/routes.test.ts)                                                                             |
+| R2-backed storage for both image bytes and job metadata                                                                                    | [`r2-image-object-store.ts`](./apps/worker/src/adapters/cloudflare/r2-image-object-store.ts), [`r2-job-repository.ts`](./apps/worker/src/adapters/cloudflare/r2-job-repository.ts)                             |
+| PNG matte edge-cleanup post-processing                                                                                                     | [`apps/worker/src/adapters/cloudflare/png-matte-edge-cleaner.ts`](./apps/worker/src/adapters/cloudflare/png-matte-edge-cleaner.ts), [test](./apps/worker/test/png-matte-edge-cleaner.test.ts)                  |
+| Framework-free 8-phase client UI state machine                                                                                             | [`apps/client/src/state.ts`](./apps/client/src/state.ts), [test](./apps/client/test/state.test.ts)                                                                                                             |
+| Abuse / security guarding on the worker                                                                                                    | [abuse-guard test](./apps/worker/test/abuse-guard.test.ts), [security test](./apps/worker/test/security-and-assets.test.ts)                                                                                    |
+| Hermetic + production e2e suites (smoke, upload-delete, upload-delete-contract, production-smoke, production-journey)                      | [`apps/e2e/src/e2e-suite-manifest.ts`](./apps/e2e/src/e2e-suite-manifest.ts), [`apps/e2e/src/cli/run-e2e.ts`](./apps/e2e/src/cli/run-e2e.ts)                                                                   |
+| Cloudflare Access private-beta service-token contract                                                                                      | [`apps/e2e/src/journeys/access.test.ts`](./apps/e2e/src/journeys/access.test.ts), [`docs/release.md`](./docs/release.md)                                                                                       |
+| CI: quality pipeline + architecture-drift gate + production deploy                                                                         | [`ci.webpresso.yml`](./.github/workflows/ci.webpresso.yml), [`architecture-contract.yml`](./.github/workflows/architecture-contract.yml), [`deploy.production.yml`](./.github/workflows/deploy.production.yml) |
+| Machine-checkable architecture drift contract via `wp audit architecture-drift`                                                            | [`docs/architecture.contract.json`](./docs/architecture.contract.json), [`docs/architecture.md`](./docs/architecture.md)                                                                                       |
+| Pulumi-managed Cloudflare infrastructure with a Wrangler deploy split                                                                      | [`scripts/deploy-production.ts`](./scripts/deploy-production.ts), [`scripts/verify-deploy-contract.ts`](./scripts/verify-deploy-contract.ts), [`docs/release.md`](./docs/release.md)                           |
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    DOMAIN[edge-matte.ozby.dev] --> WORKER[Cloudflare Worker]
+    DOMAIN[edge-matte.ozby.dev] --> WORKER[Cloudflare Worker / Hono]
     WORKER --> CORE[Pure processImageJob core]
     CORE --> BG[BackgroundRemovalProvider]
     CORE --> IMG[ImageTransformer]
@@ -29,168 +75,35 @@ flowchart LR
     CORE --> BLOBS[(R2 image objects)]
 ```
 
-- **Hono** routes inside one Cloudflare Worker.
-- **Cloudflare-native background removal** via the `cf.image segment: "foreground"` CDN transform (BiRefNet under the hood). The provider issues a Worker sub-request to a prefix-gated `/internal/raw/segment-tmp/...` route so the CDN can apply the transform, then cleans the temp object. Swap-friendly via the `BackgroundRemovalProvider` port.
-- **Cloudflare Images** binding for the horizontal flip (no library, no upload, native edge transform).
-- **R2** holds both the image bytes and the job metadata.
-- **Capability-token delete**: the create response returns a SHA-256-verified `deleteToken`; only the hash is persisted in R2.
+Hono routes inside one Worker; the pure core is dependency-injected with the `cf.image segment` provider, the Workers Images flip, and R2 storage. Tests swap those ports for in-memory mocks. Full source-of-truth diagrams live in [`docs/architecture.md`](./docs/architecture.md).
 
-## Run locally
+## Verify
 
-Node `>=24` with global `wp` and `vp` on `PATH`.
-
-```
-vp install --frozen-lockfile
-```
-
-### No-setup path — mock pipeline (recommended for a quick look)
-
-Background removal in production uses Cloudflare's native `cf.image segment: "foreground"` CDN transform (BiRefNet) via a Worker sub-request — no external API key required. The mock pipeline swaps that path for in-memory mocks so the full upload → process → host → delete flow works without any Cloudflare account setup.
-
-```
-vp run --filter @edge-matte/worker dev:mock
-```
-
-(`dev:mock` is `wrangler dev --var E2E_MOCK_PIPELINE:1`; the shell-only `E2E_MOCK_PIPELINE=1` form does **not** propagate to Workers `env` and will land on the real cf.image path, which 502s in miniflare.)
-
-Then open the URL printed by `wrangler dev` and exercise the UI.
-
-## Code tour
-
-Where to start if you want to read the actual implementation:
-
-| File                                                                                                                                     | What it does                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`apps/worker/src/adapters/hono/app.ts`](./apps/worker/src/adapters/hono/app.ts)                                                         | All five HTTP routes (`POST /api/jobs`, `GET /api/jobs/:id`, `GET /i/:id`, `DELETE /api/jobs/:id`, `GET /health`). Shared error envelope.                         |
-| [`apps/worker/src/core/process-image-job.ts`](./apps/worker/src/core/process-image-job.ts)                                               | Pure pipeline: validate → upload → bg-removal → flip → store → respond. Adapters are dependency-injected; the core knows nothing about Cloudflare.                |
-| [`apps/worker/src/core/image-job.ts`](./apps/worker/src/core/image-job.ts)                                                               | Job lifecycle, delete-token verification, URL derivation.                                                                                                         |
-| [`apps/worker/src/core/errors.ts`](./apps/worker/src/core/errors.ts)                                                                     | `AppError` + the closed set of error codes the frontend translates.                                                                                               |
-| [`apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`](./apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts) | `cf.image segment: "foreground"` via a Worker sub-request. Stores a temp blob under `segment-tmp/`, applies the CDN transform, cleans up in `finally`. Abortable. |
-| [`apps/worker/src/adapters/cloudflare/images-transformer.ts`](./apps/worker/src/adapters/cloudflare/images-transformer.ts)               | One-call horizontal flip via the Workers Images binding.                                                                                                          |
-| [`apps/client/src/state.ts`](./apps/client/src/state.ts)                                                                                 | Eight-phase UI state machine — `idle → preview → uploading → processing → ready → confirm-delete → deleted`, plus `error`.                                        |
-| [`apps/client/src/app.ts`](./apps/client/src/app.ts)                                                                                     | Controller. Wires `selectFile / submitUpload / requestDelete / confirmDelete / reset / copyResultUrl`.                                                            |
-| [`apps/client/src/ui.ts`](./apps/client/src/ui.ts)                                                                                       | DOM template + render — semantic HTML, `aria-live` status, no framework.                                                                                          |
-
-The Worker entrypoint at [`apps/worker/src/index.ts`](./apps/worker/src/index.ts) is the dependency-injection seam: production wires the `cf.image segment` provider + Cloudflare Images flip + R2; tests use in-memory mocks via the same port interfaces.
-
-## Tests
-
-```
-vp install --frozen-lockfile
-vp run test                              # unit + integration (worker, client, root)
-vp run e2e -- --suite upload-delete-contract  # HTTP contract: upload→serve→delete + every error code
-vp run e2e -- --suite smoke              # /health + SPA shell
-vp run e2e -- --suite upload-delete      # Playwright browser journey (boots wrangler dev)
-```
-
-The three local e2e suites are **hermetic**: the harness boots `wrangler dev`
-with `E2E_MOCK_PIPELINE:1` (deterministic mock provider/transformer), so no
-secrets and no external network are needed. Every PR runs all three in the CI
-`e2e` job (`vp run act:ci:e2e` to dry-run it locally via `act`).
-
-Against the deployed URL (runs automatically post-deploy):
-
-```
-# /health + SPA shell
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
-# Real upload → cf.image transform → hosted PNG (bytes differ from input) → delete → 404
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
-```
-
-`production-journey` is the only suite that proves the real background-removal +
-flip transform; the hermetic suites prove plumbing, the API contract, and the
-browser UI.
-
----
-
-## Governance and deeper docs
-
-The repo treats architecture as a living contract, not a snapshot. Reviewers can ignore this section — it's for maintainers.
-
-- [`docs/architecture.md`](./docs/architecture.md) — architecture source of truth with Mermaid runtime, storage, E2E, and infrastructure deployment diagrams.
-- [`docs/architecture.contract.json`](./docs/architecture.contract.json) — machine-checkable architecture/blueprint drift contract.
-- [`docs/release.md`](./docs/release.md) — release/deploy path, Pulumi/Wrangler ownership split, post-deploy smoke.
-- [`infra/README.md`](./infra/README.md) — Pulumi-owned infrastructure bootstrap plus the infra deployment Mermaid chart.
-- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` + Cloudflare Worker secret ownership.
-- [`blueprints/completed/2026-05-27-edge-matte.md`](./blueprints/completed/2026-05-27-edge-matte.md) — implementation blueprint with architecture before/after.
-- [`docs/research/`](./docs/research) — naming research, infra best-practices, refinement notes.
-
-The architecture drift check runs through the shared agent-kit audit surface:
-
-```
-wp audit architecture-drift --root .
-```
-
-### Webpresso tooling (`wp` and `vp`)
-
-EdgeMatte reuses [`webpresso/agent-kit`](https://github.com/webpresso/agent-kit) for the same quality and governance rails as IngestLens instead of inventing parallel lint hooks, blueprint checks, or commit conventions. Agent Kit owns one maintained source for repo instructions, generated hooks, blueprint/audit policy, and verification command routing while EdgeMatte stays focused on the Cloudflare image-matting product.
-
-| Tool     | Role                       | What it solves                                                                                                                                                                                                                                                     |
-| -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **`wp`** | Webpresso / agent-kit CLI  | Scaffolds `.agent/` surfaces, runs **audits** (commit-message lore protocol, blueprint lifecycle, docs frontmatter, guardrails, architecture drift), wires IDE/agent hooks, and keeps repo policy enforceable in CI and pre-commit without custom one-off scripts. |
-| **`vp`** | vite-plus workspace runner | Runs package scripts across the pnpm workspace (`vp install`, `vp run test`, `vp check`, `vp fmt`) so verification commands stay consistent across apps without duplicating script wiring in every package.                                                        |
-
-Install `wp` and `vp` globally; the supported hook, audit, and script surface assumes both binaries are already on `PATH`.
-
-### Full local verification surface (maintainer only)
-
-<details>
-<summary>Expand the long-form verification recipe</summary>
+**Fast contributor check** — hermetic, no secrets, no network:
 
 ```bash
 vp install --frozen-lockfile
-wp config secrets show
-wp init --dry-run
-vp run -r build
 vp run -r lint
 vp run -r check-types
 vp run test
 vp run e2e -- --suite smoke
-vp run e2e -- --suite upload-delete
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
-vp run verify:secrets
-wp audit absolute-path-policy --root .
-vp run audit:secret-provider-quarantine
+```
+
+**Full maintainer check (maintainer only)** — includes mutation testing, the architecture-drift gate, and production e2e against the deployed URL:
+
+```bash
+vp run qa                               # wp lint + typecheck + vitest + mutation + playwright e2e
 wp audit architecture-drift --root .
-wp audit guardrails
-```
-
-</details>
-
-## Release and deploy
-
-Production target: `https://edge-matte.ozby.dev`.
-
-- [`docs/release.md`](./docs/release.md) — Pulumi/Wrangler ownership split, CI deploy path, post-deploy smoke, maintainer bootstrap.
-- [`docs/architecture.md#infrastructure-deployment-ownership`](./docs/architecture.md#infrastructure-deployment-ownership) — Mermaid deployment/ownership chart for CI, Pulumi, Wrangler, and prod.
-- [`infra/README.md#deployment-chart`](./infra/README.md#deployment-chart) — infra-focused Mermaid chart for the durable-resource/bootstrap boundary.
-- [`docs/secrets.md`](./docs/secrets.md) — Doppler `ozby-shell` for deploy creds; provider keys in Cloudflare, not GitHub.
-
-Operator-local production deploy:
-
-```
-vp run deploy:production
-```
-
-Post-deploy verification:
-
-```
-# Before Cloudflare Access rollout
-curl -sf https://edge-matte.ozby.dev/health
-
-# After Cloudflare Access rollout
-curl -sf \
-  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
-  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
-  https://edge-matte.ozby.dev/health
-curl -sf \
-  -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
-  -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
-  https://edge-matte.ozby.dev/
-CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
-CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
 E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 ```
 
-See [`docs/release.md#cloudflare-access-private-beta-contract`](./docs/release.md#cloudflare-access-private-beta-contract)
-for the policy matrix, deny fallback, and break-glass rollback path.
+`production-journey` is the only suite that proves the real background-removal + flip transform; the hermetic suites prove plumbing, the API contract, and the browser UI.
+
+## Contribute / Security / License
+
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — setup, verify commands, commit/PR conventions.
+- [`SECURITY.md`](./SECURITY.md) — how to report a vulnerability privately.
+- [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) — Contributor Covenant.
+- [`LICENSE`](./LICENSE) — MIT.
+- [`VISION.md`](./VISION.md) — product north star and scope boundaries.

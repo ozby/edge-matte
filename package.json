@@ -2,6 +2,27 @@
   "name": "edge-matte",
   "version": "0.1.0",
   "private": true,
+  "description": "Cloudflare-native image matting reference app for upload, background removal, edge flip, R2 hosting, and capability-token deletion.",
+  "keywords": [
+    "background-removal",
+    "cloudflare-workers",
+    "hono",
+    "image-processing",
+    "r2",
+    "typescript",
+    "vite-plus",
+    "webpresso",
+    "workers-images"
+  ],
+  "homepage": "https://edge-matte.ozby.dev",
+  "bugs": {
+    "url": "https://github.com/ozby/edge-matte/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ozby/edge-matte.git"
+  },
   "type": "module",
   "imports": {
     "#scripts/*": "./scripts/*"
@@ -31,7 +52,10 @@
     "audit:blueprint-links": "bun scripts/audit-blueprint-link-policy.ts",
     "docs:check": "wp audit docs-frontmatter",
     "blueprints:check": "wp audit blueprint-lifecycle --legacy-omx",
-    "prepare": "husky && bun scripts/sync-webpresso-config.ts"
+    "prepare": "husky && bun scripts/sync-webpresso-config.ts",
+    "mutation": "wp test --mutation",
+    "test:mutation": "stryker run stryker.config.ts",
+    "qa": "wp lint src e2e *.config.ts && wp typecheck && wp test --file vitest.config.ts && wp test --mutation && wp e2e --config playwright.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
