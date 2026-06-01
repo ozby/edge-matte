@@ -110,7 +110,10 @@ test("verify-deploy-contract fails closed when a Durable Object migration asks f
 
   const result = runVerifier(dir);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /Durable Object releases must use rolloutMode=direct/u);
+  assert.match(
+    result.stderr + result.stdout,
+    /Durable Object releases must use rolloutMode=direct/u,
+  );
 
   rmSync(dir, { recursive: true, force: true });
 });

@@ -153,8 +153,8 @@ test("workspace packages stay thin consumers without local wrapper dependencies"
   for (const packagePath of packagePaths) {
     const pkg = readJson(packagePath);
     const deps = {
-      ...(pkg.dependencies ?? {}),
-      ...(pkg.devDependencies ?? {}),
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
     };
     assert.ok(
       !("@webpresso/agent-kit" in deps),

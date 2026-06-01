@@ -55,6 +55,13 @@ export interface PollOptions {
   onAttempt?: (attempt: number, maxAttempts: number) => void;
 }
 
+const waitForPollInterval = async (intervalMs: number): Promise<void> => {
+  const signal = AbortSignal.timeout(intervalMs);
+  await new Promise<void>((resolve) => {
+    signal.addEventListener("abort", () => resolve(), { once: true });
+  });
+};
+
 export const pollJobUntilTerminal = async (
   id: string,
   options: PollOptions = {},
@@ -67,7 +74,7 @@ export const pollJobUntilTerminal = async (
     if (job.status === "ready" || job.status === "failed") {
       return job;
     }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    await waitForPollInterval(intervalMs);
   }
   throw new Error("Processing is taking longer than expected. Try again.");
 };

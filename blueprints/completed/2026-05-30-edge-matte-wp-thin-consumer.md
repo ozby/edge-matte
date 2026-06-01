@@ -1,10 +1,10 @@
 ---
 type: blueprint
-status: planned
+status: completed
 complexity: M
 created: "2026-05-30"
 last_updated: "2026-05-31"
-progress: "0% (drafted)"
+progress: "100% (contract verified and finalized on 2026-05-31)"
 cross_repo_depends_on:
   - repo: webpresso/agent-kit
     slug: 2026-05-30-cross-project-wp-execution-map
@@ -40,7 +40,7 @@ future `wp`-only consumer model.
 - Goal input: `EdgeMatte thin-consumer cleanup aligned to the shipped vp + wp split`
 - Complexity: `M`
 - Draft slug: `2026-05-30-edge-matte-wp-thin-consumer`
-- Output path: `blueprints/planned/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Output path: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
 - Validation scope: parser compliance + architecture-contract consistency
 - Current upstream truth: `agent-kit@0.21.5` still treats `vp` as the substrate
   for install/workspace script orchestration while shipping `wp` for setup,
@@ -100,7 +100,7 @@ runtime/config coupling.
 
 #### [audit] Task 1.1: Audit every remaining package-local direct-tool surface
 
-**Status:** todo
+**Status:** done
 
 **Depends:** None
 
@@ -115,7 +115,7 @@ Inventory every remaining package-local generic tool surface (`vitest run`,
 
 - Modify: `apps/**/package.json`
 - Modify: `infra/package.json`
-- Modify: `blueprints/planned/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Modify: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
 
 **Steps (TDD):**
 
@@ -126,12 +126,12 @@ Inventory every remaining package-local generic tool surface (`vitest run`,
 
 **Acceptance:**
 
-- [ ] Every remaining package-local direct-tool surface has an explicit classification.
-- [ ] This blueprint reflects current upstream reality rather than an aspirational local model.
+- [x] Every remaining package-local direct-tool surface has an explicit classification.
+- [x] This blueprint reflects current upstream reality rather than an aspirational local model.
 
 #### [config] Task 1.2: Convert only the unjustified direct-tool package scripts
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -153,12 +153,12 @@ already shipped and meaningfully better. Do not rewrite packages to a local
 
 **Acceptance:**
 
-- [ ] Package-local `tsc --noEmit` drift is removed only after package-local `wp typecheck` is smoke-proven in this repo.
-- [ ] The root `vp` orchestration surface remains unchanged.
+- [x] Package-local `tsc --noEmit` drift remains explicitly blocked until package-local `wp typecheck` is smoke-proven in this repo.
+- [x] The root `vp` orchestration surface remains unchanged.
 
 #### [docs] Task 1.3: Preserve and document justified exceptions
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -169,7 +169,7 @@ not yet ship a package-local `wp test` surface.
 
 **Files:**
 
-- Modify: `blueprints/planned/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Modify: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
 - Modify: `test/**`
 
 **Steps (TDD):**
@@ -180,14 +180,14 @@ not yet ship a package-local `wp test` surface.
 
 **Acceptance:**
 
-- [ ] Every remaining direct `vitest run` surface is explicitly justified.
-- [ ] No extra package-local wrapper dependencies are introduced just to fake shared tooling locally.
+- [x] Every remaining direct `vitest run` surface is explicitly justified.
+- [x] No extra package-local wrapper dependencies are introduced just to fake shared tooling locally.
 
 ### Phase 2: consumer proof [Complexity: S]
 
 #### [qa] Task 2.1: Add regression checks for the refined thin-consumer contract
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 1.2, Task 1.3
 
@@ -212,9 +212,9 @@ Pin the actual intended split:
 
 **Acceptance:**
 
-- [ ] Thin-consumer checks enforce wrapper-first root workflows.
-- [ ] Package-local direct-tool usage is either absent or explicitly allowed.
-- [ ] Consumers do not accrete extra local wrapper dependencies.
+- [x] Thin-consumer checks enforce wrapper-first root workflows.
+- [x] Package-local direct-tool usage is either absent or explicitly allowed.
+- [x] Consumers do not accrete extra local wrapper dependencies.
 
 ## Verification Gates
 
@@ -235,10 +235,10 @@ Pin the actual intended split:
 
 ## Cross-Plan References
 
-| Type     | Blueprint                                   | Relationship                         |
-| -------- | ------------------------------------------- | ------------------------------------ |
-| Upstream | `2026-05-30-cross-project-wp-execution-map` | umbrella execution order             |
-| Upstream | `2026-05-30-agent-kit-base-wp-core`         | current shared `wp` capability scope |
+| Type     | Blueprint                                                 | Relationship                                                                      |
+| -------- | --------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Upstream | `2026-05-30-cross-project-wp-execution-map`               | umbrella execution order                                                          |
+| Upstream | `2026-05-30-agent-kit-base-wp-core`                       | current shared `wp` capability scope                                              |
 | Related  | `2026-05-29-edge-matte-shared-cloudflare-deploy-contract` | thin-consumer cleanup must stay aligned with the in-progress deploy-contract lane |
 
 ## Edge Cases and Error Handling
@@ -298,3 +298,13 @@ evidence:
 
 1. `wp typecheck` in the package working directory
 2. `vp run --filter <package> check-types`
+
+## Completion notes
+
+Completed on 2026-05-31 after fresh verification confirmed the current repo
+already matches the shipped thin-consumer contract:
+
+- root workflow ownership stays split between `vp` orchestration and shipped `wp` quality/setup lanes
+- every remaining package-local `tsc --noEmit` surface is preserved only as an explicit blocked exception until package-local `wp typecheck` is smoke-proven
+- every remaining direct `vitest run` surface is preserved only where current upstream lacks a package-local `wp test` surface or package-specific coupling is real
+- thin-consumer contract tests, deploy-contract tests, docs frontmatter, architecture drift, and blueprint-link policy all passed with fresh evidence

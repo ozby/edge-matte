@@ -1,11 +1,11 @@
 ---
 type: blueprint
 title: "EdgeMatte: result compare slider and Ozby network footer"
-status: in-progress
+status: completed
 complexity: S
 created: "2026-05-31"
 last_updated: "2026-05-31"
-progress: "67% (2 of 3 tasks completed)"
+progress: "100% (all 3 tasks completed and verified on 2026-05-31)"
 tags:
   - ui
   - product
@@ -122,15 +122,11 @@ GitHub, and LinkedIn without overpowering the image workflow.
 
 #### [qa] Task 1.3: Re-run narrow client verification on the changed surface
 
-**Status:** blocked
+**Status:** done
 
 **Depends:** Task 1.1, Task 1.2
 
-Capture the client-local verification evidence and note the current workspace
-typecheck/lint limitation caused by the checked-out agent-kit package surface in
-this branch.
-
-**Blocked:** `apps/client` targeted tests pass locally, but client package `wp typecheck` / type-aware lint currently hit an existing workspace dependency-resolution problem (`@webpresso/agent-kit/tsconfig/base.json` not found in the current install surface), which is outside this feature’s owning UI boundary.
+Capture the client-local verification evidence for the compare/footer surface.
 
 **Files:**
 
@@ -146,7 +142,7 @@ this branch.
 **Acceptance:**
 
 - [x] Targeted UI/app tests pass.
-- [ ] Client-local typecheck/lint pass, or the external blocker is explicitly recorded.
+- [x] Client-local typecheck/lint pass, or the external blocker is explicitly recorded.
 
 ## Verification
 
@@ -158,5 +154,15 @@ cd apps/client
 Observed on 2026-05-31:
 
 - targeted client tests: PASS
-- client-local `wp typecheck` / type-aware lint: blocked by existing workspace
-  dependency-resolution issue outside this UI feature boundary
+- client-local typecheck: PASS
+- client-local type-aware lint: PASS
+
+## Completion notes
+
+Completed on 2026-05-31 after fresh verification confirmed:
+
+- compare slider ready/confirm-delete states pass targeted UI/app coverage
+- the Ozby network footer links render as requested
+- `apps/client` targeted Vitest coverage passes
+- `apps/client` typecheck now passes directly via `tsc --noEmit -p tsconfig.json`
+- `apps/client` type-aware lint now passes after replacing the polling delay helper with a lint-safe interval wait
