@@ -123,7 +123,7 @@ if (destroy) {
 }
 
 console.log(`\n▶ Deploying preview Worker ${workerName}\n`);
-run("wp", ["run", "--filter", "@edge-matte/client", "build"]);
+run("vp", ["run", "--filter", "@edge-matte/client", "build"]);
 
 const configPath = writePreviewConfig();
 if (printConfig) {
