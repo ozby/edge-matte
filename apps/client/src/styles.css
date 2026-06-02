@@ -420,6 +420,10 @@ input:focus-visible,
   width: 100%;
 }
 
+.compare-image--before {
+  transform: scaleX(-1);
+}
+
 .compare-handle {
   position: absolute;
   top: 0;

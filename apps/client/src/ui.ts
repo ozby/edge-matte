@@ -105,10 +105,10 @@ export const createUi = (mount: HTMLElement): UiElements => {
             <div id="compare-frame" class="compare-frame">
               <img id="compare-after-image" class="compare-image compare-image--after" alt="Transformed image preview" />
               <div class="compare-before-clip" aria-hidden="true">
-                <img id="compare-before-image" class="compare-image compare-image--before" alt="Original image preview" />
+                <img id="compare-before-image" class="compare-image compare-image--before" alt="Original image preview mirrored for comparison" />
               </div>
               <div class="compare-handle" aria-hidden="true"></div>
-              <div class="compare-label compare-label--before">Original</div>
+              <div class="compare-label compare-label--before">Original mirrored</div>
               <div class="compare-label compare-label--after">Transformed</div>
               <input
                 id="compare-slider"
@@ -117,7 +117,7 @@ export const createUi = (mount: HTMLElement): UiElements => {
                 min="0"
                 max="100"
                 value="50"
-                aria-label="Reveal original versus transformed image"
+                aria-label="Reveal mirrored original versus transformed image"
               />
             </div>
           </div>

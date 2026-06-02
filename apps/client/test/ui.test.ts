@@ -127,8 +127,10 @@ describe("ui rendering", () => {
     expect(ui.compareFrame.style.getPropertyValue("--compare-split")).toBe("50%");
 
     expect(ui.compareFrame.contains(ui.compareSlider)).toBe(true);
+    expect(ui.compareBeforeImage.alt).toBe("Original image preview mirrored for comparison");
+    expect(mount.textContent).toContain("Original mirrored");
     expect(ui.compareSlider.getAttribute("aria-label")).toBe(
-      "Reveal original versus transformed image",
+      "Reveal mirrored original versus transformed image",
     );
 
     ui.compareSlider.value = "30";
