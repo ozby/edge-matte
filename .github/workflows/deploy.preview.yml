@@ -42,7 +42,7 @@ jobs:
       - run: vp run audit:secret-provider-quarantine
       - run: vp run format:check
       - run: vp run lint
-      - run: vp run typecheck
+      - run: vp run check-types
       - run: vp run build
       - run: vp run test
 
