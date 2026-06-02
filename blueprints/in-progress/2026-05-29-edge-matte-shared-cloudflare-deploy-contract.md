@@ -127,6 +127,22 @@ Repo-local deployment behavior is now concrete:
   [`infra/release-metadata.production.json`](../../infra/release-metadata.production.json)
   carries a semver `releaseVersion` in a release PR.
 
+## Cross-repo preview alignment update (2026-06-02)
+
+EdgeMatte and IngestLens now share the same preview/prod lane contract while
+preserving their different app topologies:
+
+| Lane             | EdgeMatte URL                                | IngestLens URL                                                                                       |
+| ---------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `preview_main`   | `https://preview-main.edge-matte.ozby.dev`   | `https://preview-main.ingest-lens.ozby.dev` plus `https://api.preview-main.ingest-lens.ozby.dev`     |
+| `preview_pr_<n>` | `https://preview-pr-<n>.edge-matte.ozby.dev` | `https://preview-pr-<n>.ingest-lens.ozby.dev` plus `https://api.preview-pr-<n>.ingest-lens.ozby.dev` |
+| `prd`            | release-gated `https://edge-matte.ozby.dev`  | release-gated `https://ingest-lens.ozby.dev` plus `https://api.ingest-lens.ozby.dev`                 |
+
+Both repos deploy `main` to `preview_main`, deploy pull requests to
+`preview_pr_<n>`, clean up PR previews on close, and reserve production for the
+release-gated path. IngestLens remains split client/API; EdgeMatte remains one
+Worker with static assets.
+
 ## Objective
 
 Define and land the blueprint needed to extract a reusable Cloudflare deploy
@@ -389,7 +405,7 @@ responsibility split (verify exact upstream filenames during kickoff):
 
 #### [infra] Task 2.3: Specify repo-adoption rules for EdgeMatte and IngestLens
 
-**Status:** todo
+**Status:** done
 
 **Depends:** Task 2.1, Task 2.2
 
@@ -413,9 +429,9 @@ explicit compatibility constraint.
 
 **Acceptance:**
 
-- [ ] EdgeMatte and IngestLens adoption rules are both explicit.
-- [ ] Same contract does not incorrectly imply same app topology.
-- [ ] Preview-main / preview-pr / prd behavior is consistent across both repos.
+- [x] EdgeMatte and IngestLens adoption rules are both explicit.
+- [x] Same contract does not incorrectly imply same app topology.
+- [x] Preview-main / preview-pr / prd behavior is consistent across both repos.
 
 ## Phase 3: harden execution shape [Complexity: S]
 
@@ -525,7 +541,7 @@ risks, edge cases, technology choices, and cross-plan references.
       pure patch/render helpers, stack output loading, and multi-target sync
       plan support.
 - [x] Write EdgeMatte adoption notes for a single-Worker repo using the shared contract.
-- [ ] Write IngestLens adoption notes for a split client/API repo using the same contract.
+- [x] Write IngestLens adoption notes for a split client/API repo using the same contract.
 - [x] Lock failure gates:
       no raw unsynced deploys where sync/render is declared required,
       no missing preview cleanup,

@@ -52,7 +52,7 @@ that promotion must happen in a separate package-surface blueprint with
 `catalog/agent/rules/public-package-safety.md` review plus tarball and
 denied-content auditing; reusability alone is not permission to publish.
 
-## Completed EdgeMatte blueprints (2026-05-27)
+## Completed EdgeMatte blueprints
 
 | Blueprint          | Path                                                                                                               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
@@ -61,6 +61,7 @@ denied-content auditing; reusability alone is not permission to publish.
 | Core pipeline      | [`completed/2026-05-27-edge-matte-core-pipeline.md`](./completed/2026-05-27-edge-matte-core-pipeline.md)           |
 | UI + E2E           | [`completed/2026-05-27-edge-matte-ui-and-e2e.md`](./completed/2026-05-27-edge-matte-ui-and-e2e.md)                 |
 | Infra + release    | [`completed/2026-05-27-edge-matte-infra-and-release.md`](./completed/2026-05-27-edge-matte-infra-and-release.md)   |
+| Result page URL    | [`completed/2026-06-02-edge-matte-result-page-url.md`](./completed/2026-06-02-edge-matte-result-page-url.md)       |
 
 The parent roadmap retains one open acceptance item (manual production smoke)
 until [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)
