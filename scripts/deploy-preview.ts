@@ -61,6 +61,22 @@ function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = pr
   }
 }
 
+function hasCommand(command: string): boolean {
+  const result = spawnSync("command", ["-v", command], {
+    shell: true,
+    stdio: "ignore",
+  });
+  return result.status === 0;
+}
+
+function runWithSecrets(command: string, commandArgs: string[]) {
+  if (hasCommand("with-secrets")) {
+    run("with-secrets", ["--", command, ...commandArgs]);
+    return;
+  }
+  run(command, commandArgs);
+}
+
 function workersDevOrigin(): string {
   const subdomain = process.env.CF_WORKERS_DEV_SUBDOMAIN?.trim();
   if (!subdomain) {
@@ -107,9 +123,7 @@ function writePreviewConfig(): string {
 
 if (destroy) {
   console.log(`\n▶ Destroying preview Worker ${workerName}\n`);
-  run("with-secrets", [
-    "--",
-    "vp",
+  runWithSecrets("vp", [
     "exec",
     "--filter",
     "@edge-matte/worker",
@@ -129,9 +143,7 @@ const configPath = writePreviewConfig();
 if (printConfig) {
   console.log(`Preview Wrangler config: ${configPath}`);
 }
-run("with-secrets", [
-  "--",
-  "vp",
+runWithSecrets("vp", [
   "exec",
   "--filter",
   "@edge-matte/worker",
