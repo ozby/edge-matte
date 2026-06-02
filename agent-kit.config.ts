@@ -21,9 +21,10 @@ export const agentKitConfig = {
           id: "edge-matte-worker",
           type: "worker_plus_assets",
           topLevelWorkerName: "edge-matte",
-          previewTransport: "workers_dev_env",
+          previewTransport: "custom_domain_env",
+          routeSpec: { pattern: "preview-main.edge-matte.ozby.dev" },
           vars: {
-            APP_ORIGIN: "https://edge-matte.ozby.dev",
+            APP_ORIGIN: "https://preview-main.edge-matte.ozby.dev",
           },
           requiredSecrets: [],
           storageMode: "isolated",

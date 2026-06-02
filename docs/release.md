@@ -49,16 +49,16 @@ and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 
 ## Production target
 
-| Item              | Value                                                                                                                                                                |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public URL        | `https://edge-matte.ozby.dev`                                                                                                                                        |
-| Worker name       | `edge-matte`                                                                                                                                                         |
-| Wrangler env      | `production`                                                                                                                                                         |
-| Shared lane ID    | `prd` (mapped to Wrangler env `production`)                                                                                                                          |
-| Preview lanes     | `preview_main` -> `edge-matte-preview-main.<workers.dev subdomain>.workers.dev`; `preview_pr_<n>` -> `edge-matte-preview-pr-<n>.<workers.dev subdomain>.workers.dev` |
-| R2 bucket         | `edge-matte-images`                                                                                                                                                  |
-| Health check      | `GET /health`                                                                                                                                                        |
-| Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy)                                |
+| Item              | Value                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Public URL        | `https://edge-matte.ozby.dev`                                                                                                         |
+| Worker name       | `edge-matte`                                                                                                                          |
+| Wrangler env      | `production`                                                                                                                          |
+| Shared lane ID    | `prd` (mapped to Wrangler env `production`)                                                                                           |
+| Preview lanes     | `preview_main` -> `https://preview-main.edge-matte.ozby.dev`; `preview_pr_<n>` -> `https://preview-pr-<n>.edge-matte.ozby.dev`        |
+| R2 bucket         | `edge-matte-images`                                                                                                                   |
+| Health check      | `GET /health`                                                                                                                         |
+| Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy) |
 
 A deployment is **not healthy** until both `production-smoke` and
 `production-journey` pass against the public URL.
@@ -80,9 +80,9 @@ EdgeMatte now adopts the shared deploy-contract surface on the canonical
   `preview_pr_<n>` and closed pull requests destroy their preview Worker
 
 Current EdgeMatte remains a **non-DO consumer**, so it does not declare Durable
-Object bindings yet. Preview transport is currently declared as
-`workers_dev_env` for the shared contract adoption surface; the later DO
-consumer proof remains owned by IngestLens.
+Object bindings yet. Preview transport is declared as `custom_domain_env` for
+the shared contract adoption surface, matching the IngestLens preview-lane
+mechanism while preserving EdgeMatte's single-Worker runtime topology.
 
 ## Cloudflare Access private-beta contract
 
@@ -231,7 +231,9 @@ vp run deploy:preview -- --lane preview-pr-123 --destroy
 ```
 
 Preview deploys render a temporary Wrangler config outside the repo, deploy a
-separate `workers.dev` Worker name, and never deploy `env.production`.
+separate preview Worker name with `workers_dev = false`, attach the matching
+custom-domain route (`preview-main.edge-matte.ozby.dev` or
+`preview-pr-<n>.edge-matte.ozby.dev`), and never deploy `env.production`.
 
 Operator-local production deploy (mirrors ingest-lens `deploy.ts` + Doppler):
 
@@ -290,13 +292,14 @@ protection to become mandatory.
 Implemented in [`.github/workflows/deploy.preview.yml`](../.github/workflows/deploy.preview.yml):
 
 1. Pushes to `main` run quality gates and deploy `preview_main` as
-   `edge-matte-preview-main`.
+   `edge-matte-preview-main` on `https://preview-main.edge-matte.ozby.dev`.
 2. Pull requests run quality gates and deploy `preview_pr_<n>` as
-   `edge-matte-preview-pr-<n>`.
+   `edge-matte-preview-pr-<n>` on
+   `https://preview-pr-<n>.edge-matte.ozby.dev`.
 3. Closed pull requests call the preview destroy path for
    `edge-matte-preview-pr-<n>`.
-4. Preview deploys use `workers.dev` transport and do not mutate
-   `edge-matte.ozby.dev`.
+4. Preview deploys use custom-domain preview transport and do not mutate the
+   production route `edge-matte.ozby.dev`.
 
 ### Production release deploy
 

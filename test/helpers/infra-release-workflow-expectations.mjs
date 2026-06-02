@@ -48,6 +48,8 @@ export const PREVIEW_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ 
   { label: "preview deploy script", pattern: /deploy-preview/u },
   { label: "preview-main lane", pattern: /preview-main/u },
   { label: "preview-pr lane", pattern: /preview-pr/u },
+  { label: "preview-main custom domain", pattern: /preview-main\.edge-matte\.ozby\.dev/u },
+  { label: "preview-pr custom domain", pattern: /preview-pr-<n>\.edge-matte\.ozby\.dev/u },
   { label: "closed PR cleanup", pattern: /--destroy/u },
 ]);
 

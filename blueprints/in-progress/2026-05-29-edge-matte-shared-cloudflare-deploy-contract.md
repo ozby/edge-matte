@@ -15,7 +15,7 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
-progress: "EdgeMatte repo adoption landed 2026-06-02: main -> preview_main, PR -> preview_pr_<n> with cleanup, and production release metadata gating. Cross-repo IngestLens alignment remains tracked by ultragoal G002."
+progress: "EdgeMatte repo adoption landed 2026-06-02: main -> preview_main and PR -> preview_pr_<n> now use custom-domain preview lanes matching IngestLens; production remains release-gated."
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -114,11 +114,11 @@ deployment becomes a shared **multi-repo contract**:
 Repo-local deployment behavior is now concrete:
 
 - pushes to `main` run [`deploy.preview.yml`](../../.github/workflows/deploy.preview.yml)
-  and deploy `preview_main` as the `edge-matte-preview-main` Workers.dev Worker;
-- pull requests deploy `preview_pr_<n>` as `edge-matte-preview-pr-<n>` and
+  and deploy `preview_main` as `edge-matte-preview-main` on `https://preview-main.edge-matte.ozby.dev`;
+- pull requests deploy `preview_pr_<n>` as `edge-matte-preview-pr-<n>` on `https://preview-pr-<n>.edge-matte.ozby.dev` and
   closed pull requests call the destroy path;
 - [`scripts/deploy-preview.ts`](../../scripts/deploy-preview.ts) renders a
-  temporary Wrangler config outside the repo, uses `workers_dev = true`, and
+  temporary Wrangler config outside the repo, uses `workers_dev = false`, attaches a `custom_domain = true` route for the lane, and
   never deploys `env.production`;
 - production deploys are removed from ordinary `main` pushes and now run only
   for `v*` tags or explicit manual release dispatch;

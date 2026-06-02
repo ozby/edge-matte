@@ -313,7 +313,7 @@ flowchart LR
     CI --> CHECKS[agent-kit/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
     CHECKS --> DRY[wrangler deploy --dry-run]
     CHECKS --> PREVIEW[deploy.preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
-    PREVIEW --> WORKERSDEV[workers.dev preview Workers]
+    PREVIEW --> PREVIEWDOMAINS[custom-domain preview Workers<br/>preview-main.edge-matte.ozby.dev<br/>preview-pr-&lt;n&gt;.edge-matte.ozby.dev]
     DRY --> RELEASE[release metadata gate<br/>version_pr releaseVersion]
     RELEASE --> DEPLOY[Doppler-injected credentials<br/>wrangler deploy --env production]
     DEPLOY --> URL[edge-matte.ozby.dev]
@@ -333,8 +333,10 @@ flowchart LR
 
 Boundary rule: Pulumi owns durable infrastructure. Wrangler owns Worker-scoped
 deployment, static assets, routes, bindings, and secret names. Preview Workers
-are separate `workers.dev` Worker names (`edge-matte-preview-main` and
-`edge-matte-preview-pr-<n>`) managed by the preview deploy script; production
+are separate Worker names (`edge-matte-preview-main` and
+`edge-matte-preview-pr-<n>`) with `workers_dev = false` and custom-domain routes
+managed by the preview deploy script: `preview-main.edge-matte.ozby.dev` for
+main and `preview-pr-<n>.edge-matte.ozby.dev` for pull requests. Production
 remains the stable `edge-matte` Worker and `edge-matte.ozby.dev` route. Provider
 secret values live in Cloudflare, not GitHub.
 

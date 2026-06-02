@@ -19,6 +19,8 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
+  PREVIEW_MAIN_URL: "https://preview-main.edge-matte.ozby.dev"
+  PREVIEW_PR_URL_PATTERN: "https://preview-pr-<n>.edge-matte.ozby.dev"
 
 jobs:
   deploy-preview:

@@ -3,6 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/ozby/edge-matte/ci.webpresso.yml?branch=main&label=CI)](https://github.com/ozby/edge-matte/actions/workflows/ci.webpresso.yml)
 
+## Deployment lanes
+
+- `main` deploys the shared preview lane: `https://preview-main.edge-matte.ozby.dev`.
+- PRs deploy ephemeral `https://preview-pr-<n>.edge-matte.ozby.dev` lanes and clean up on PR close.
+- Production (`https://edge-matte.ozby.dev`) is release-gated: use the production deploy workflow with matching `version_pr` metadata and a semantic `releaseVersion`; ordinary `main` pushes do not deploy production.
+- Architecture source: [`docs/architecture.md`](docs/architecture.md) and machine contract [`docs/architecture.contract.json`](docs/architecture.contract.json).
+
 ## What it is
 
 EdgeMatte is a Cloudflare-native TypeScript reference app that takes one uploaded image, removes its background at the edge, flips it horizontally, hosts the result in R2, and lets you delete every artifact with a capability token.
@@ -59,7 +66,7 @@ The mock pipeline path needs no Cloudflare account, secrets, or network. (`dev:m
 | Abuse / security guarding on the worker                                                                                                                                                 | [abuse-guard test](./apps/worker/test/abuse-guard.test.ts), [security test](./apps/worker/test/security-and-assets.test.ts)                                                                            |
 | Hermetic + production e2e suites (smoke, upload-delete, upload-delete-contract, production-smoke, production-journey)                                                                   | [`apps/e2e/src/e2e-suite-manifest.ts`](./apps/e2e/src/e2e-suite-manifest.ts), [`apps/e2e/src/cli/run-e2e.ts`](./apps/e2e/src/cli/run-e2e.ts)                                                           |
 | Cloudflare Access private-beta service-token contract                                                                                                                                   | [`apps/e2e/src/journeys/access.test.ts`](./apps/e2e/src/journeys/access.test.ts), [`docs/release.md`](./docs/release.md)                                                                               |
-| CI: quality pipeline + architecture-drift gate + preview-main / PR previews + release-gated production deploy                                                                           | [`ci.webpresso.yml`](./.github/workflows/ci.webpresso.yml), [`deploy.preview.yml`](./.github/workflows/deploy.preview.yml), [`deploy.production.yml`](./.github/workflows/deploy.production.yml)       |
+| CI: quality pipeline + architecture-drift gate + custom-domain previews (`preview-main.edge-matte.ozby.dev`, `preview-pr-<n>.edge-matte.ozby.dev`) + release-gated production deploy    | [`ci.webpresso.yml`](./.github/workflows/ci.webpresso.yml), [`deploy.preview.yml`](./.github/workflows/deploy.preview.yml), [`deploy.production.yml`](./.github/workflows/deploy.production.yml)       |
 | Machine-checkable architecture drift contract via `wp audit architecture-drift`                                                                                                         | [`docs/architecture.contract.json`](./docs/architecture.contract.json), [`docs/architecture.md`](./docs/architecture.md)                                                                               |
 | Pulumi-managed Cloudflare infrastructure with a Wrangler deploy split                                                                                                                   | [`scripts/deploy-production.ts`](./scripts/deploy-production.ts), [`scripts/verify-deploy-contract.ts`](./scripts/verify-deploy-contract.ts), [`docs/release.md`](./docs/release.md)                   |
 

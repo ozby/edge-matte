@@ -169,7 +169,16 @@ test("preview deploy script renders preview-main and preview-pr workers without 
     { label: "preview-main lane", pattern: /preview-main/u },
     { label: "preview-pr lane", pattern: /preview-pr/u },
     { label: "temporary wrangler config", pattern: /mkdtemp|tmpdir/u },
-    { label: "workers.dev enabled", pattern: /workers_dev\s*=\s*true/u },
+    { label: "workers.dev disabled", pattern: /workers_dev\s*=\s*false/u },
+    {
+      label: "preview-main custom domain host",
+      pattern: /preview-main\.\$\{DEPLOY_DOMAIN\}/u,
+    },
+    {
+      label: "preview-pr custom domain host",
+      pattern: /preview-pr-\$\{prNumber\}\.\$\{DEPLOY_DOMAIN\}/u,
+    },
+    { label: "preview custom domain route", pattern: /custom_domain\s*=\s*true/u },
     { label: "destroy support", pattern: /"delete"|--destroy/u },
   ]);
   assert.equal(missing.length, 0, formatMissingExpectations(missing, DEPLOY_PREVIEW_SCRIPT));

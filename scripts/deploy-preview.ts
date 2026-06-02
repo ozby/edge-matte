@@ -14,6 +14,7 @@ import { spawnSync } from "node:child_process";
 import { findRepoRoot } from "./lib/find-repo-root";
 
 const TOP_LEVEL_WORKER_NAME = "edge-matte";
+const DEPLOY_DOMAIN = "edge-matte.ozby.dev";
 const ACCOUNT_ID = "e93986039ea9bd9729fa534a29e9e88f";
 const R2_BUCKET_NAME = "edge-matte-images";
 const COMPATIBILITY_DATE = "2025-12-10";
@@ -77,12 +78,19 @@ function runWithSecrets(command: string, commandArgs: string[]) {
   run(command, commandArgs);
 }
 
-function workersDevOrigin(): string {
-  const subdomain = process.env.CF_WORKERS_DEV_SUBDOMAIN?.trim();
-  if (!subdomain) {
-    return "https://preview.edge-matte.local";
+function previewHost(): string {
+  if (lane === "preview-main") {
+    return `preview-main.${DEPLOY_DOMAIN}`;
   }
-  return `https://${workerName}.${subdomain}.workers.dev`;
+  const prNumber = lane.match(/^preview-pr-(\d+)$/u)?.[1];
+  if (!prNumber) {
+    throw new Error(`Preview lane must be preview-main or preview-pr-<n>; got "${lane}"`);
+  }
+  return `preview-pr-${prNumber}.${DEPLOY_DOMAIN}`;
+}
+
+function previewOrigin(): string {
+  return `https://${previewHost()}`;
 }
 
 function renderPreviewWranglerConfig(): string {
@@ -93,7 +101,8 @@ function renderPreviewWranglerConfig(): string {
     `main = "${join(repoRoot, "apps", "worker", "src", "index.ts")}"`,
     `compatibility_date = "${COMPATIBILITY_DATE}"`,
     `compatibility_flags = [${flags}]`,
-    "workers_dev = true",
+    "workers_dev = false",
+    `routes = [{ pattern = "${previewHost()}", custom_domain = true }]`,
     "",
     "[assets]",
     `directory = "${join(repoRoot, "apps", "client", "dist")}"`,
@@ -109,7 +118,7 @@ function renderPreviewWranglerConfig(): string {
     `bucket_name = "${R2_BUCKET_NAME}"`,
     "",
     "[vars]",
-    `APP_ORIGIN = "${workersDevOrigin()}"`,
+    `APP_ORIGIN = "${previewOrigin()}"`,
     "",
   ].join("\n");
 }
@@ -154,4 +163,4 @@ runWithSecrets("vp", [
   configPath,
 ]);
 
-console.log(`\n✅ Preview deployed: ${workersDevOrigin()}\n`);
+console.log(`\n✅ Preview deployed: ${previewOrigin()}\n`);

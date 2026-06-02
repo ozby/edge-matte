@@ -12,8 +12,8 @@
     "GET /health"
   ],
   "deployLanes": {
-    "preview_main": "edge-matte-preview-main workers.dev Worker",
-    "preview_pr": "edge-matte-preview-pr-<n> workers.dev Worker",
+    "preview_main": "edge-matte-preview-main on preview-main.edge-matte.ozby.dev",
+    "preview_pr": "edge-matte-preview-pr-<n> on preview-pr-<n>.edge-matte.ozby.dev",
     "prd": "edge-matte env.production on edge-matte.ozby.dev"
   },
   "rules": [
