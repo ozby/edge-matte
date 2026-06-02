@@ -55,15 +55,15 @@ jobs:
 
       - name: Deploy preview-main
         if: github.event_name == 'push' && github.ref_name == 'main'
-        run: wp run deploy:preview -- --lane preview-main
+        run: vp run deploy:preview -- --lane preview-main
 
       - name: Deploy preview-pr
         if: github.event_name == 'pull_request'
-        run: wp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }}
+        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }}
 
       - name: Deploy manual preview
         if: github.event_name == 'workflow_dispatch'
-        run: wp run deploy:preview -- --lane "${{ inputs.lane }}"
+        run: vp run deploy:preview -- --lane "${{ inputs.lane }}"
 
   destroy-preview:
     runs-on: ubuntu-latest
@@ -90,4 +90,4 @@ jobs:
           inject-env-vars: true
 
       - name: Destroy preview-pr
-        run: wp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }} --destroy
+        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }} --destroy
