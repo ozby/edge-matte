@@ -13,6 +13,7 @@ function writeBaseRepo(dir, wranglerToml) {
   mkdirSync(join(dir, "infra"), { recursive: true });
   writeReleaseMetadata(dir, {
     releaseKind: "version_pr",
+    releaseVersion: "0.1.0",
     durableObjectMigration: "none",
     rolloutMode: "direct",
     requiredChecks: ["production-smoke", "production-journey"],
@@ -84,6 +85,68 @@ test("verify-deploy-contract passes when env.production keeps the stable worker 
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("verify-deploy-contract requires version_pr metadata to carry a semver releaseVersion", () => {
+  const dir = mkdtempSync(join(tmpdir(), "edge-matte-deploy-contract-"));
+  writeBaseRepo(
+    dir,
+    [
+      'name = "edge-matte"',
+      "",
+      "[env.production]",
+      'name = "edge-matte"',
+      "workers_dev = false",
+      "",
+      "[[env.production.routes]]",
+      'pattern = "edge-matte.ozby.dev"',
+      "custom_domain = true",
+      "",
+    ].join("\n"),
+  );
+  writeReleaseMetadata(dir, {
+    releaseKind: "version_pr",
+    durableObjectMigration: "none",
+    rolloutMode: "direct",
+    requiredChecks: ["production-smoke", "production-journey"],
+  });
+
+  const result = runVerifier(dir);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr + result.stdout, /releaseVersion/u);
+
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("verify-deploy-contract accepts version_pr metadata with a semver releaseVersion", () => {
+  const dir = mkdtempSync(join(tmpdir(), "edge-matte-deploy-contract-"));
+  writeBaseRepo(
+    dir,
+    [
+      'name = "edge-matte"',
+      "",
+      "[env.production]",
+      'name = "edge-matte"',
+      "workers_dev = false",
+      "",
+      "[[env.production.routes]]",
+      'pattern = "edge-matte.ozby.dev"',
+      "custom_domain = true",
+      "",
+    ].join("\n"),
+  );
+  writeReleaseMetadata(dir, {
+    releaseKind: "version_pr",
+    releaseVersion: "0.2.0",
+    durableObjectMigration: "none",
+    rolloutMode: "direct",
+    requiredChecks: ["production-smoke", "production-journey"],
+  });
+
+  const result = runVerifier(dir);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("verify-deploy-contract fails closed when a Durable Object migration asks for gradual rollout", () => {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-deploy-contract-"));
   writeBaseRepo(
@@ -103,6 +166,7 @@ test("verify-deploy-contract fails closed when a Durable Object migration asks f
   );
   writeReleaseMetadata(dir, {
     releaseKind: "version_pr",
+    releaseVersion: "0.2.0",
     durableObjectMigration: "required",
     rolloutMode: "gradual",
     requiredChecks: ["production-smoke"],

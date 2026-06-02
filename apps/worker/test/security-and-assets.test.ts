@@ -17,6 +17,9 @@ const stubDeps = (): ProcessImageJobDeps & { appOrigin: string } => ({
   objectStore: {
     async putOriginal() {},
     async putProcessed() {},
+    async getOriginal() {
+      return null;
+    },
     async getProcessed() {
       return null;
     },

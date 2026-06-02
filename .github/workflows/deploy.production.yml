@@ -2,8 +2,13 @@ name: Deploy production
 
 on:
   push:
-    branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Semver release version already committed in infra/release-metadata.production.json"
+        required: true
+        type: string
 
 concurrency:
   group: edge-matte-production-deploy

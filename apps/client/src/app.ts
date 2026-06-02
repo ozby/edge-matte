@@ -1,7 +1,8 @@
-import { createJob, deleteJob, pollJobUntilTerminal } from "./api";
+import { createJob, deleteJob, fetchJob, pollJobUntilTerminal } from "./api";
 import { errorCodeToMessage, validateSelectedFile } from "./format";
 import { createSecurityController } from "./security";
 import { canSelectFile, canSubmitUpload, initialUiState, type UiPhase } from "./state";
+import type { PublicImageJob } from "./types";
 import { createUi, renderUi, type UiElements } from "./ui";
 
 export interface AppController {
@@ -17,6 +18,20 @@ export interface AppController {
 
 const previewBlobUrl = (state: UiPhase): string | null =>
   "previewUrl" in state && state.previewUrl.startsWith("blob:") ? state.previewUrl : null;
+
+const parseResultPageId = (path = window.location.pathname): string | null => {
+  const match = /^\/r\/([^/]+)$/u.exec(path);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+const replaceBrowserPath = (path: string): void => {
+  window.history.replaceState(null, "", path);
+};
+
+const replaceBrowserPathWithResult = (resultUrl: string): void => {
+  const url = new URL(resultUrl, window.location.href);
+  replaceBrowserPath(url.pathname);
+};
 
 // Revoke the outgoing blob URL only when the incoming state no longer references
 // it. uploading/processing/ready all carry the same previewUrl forward, so revoking
@@ -37,7 +52,10 @@ export const createApp = (mount: HTMLElement): AppController => {
 };
 
 const buildApp = (ui: UiElements): AppController => {
-  let state: UiPhase = initialUiState();
+  const initialResultId = parseResultPageId();
+  let state: UiPhase = initialResultId
+    ? { phase: "result-loading", id: initialResultId }
+    : initialUiState();
   let selectedFile: File | null = null;
   let deleteToken: string | null = null;
 
@@ -62,6 +80,51 @@ const buildApp = (ui: UiElements): AppController => {
     revokeReplacedBlob(state, next);
     state = next;
     syncUi();
+  };
+
+  const showReadyResult = (job: PublicImageJob, previewUrl: string, token: string | null): void => {
+    setState({
+      phase: "ready",
+      previewUrl,
+      job,
+      deleteToken: token,
+    });
+  };
+
+  const loadResultPage = async (id: string): Promise<void> => {
+    try {
+      const job = await fetchJob(id);
+      if (job.status === "failed") {
+        setState({
+          phase: "error",
+          message: errorCodeToMessage(job.errorCode),
+          recoverable: false,
+        });
+        return;
+      }
+      if (job.status === "ready") {
+        showReadyResult(job, job.originalImageUrl, null);
+        return;
+      }
+      setState({
+        phase: "processing",
+        previewUrl: job.originalImageUrl,
+        jobId: job.id,
+        status: job.status,
+      });
+      const readyJob = await pollJobUntilTerminal(job.id);
+      if (readyJob.status === "ready") {
+        showReadyResult(readyJob, readyJob.originalImageUrl, null);
+        return;
+      }
+      setState({
+        phase: "error",
+        message: errorCodeToMessage(readyJob.errorCode),
+        recoverable: false,
+      });
+    } catch {
+      setState({ phase: "result-missing", id });
+    }
   };
 
   const selectFile = (file: File): void => {
@@ -113,12 +176,8 @@ const buildApp = (ui: UiElements): AppController => {
       security.reset();
       deleteToken = created.deleteToken;
       if (created.status === "ready") {
-        setState({
-          phase: "ready",
-          previewUrl,
-          job: created,
-          deleteToken: created.deleteToken,
-        });
+        replaceBrowserPathWithResult(created.resultUrl);
+        showReadyResult(created, previewUrl, created.deleteToken);
         return;
       }
       setState({
@@ -142,12 +201,8 @@ const buildApp = (ui: UiElements): AppController => {
         });
         return;
       }
-      setState({
-        phase: "ready",
-        previewUrl,
-        job,
-        deleteToken: deleteToken ?? created.deleteToken,
-      });
+      replaceBrowserPathWithResult(job.resultUrl);
+      showReadyResult(job, previewUrl, deleteToken ?? created.deleteToken);
     } catch (error) {
       security.reset();
       setState({
@@ -159,8 +214,8 @@ const buildApp = (ui: UiElements): AppController => {
   };
 
   const requestDelete = (): void => {
-    if (state.phase !== "ready") return;
-    setState({ ...state, phase: "confirm-delete" });
+    if (state.phase !== "ready" || !state.deleteToken) return;
+    setState({ ...state, phase: "confirm-delete", deleteToken: state.deleteToken });
   };
 
   const cancelDelete = (): void => {
@@ -175,6 +230,7 @@ const buildApp = (ui: UiElements): AppController => {
       security.reset();
       selectedFile = null;
       deleteToken = null;
+      replaceBrowserPath("/");
       setState({ phase: "deleted" });
     } catch (error) {
       security.reset();
@@ -191,12 +247,13 @@ const buildApp = (ui: UiElements): AppController => {
     deleteToken = null;
     security.reset();
     ui.fileInput.value = "";
+    replaceBrowserPath("/");
     setState(initialUiState());
   };
 
   const copyResultUrl = async (): Promise<void> => {
     if (state.phase !== "ready" && state.phase !== "confirm-delete") return;
-    await navigator.clipboard.writeText(state.job.imageUrl);
+    await navigator.clipboard.writeText(state.job.resultUrl);
     ui.copyButton.textContent = "Copied!";
     window.setTimeout(() => {
       ui.copyButton.textContent = "Copy URL";
@@ -204,6 +261,9 @@ const buildApp = (ui: UiElements): AppController => {
   };
 
   syncUi();
+  if (initialResultId) {
+    void loadResultPage(initialResultId);
+  }
 
   return {
     getState: () => state,

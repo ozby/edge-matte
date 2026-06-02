@@ -18,6 +18,7 @@ export interface JobRepository {
 export interface ImageObjectStore {
   putOriginal(job: ImageJob, file: File): Promise<void>;
   putProcessed(job: ImageJob, body: ReadableStream | Blob, contentType: string): Promise<void>;
+  getOriginal(id: string): Promise<Response | null>;
   getProcessed(id: string): Promise<Response | null>;
   deleteAll(job: ImageJob): Promise<void>;
 }

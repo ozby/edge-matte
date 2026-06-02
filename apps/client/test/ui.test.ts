@@ -29,6 +29,8 @@ describe("ui rendering", () => {
       id: "job_123",
       status: "ready" as const,
       imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+      originalImageUrl: "https://edge-matte.ozby.dev/i/job_123/original",
+      resultUrl: "https://edge-matte.ozby.dev/r/job_123",
       pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
       errorCode: null,
       createdAt: "2026-05-27T00:00:00.000Z",
@@ -77,6 +79,8 @@ describe("ui rendering", () => {
         id: "job_123",
         status: "ready",
         imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+        originalImageUrl: "https://edge-matte.ozby.dev/i/job_123/original",
+        resultUrl: "https://edge-matte.ozby.dev/r/job_123",
         pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
         errorCode: null,
         createdAt: "2026-05-27T00:00:00.000Z",
@@ -85,8 +89,9 @@ describe("ui rendering", () => {
       deleteToken: "secret",
     });
     expect(ui.resultPanel.hidden).toBe(false);
-    expect(ui.resultUrl.href).toBe("https://edge-matte.ozby.dev/i/job_123");
+    expect(ui.resultUrl.href).toBe("https://edge-matte.ozby.dev/r/job_123");
     expect(ui.copyButton.disabled).toBe(false);
+    expect(ui.downloadButton.href).toBe("https://edge-matte.ozby.dev/i/job_123");
     expect(ui.previewImage.hidden).toBe(true);
     expect(ui.compareEl.hidden).toBe(false);
     expect(ui.compareBeforeImage.src).toBe("blob:preview");
@@ -105,6 +110,8 @@ describe("ui rendering", () => {
         id: "job_123",
         status: "ready",
         imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+        originalImageUrl: "https://edge-matte.ozby.dev/i/job_123/original",
+        resultUrl: "https://edge-matte.ozby.dev/r/job_123",
         pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
         errorCode: null,
         createdAt: "2026-05-27T00:00:00.000Z",
@@ -118,6 +125,49 @@ describe("ui rendering", () => {
     expect(ui.compareEl.hidden).toBe(false);
     expect(ui.compareBeforeImage.src).toBe("blob:preview");
     expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_123");
+  });
+
+  it("renders shared results from persisted original and hides delete without a token", () => {
+    const mount = document.createElement("div");
+    const ui = createUi(mount);
+    renderUi(ui, {
+      phase: "ready",
+      previewUrl: "https://edge-matte.ozby.dev/i/job_123/original",
+      job: {
+        id: "job_123",
+        status: "ready",
+        imageUrl: "https://edge-matte.ozby.dev/i/job_123",
+        originalImageUrl: "https://edge-matte.ozby.dev/i/job_123/original",
+        resultUrl: "https://edge-matte.ozby.dev/r/job_123",
+        pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_123",
+        errorCode: null,
+        createdAt: "2026-05-27T00:00:00.000Z",
+        updatedAt: "2026-05-27T00:00:00.000Z",
+      },
+      deleteToken: null,
+    });
+
+    expect(ui.resultPanel.hidden).toBe(false);
+    expect(ui.resultUrl.href).toBe("https://edge-matte.ozby.dev/r/job_123");
+    expect(ui.downloadButton.href).toBe("https://edge-matte.ozby.dev/i/job_123");
+    expect(ui.compareBeforeImage.src).toBe("https://edge-matte.ozby.dev/i/job_123/original");
+    expect(ui.deleteButton.hidden).toBe(true);
+    expect(ui.deleteConfirm.hidden).toBe(true);
+  });
+
+  it("renders loading and missing result states for direct share pages", () => {
+    const mount = document.createElement("div");
+    const ui = createUi(mount);
+
+    renderUi(ui, { phase: "result-loading", id: "job_123" });
+    expect(ui.statusText.textContent).toContain("Loading result");
+    expect(ui.spinner.hidden).toBe(false);
+    expect(ui.resultPanel.hidden).toBe(true);
+
+    renderUi(ui, { phase: "result-missing", id: "job_123" });
+    expect(ui.errorEl.hidden).toBe(false);
+    expect(ui.errorEl.textContent).toContain("That result is no longer available");
+    expect(ui.resultPanel.hidden).toBe(true);
   });
 
   it("compare slider lives inside the frame and drives the split position", () => {
@@ -141,6 +191,8 @@ describe("ui rendering", () => {
       id: "job_test",
       status: "ready" as const,
       imageUrl: "https://edge-matte.ozby.dev/i/job_test",
+      originalImageUrl: "https://edge-matte.ozby.dev/i/job_test/original",
+      resultUrl: "https://edge-matte.ozby.dev/r/job_test",
       pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
       errorCode: null,
       createdAt: "2026-05-31T00:00:00.000Z",

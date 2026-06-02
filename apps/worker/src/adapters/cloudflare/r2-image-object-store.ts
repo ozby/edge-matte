@@ -22,14 +22,25 @@ export class R2ImageObjectStore implements ImageObjectStore {
     });
   }
 
-  async getProcessed(id: string): Promise<Response | null> {
-    const object = await this.bucket.get(deriveObjectKeys(id).processed);
+  private async getObjectResponse(key: string): Promise<Response | null> {
+    const object = await this.bucket.get(key);
     if (!object) {
       return null;
     }
     return new Response(object.body, {
-      headers: { "content-type": object.httpMetadata?.contentType ?? "application/octet-stream" },
+      headers: {
+        "content-type": object.httpMetadata?.contentType ?? "application/octet-stream",
+        "cache-control": "no-store",
+      },
     });
+  }
+
+  async getOriginal(id: string): Promise<Response | null> {
+    return this.getObjectResponse(deriveObjectKeys(id).original);
+  }
+
+  async getProcessed(id: string): Promise<Response | null> {
+    return this.getObjectResponse(deriveObjectKeys(id).processed);
   }
 
   async deleteAll(job: ImageJob): Promise<void> {

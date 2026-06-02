@@ -8,8 +8,10 @@ export const PRODUCTION_DOMAIN = "edge-matte.ozby.dev";
 export const PR_CI_WORKFLOW = ".github/workflows/ci.webpresso.yml";
 
 export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy.production.yml";
+export const PREVIEW_DEPLOY_WORKFLOW = ".github/workflows/deploy.preview.yml";
 export const WAIT_FOR_HTTP_SCRIPT = "scripts/wait-for-http.sh";
 export const DEPLOY_PRODUCTION_SCRIPT = "scripts/deploy-production.ts";
+export const DEPLOY_PREVIEW_SCRIPT = "scripts/deploy-preview.ts";
 
 export const CODEOWNERS_WORKFLOW_GOVERNANCE_PATH = ".github/CODEOWNERS";
 
@@ -38,9 +40,21 @@ export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
   },
 ]);
 
-/** Main deploy must serialize production releases and verify smoke (IR-1 / blueprint tasks 6–7). */
+/** Preview deploy must mutate only preview Workers for main and pull requests. */
+export const PREVIEW_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
+  { label: "main preview trigger", pattern: /branches:\s*\[[^\]]*main/u },
+  { label: "pull request preview trigger", pattern: /^\s*pull_request:/mu },
+  { label: "preview concurrency", pattern: /edge-matte-preview-/u },
+  { label: "preview deploy script", pattern: /deploy-preview/u },
+  { label: "preview-main lane", pattern: /preview-main/u },
+  { label: "preview-pr lane", pattern: /preview-pr/u },
+  { label: "closed PR cleanup", pattern: /--destroy/u },
+]);
+
+/** Production deploy must serialize releases and verify smoke (IR-1 / blueprint tasks 6–7). */
 export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
-  { label: "main branch trigger", pattern: /branches:\s*\[[^\]]*main/u },
+  { label: "release tag trigger", pattern: /tags:\s*\[[^\]]*v\*/u },
+  { label: "manual release version input", pattern: /release_version/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
   {
@@ -50,6 +64,10 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
   {
     label: "deploy contract verify",
     pattern: /vp run verify:deploy-contract/u,
+  },
+  {
+    label: "production release metadata gate",
+    pattern: /infra\/release-metadata\.production\.json|release_version/u,
   },
   { label: "production domain target", pattern: /edge-matte\.ozby\.dev/u },
   { label: "post-deploy /health smoke", pattern: /wait-for-http\.sh.*\/health|\/health/u },

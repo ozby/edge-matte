@@ -10,6 +10,8 @@ export interface PublicImageJob {
   id: string;
   status: ImageJobStatus;
   imageUrl: string;
+  originalImageUrl: string;
+  resultUrl: string;
   pollUrl: string;
   errorCode: string | null;
   createdAt: string;

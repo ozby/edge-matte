@@ -4,7 +4,9 @@
  *
  * Loads Cloudflare deploy credentials from the repo-selected secret manager
  * (configure once: `wp config secrets set doppler ozby-shell`) via `with-secrets`,
- * then runs `wrangler deploy --env production`.
+ * then runs `wrangler deploy --env production`. This intentionally fails before
+ * deploying unless infra/release-metadata.production.json carries release
+ * metadata for a versioned production release.
  *
  * Usage:
  *   bun scripts/deploy-production.ts [--skip-build] [--skip-smoke]
