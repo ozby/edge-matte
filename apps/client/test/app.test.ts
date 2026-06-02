@@ -38,6 +38,7 @@ describe("upload flow controller", () => {
   let revokeObjectUrlMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    window.history.replaceState(null, "", "/");
     securityConfig = {
       turnstile: {
         enabled: false,
@@ -50,6 +51,8 @@ describe("upload flow controller", () => {
         id: "job_test",
         status: "ready",
         imageUrl: "https://edge-matte.ozby.dev/i/job_test",
+        originalImageUrl: "https://edge-matte.ozby.dev/i/job_test/original",
+        resultUrl: "https://edge-matte.ozby.dev/r/job_test",
         pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
         errorCode: null,
         createdAt: "2026-05-27T00:00:00.000Z",
@@ -77,6 +80,22 @@ describe("upload flow controller", () => {
           receivedCreateJobForm = init.body instanceof FormData ? init.body : null;
           return createJobResponse.clone();
         }
+        if (url.includes("/api/jobs/job_test") && init?.method !== "DELETE") {
+          return new Response(
+            JSON.stringify({
+              id: "job_test",
+              status: "ready",
+              imageUrl: "https://edge-matte.ozby.dev/i/job_test",
+              originalImageUrl: "https://edge-matte.ozby.dev/i/job_test/original",
+              resultUrl: "https://edge-matte.ozby.dev/r/job_test",
+              pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_test",
+              errorCode: null,
+              createdAt: "2026-05-27T00:00:00.000Z",
+              updatedAt: "2026-05-27T00:00:00.000Z",
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
         if (url.includes("/api/jobs/job_test") && init?.method === "DELETE") {
           return deleteJobResponse.clone();
         }
@@ -99,6 +118,7 @@ describe("upload flow controller", () => {
     const mount = document.createElement("div");
     const { app, ui } = createAppForTest(mount);
     const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+    window.history.replaceState(null, "", "/");
 
     app.selectFile(file);
     expect(app.getState().phase).toBe("preview");
@@ -106,8 +126,9 @@ describe("upload flow controller", () => {
 
     await app.submitUpload();
     expect(app.getState().phase).toBe("ready");
+    expect(window.location.pathname).toBe("/r/job_test");
     expect(ui.resultPanel.hidden).toBe(false);
-    expect(ui.resultUrl.textContent).toContain("/i/job_test");
+    expect(ui.resultUrl.textContent).toContain("/r/job_test");
     expect(ui.compareEl.hidden).toBe(false);
     expect(ui.compareBeforeImage.src).toBe("blob:preview");
     expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
@@ -119,7 +140,38 @@ describe("upload flow controller", () => {
 
     await app.confirmDelete();
     expect(app.getState().phase).toBe("deleted");
+    expect(window.location.pathname).toBe("/");
     expect(ui.resultPanel.hidden).toBe(true);
+  });
+
+  it("loads a shared /r/:id result directly without delete controls", async () => {
+    window.history.replaceState(null, "", "/r/job_test");
+    const mount = document.createElement("div");
+    const { app, ui } = createAppForTest(mount);
+
+    expect(app.getState().phase).toBe("result-loading");
+    await vi.waitFor(() => {
+      expect(app.getState().phase).toBe("ready");
+    });
+
+    expect(ui.resultUrl.textContent).toBe("https://edge-matte.ozby.dev/r/job_test");
+    expect(ui.compareBeforeImage.src).toBe("https://edge-matte.ozby.dev/i/job_test/original");
+    expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
+    expect(ui.deleteButton.hidden).toBe(true);
+  });
+
+  it("shows an explicit missing state for unknown /r/:id pages", async () => {
+    window.history.replaceState(null, "", "/r/job_missing");
+    const mount = document.createElement("div");
+    const { app, ui } = createAppForTest(mount);
+
+    await vi.waitFor(() => {
+      expect(app.getState().phase).toBe("result-missing");
+    });
+
+    expect(ui.resultPanel.hidden).toBe(true);
+    expect(ui.errorEl.hidden).toBe(false);
+    expect(ui.errorEl.textContent).toContain("That result is no longer available");
   });
 
   it("keeps the object-URL preview alive through upload (does not revoke the displayed blob)", async () => {
@@ -138,8 +190,24 @@ describe("upload flow controller", () => {
     expect(revokeObjectUrlMock).not.toHaveBeenCalledWith(displayedBlob);
 
     await pending;
+    expect(window.location.pathname).toBe("/r/job_test");
     expect(ui.compareBeforeImage.src).toBe("blob:preview");
     expect(ui.compareAfterImage.src).toBe("https://edge-matte.ozby.dev/i/job_test");
+  });
+
+  it("copies the share result URL rather than the raw image URL", async () => {
+    window.history.replaceState(null, "", "/");
+    const mount = document.createElement("div");
+    const { app } = createAppForTest(mount);
+    const file = new File([PNG_BYTES], "sample.png", { type: "image/png" });
+
+    app.selectFile(file);
+    await app.submitUpload();
+    await app.copyResultUrl();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      "https://edge-matte.ozby.dev/r/job_test",
+    );
   });
 
   it("surfaces recoverable validation errors before upload", () => {

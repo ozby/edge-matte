@@ -2,6 +2,20 @@
   "version": 1,
   "architectureDocs": ["docs/architecture.md"],
   "requiredFiles": ["blueprints/completed/2026-05-27-edge-matte.md"],
+  "publicRoutes": [
+    "POST /api/jobs",
+    "GET /api/jobs/:id",
+    "GET /r/:id",
+    "GET /i/:id",
+    "GET /i/:id/original",
+    "DELETE /api/jobs/:id",
+    "GET /health"
+  ],
+  "deployLanes": {
+    "preview_main": "edge-matte-preview-main workers.dev Worker",
+    "preview_pr": "edge-matte-preview-pr-<n> workers.dev Worker",
+    "prd": "edge-matte env.production on edge-matte.ozby.dev"
+  },
   "rules": [
     {
       "id": "production-domain",

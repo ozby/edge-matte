@@ -3,7 +3,7 @@ type: blueprint
 title: "EdgeMatte: shared Cloudflare deployment contract extraction"
 status: in-progress
 created: 2026-05-29T00:00:00.000Z
-last_updated: "2026-05-30"
+last_updated: "2026-06-02"
 review_target: internal multi-repo platform work
 parent_blueprint: 2026-05-27-edge-matte
 depends_on:
@@ -15,7 +15,7 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
-progress: "38% (3/8 tasks done, 0 blocked, ownership boundary + fact-check findings + package-surface guard locked 2026-05-30)"
+progress: "EdgeMatte repo adoption landed 2026-06-02: main -> preview_main, PR -> preview_pr_<n> with cleanup, and production release metadata gating. Cross-repo IngestLens alignment remains tracked by ultragoal G002."
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -108,6 +108,24 @@ deployment becomes a shared **multi-repo contract**:
   e2e suites, supply-chain policy, secret bootstrap policy, or other
   agent-kit/vite-plus quality rails.
 - No work in this lane modifies gstack or OMX.
+
+## EdgeMatte adoption update (2026-06-02)
+
+Repo-local deployment behavior is now concrete:
+
+- pushes to `main` run [`deploy.preview.yml`](../../.github/workflows/deploy.preview.yml)
+  and deploy `preview_main` as the `edge-matte-preview-main` Workers.dev Worker;
+- pull requests deploy `preview_pr_<n>` as `edge-matte-preview-pr-<n>` and
+  closed pull requests call the destroy path;
+- [`scripts/deploy-preview.ts`](../../scripts/deploy-preview.ts) renders a
+  temporary Wrangler config outside the repo, uses `workers_dev = true`, and
+  never deploys `env.production`;
+- production deploys are removed from ordinary `main` pushes and now run only
+  for `v*` tags or explicit manual release dispatch;
+- [`scripts/verify-deploy-contract.ts`](../../scripts/verify-deploy-contract.ts)
+  fails `version_pr` production deploys unless
+  [`infra/release-metadata.production.json`](../../infra/release-metadata.production.json)
+  carries a semver `releaseVersion` in a release PR.
 
 ## Objective
 
@@ -497,8 +515,8 @@ risks, edge cases, technology choices, and cross-plan references.
 
 ## Execution checklist
 
-- [ ] Freeze the ownership boundary: `agent-kit` yes; gstack/OMX no.
-- [ ] Lock the canonical lane vocabulary: `dev`, `preview_main`, `preview_pr_<n>`, `prd`.
+- [x] Freeze the ownership boundary: `agent-kit` yes; gstack/OMX no.
+- [x] Lock the canonical lane vocabulary: `dev`, `preview_main`, `preview_pr_<n>`, `prd`.
 - [ ] Define the first `agent-kit` delivery slice:
       workflow template(s), rule doc(s), deployment-contract drift audit, and
       reusable workflow hardening expectations (pinned actions, frozen install,
@@ -506,9 +524,9 @@ risks, edge cases, technology choices, and cross-plan references.
 - [ ] Define the first private package delivery slice from `wrangler-sync`:
       pure patch/render helpers, stack output loading, and multi-target sync
       plan support.
-- [ ] Write EdgeMatte adoption notes for a single-Worker repo using the shared contract.
+- [x] Write EdgeMatte adoption notes for a single-Worker repo using the shared contract.
 - [ ] Write IngestLens adoption notes for a split client/API repo using the same contract.
-- [ ] Lock failure gates:
+- [x] Lock failure gates:
       no raw unsynced deploys where sync/render is declared required,
       no missing preview cleanup,
       no lane-name drift,

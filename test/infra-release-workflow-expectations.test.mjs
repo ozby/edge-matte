@@ -12,10 +12,13 @@ import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
 import {
   PR_CI_WORKFLOW,
   PRODUCTION_DEPLOY_WORKFLOW,
+  PREVIEW_DEPLOY_WORKFLOW,
   PR_CI_REQUIRED_RUNS,
   PRODUCTION_DEPLOY_REQUIREMENTS,
+  PREVIEW_DEPLOY_REQUIREMENTS,
   CODEOWNERS_WORKFLOW_GOVERNANCE_PATH,
   DEPLOY_PRODUCTION_SCRIPT,
+  DEPLOY_PREVIEW_SCRIPT,
   PRODUCTION_DOMAIN,
   LOCAL_DEPLOY_REQUIREMENTS,
   readWorkflow,
@@ -88,12 +91,34 @@ test("PR CI workflow includes quality gates, build, docs checks, and dry-run dep
   assert.equal(missing.length, 0, formatMissingExpectations(missing, PR_CI_WORKFLOW));
 });
 
-test("production deploy workflow exists for main-branch release path", () => {
+test("production deploy workflow exists for release-gated production path", () => {
   const workflow = readWorkflow(root, PRODUCTION_DEPLOY_WORKFLOW);
   assert.equal(
     workflow.exists,
     true,
     `${PRODUCTION_DEPLOY_WORKFLOW} is required for main deploy + post-deploy smoke (IR-6 target)`,
+  );
+});
+
+test("preview deploy workflow exists for main and PR preview lanes", () => {
+  const workflow = readWorkflow(root, PREVIEW_DEPLOY_WORKFLOW);
+  assert.equal(
+    workflow.exists,
+    true,
+    `${PREVIEW_DEPLOY_WORKFLOW} is required for preview_main and preview_pr_<n> deploys`,
+  );
+});
+
+test("preview deploy workflow deploys main and PR previews with PR cleanup", () => {
+  const workflow = readWorkflow(root, PREVIEW_DEPLOY_WORKFLOW);
+  assert.equal(workflow.exists, true, `${PREVIEW_DEPLOY_WORKFLOW} must exist`);
+
+  const missing = findMissingExpectations(workflow.contents, PREVIEW_DEPLOY_REQUIREMENTS);
+  assert.equal(missing.length, 0, formatMissingExpectations(missing, PREVIEW_DEPLOY_WORKFLOW));
+  assert.doesNotMatch(
+    workflow.contents,
+    /wrangler deploy[^\n]*--env production/u,
+    `${PREVIEW_DEPLOY_WORKFLOW} must not deploy the production Wrangler env`,
   );
 });
 
@@ -103,6 +128,11 @@ test("production deploy workflow serializes deploys and runs smoke verification"
 
   const missing = findMissingExpectations(workflow.contents, PRODUCTION_DEPLOY_REQUIREMENTS);
   assert.equal(missing.length, 0, formatMissingExpectations(missing, PRODUCTION_DEPLOY_WORKFLOW));
+  assert.doesNotMatch(
+    workflow.contents,
+    /branches:\s*\[[^\]]*main/u,
+    `${PRODUCTION_DEPLOY_WORKFLOW} must not deploy production on ordinary main pushes`,
+  );
 });
 
 test("production deploy workflow targets the architecture production domain", () => {
@@ -129,4 +159,23 @@ test("local deploy script keeps truthful smoke and production suites behind with
 
   const missing = findMissingExpectations(script.contents, LOCAL_DEPLOY_REQUIREMENTS);
   assert.equal(missing.length, 0, formatMissingExpectations(missing, DEPLOY_PRODUCTION_SCRIPT));
+});
+
+test("preview deploy script renders preview-main and preview-pr workers without production env deploys", () => {
+  const script = readWorkflow(root, DEPLOY_PREVIEW_SCRIPT);
+  assert.equal(script.exists, true, `${DEPLOY_PREVIEW_SCRIPT} must exist`);
+
+  const missing = findMissingExpectations(script.contents, [
+    { label: "preview-main lane", pattern: /preview-main/u },
+    { label: "preview-pr lane", pattern: /preview-pr/u },
+    { label: "temporary wrangler config", pattern: /mkdtemp|tmpdir/u },
+    { label: "workers.dev enabled", pattern: /workers_dev\s*=\s*true/u },
+    { label: "destroy support", pattern: /"delete"|--destroy/u },
+  ]);
+  assert.equal(missing.length, 0, formatMissingExpectations(missing, DEPLOY_PREVIEW_SCRIPT));
+  assert.doesNotMatch(
+    script.contents,
+    /wrangler[",\s]+deploy[\s\S]*--env[\s\S]*production/u,
+    `${DEPLOY_PREVIEW_SCRIPT} must not deploy the production Wrangler env`,
+  );
 });

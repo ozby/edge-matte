@@ -223,8 +223,36 @@ export const createUi = (mount: HTMLElement): UiElements => {
   return ui;
 };
 
-const TRANSIENT_PHASES = new Set<UiPhase["phase"]>(["uploading", "processing"]);
-const DROP_ZONE_VISIBLE_PHASES = new Set<UiPhase["phase"]>(["idle", "deleted", "error"]);
+const TRANSIENT_PHASES = new Set<UiPhase["phase"]>(["result-loading", "uploading", "processing"]);
+const DROP_ZONE_VISIBLE_PHASES = new Set<UiPhase["phase"]>([
+  "idle",
+  "result-missing",
+  "deleted",
+  "error",
+]);
+
+const renderResultLinks = (
+  ui: UiElements,
+  state: Extract<UiPhase, { phase: "ready" | "confirm-delete" }>,
+): void => {
+  ui.resultPanel.hidden = false;
+  ui.resultUrl.href = state.job.resultUrl;
+  ui.resultUrl.textContent = state.job.resultUrl;
+  ui.downloadButton.href = state.job.imageUrl;
+  ui.downloadButton.download = `${state.job.id}.png`;
+};
+
+const renderCompareResult = (
+  ui: UiElements,
+  state: Extract<UiPhase, { phase: "ready" | "confirm-delete" }>,
+): void => {
+  ui.previewEl.hidden = false;
+  ui.previewImage.hidden = true;
+  ui.compareEl.hidden = false;
+  ui.compareBeforeImage.src = state.previewUrl;
+  ui.compareAfterImage.src = state.job.imageUrl;
+  ui.metaEl.textContent = state.job.id;
+};
 
 export const renderUi = (ui: UiElements, state: UiPhase): void => {
   ui.errorEl.hidden = true;
@@ -244,6 +272,31 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = false;
       ui.deleteButton.hidden = false;
+      ui.deleteConfirm.hidden = true;
+      break;
+    case "result-loading":
+      ui.statusText.textContent = "Loading result…";
+      ui.previewEl.hidden = true;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
+      ui.resultPanel.hidden = true;
+      ui.submitButton.disabled = true;
+      ui.pickButton.disabled = true;
+      ui.deleteButton.hidden = true;
+      ui.deleteConfirm.hidden = true;
+      break;
+    case "result-missing":
+      resetCompareSplit(ui);
+      ui.statusText.textContent = "Result unavailable.";
+      ui.previewEl.hidden = true;
+      ui.previewImage.hidden = false;
+      ui.compareEl.hidden = true;
+      ui.resultPanel.hidden = true;
+      ui.errorEl.hidden = false;
+      ui.errorEl.textContent = "That result is no longer available. It may have been deleted.";
+      ui.submitButton.disabled = true;
+      ui.pickButton.disabled = false;
+      ui.deleteButton.hidden = true;
       ui.deleteConfirm.hidden = true;
       break;
     case "preview":
@@ -281,35 +334,17 @@ export const renderUi = (ui: UiElements, state: UiPhase): void => {
       break;
     case "ready":
       ui.statusText.textContent = "Done. Your image is live.";
-      ui.previewEl.hidden = false;
-      ui.previewImage.hidden = true;
-      ui.compareEl.hidden = false;
-      ui.compareBeforeImage.src = state.previewUrl;
-      ui.compareAfterImage.src = state.job.imageUrl;
-      ui.metaEl.textContent = state.job.id;
-      ui.resultPanel.hidden = false;
-      ui.resultUrl.href = state.job.imageUrl;
-      ui.resultUrl.textContent = state.job.imageUrl;
-      ui.downloadButton.href = state.job.imageUrl;
-      ui.downloadButton.download = `${state.job.id}.png`;
-      ui.deleteButton.hidden = false;
+      renderCompareResult(ui, state);
+      renderResultLinks(ui, state);
+      ui.deleteButton.hidden = !state.deleteToken;
       ui.deleteConfirm.hidden = true;
       ui.submitButton.disabled = true;
       ui.pickButton.disabled = true;
       break;
     case "confirm-delete":
       ui.statusText.textContent = "Confirm deletion below.";
-      ui.previewEl.hidden = false;
-      ui.previewImage.hidden = true;
-      ui.compareEl.hidden = false;
-      ui.compareBeforeImage.src = state.previewUrl;
-      ui.compareAfterImage.src = state.job.imageUrl;
-      ui.metaEl.textContent = state.job.id;
-      ui.resultPanel.hidden = false;
-      ui.resultUrl.href = state.job.imageUrl;
-      ui.resultUrl.textContent = state.job.imageUrl;
-      ui.downloadButton.href = state.job.imageUrl;
-      ui.downloadButton.download = `${state.job.id}.png`;
+      renderCompareResult(ui, state);
+      renderResultLinks(ui, state);
       ui.deleteButton.hidden = true;
       ui.deleteConfirm.hidden = false;
       ui.submitButton.disabled = true;

@@ -13,8 +13,8 @@ EdgeMatte is a Cloudflare-native image matting pipeline deployed at
 **one Worker, static assets, one R2 bucket, one pure pipeline core**.
 
 The public product flow is: upload one image, remove the background, flip the
-result horizontally, host the processed artifact, expose safe job status, and
-delete every artifact through a capability token.
+result horizontally, host a canonical result page plus raw image artifacts,
+expose safe job status, and delete every artifact through a capability token.
 
 ## Architecture at a glance
 
@@ -24,7 +24,7 @@ flowchart LR
 
     subgraph WORKER[Cloudflare Worker + Static Assets]
         ASSETS[Workers Static Assets<br/>SPA shell]
-        ROUTES[Hono route adapter<br/>/api/jobs /i/:id /health<br/>/internal/raw/segment-tmp/*]
+        ROUTES[Hono route adapter<br/>/api/jobs /r/:id /i/:id /i/:id/original /health<br/>/internal/raw/segment-tmp/*]
         CORE[Pure processImageJob core]
         ROUTES --> CORE
         ROUTES --> ASSETS
@@ -63,8 +63,8 @@ flowchart TD
     BG_CALL --> FLIP_STATUS[status=flipping]
     FLIP_STATUS --> FLIP[Cloudflare Images binding<br/>env.IMAGES flip=h]
     FLIP --> STORE_PROCESSED[(R2 processed object)]
-    STORE_PROCESSED --> READY[status=ready imageUrl available]
-    READY --> RESPONSE[201 id/status/imageUrl/deleteToken/pollUrl]
+    STORE_PROCESSED --> READY[status=ready resultUrl + raw image URLs available]
+    READY --> RESPONSE[201 id/status/resultUrl/imageUrl/originalImageUrl/deleteToken/pollUrl]
 
     LIMIT -->|too large| ERR_413[413 file_too_large]
     MAGIC -->|unsupported/spoofed| ERR_415[415 unsupported_media_type]
@@ -137,7 +137,8 @@ That keeps the brief’s order exact:
 1. upload one image
 2. remove background through a third-party provider
 3. flip the cutout horizontally
-4. host the processed artifact at `https://edge-matte.ozby.dev/i/:id`
+4. host the canonical result page at `https://edge-matte.ozby.dev/r/:id`
+   with raw artifacts at `/i/:id` and `/i/:id/original`
 5. delete original object, processed object, and metadata with the delete token
 
 ## Upload sequence
@@ -165,10 +166,11 @@ sequenceDiagram
     IMG-->>Core: Flipped image stream
     Core->>R2: Put processed + update job ready
     Core-->>API: Public job + delete token
-    API-->>UI: imageUrl + deleteToken + pollUrl
-    UI->>API: GET /i/:id
-    API->>R2: Read processed object
-    API-->>UI: Processed image
+    API-->>UI: resultUrl + imageUrl + originalImageUrl + deleteToken + pollUrl
+    UI->>UI: history.replaceState('/r/:id')
+    UI->>API: GET /i/:id + GET /i/:id/original
+    API->>R2: Read processed + original objects
+    API-->>UI: Processed + original images for compare slider
 ```
 
 ## Job state machine
@@ -208,7 +210,7 @@ flowchart TD
     ID --> PROCESSED[images/{id}/processed<br/>background removed + flipped]
     TMP[segment-tmp/{ts}-{rand}<br/>transient blob for cf.image sub-request<br/>deleted in CfImageSegmentProvider.finally]
 
-    META --> SAFE[PublicJobResponse<br/>id status imageUrl timestamps errorCode]
+    META --> SAFE[PublicJobResponse<br/>id status resultUrl imageUrl originalImageUrl timestamps errorCode]
     META --> SECRET[Private fields<br/>deleteTokenHash object keys]
     ORIGINAL --> CLEANUP[deleteAll]
     PROCESSED --> CLEANUP
@@ -220,16 +222,16 @@ artifact lifecycle explicit and testable.
 
 ## Principal requirement traceability
 
-| task.pdf requirement                       | Architecture contract                                                                                                                               |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Upload a single image                      | `POST /api/jobs` accepts exactly one multipart file after client + server validation.                                                               |
-| Remove background via third-party service  | `BackgroundRemovalProvider` port with `CfImageSegmentProvider` production adapter (Cloudflare's BiRefNet via the `cf.image segment` CDN transform). |
-| Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`.                                                              |
-| Host processed image online at unique URL  | Worker serves `GET /i/:id` on `https://edge-matte.ozby.dev`.                                                                                        |
-| Delete uploaded and processed images       | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata.                                                                 |
-| Backend must be TypeScript                 | Worker/core/adapters are TypeScript-only surfaces.                                                                                                  |
-| Full stack deployed online                 | Worker + static assets deploy together to `edge-matte.ozby.dev`.                                                                                    |
-| Code shared in GitHub repository           | Blueprint/release flow assumes public GitHub review target.                                                                                         |
+| task.pdf requirement                       | Architecture contract                                                                                                                                     |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Upload a single image                      | `POST /api/jobs` accepts exactly one multipart file after client + server validation.                                                                     |
+| Remove background via third-party service  | `BackgroundRemovalProvider` port with `CfImageSegmentProvider` production adapter (Cloudflare's BiRefNet via the `cf.image segment` CDN transform).       |
+| Flip horizontally after background removal | `ImageTransformer` port with Cloudflare Images Workers binding adapter using `flip=h`.                                                                    |
+| Host processed image online at unique URL  | Worker serves canonical `GET /r/:id` result pages plus no-store raw `GET /i/:id` and `GET /i/:id/original` image routes on `https://edge-matte.ozby.dev`. |
+| Delete uploaded and processed images       | `DELETE /api/jobs/:id` deletes original object, processed object, and job metadata.                                                                       |
+| Backend must be TypeScript                 | Worker/core/adapters are TypeScript-only surfaces.                                                                                                        |
+| Full stack deployed online                 | Worker + static assets deploy together to `edge-matte.ozby.dev`.                                                                                          |
+| Code shared in GitHub repository           | Blueprint/release flow assumes public GitHub review target.                                                                                               |
 
 ## Delete flow
 
@@ -283,7 +285,7 @@ flowchart TD
     CONTRACT --> PRGATE[CI e2e job — gates every PR, hermetic mock mode]
     SMOKE --> PRGATE
     UPLOAD --> PRGATE
-    PROD --> POSTDEPLOY[deploy.production.yml — post-deploy]
+    PROD --> POSTDEPLOY[deploy.production.yml — release post-deploy]
     PRODJOURNEY --> POSTDEPLOY
 
     WP --> DOCS[docs + blueprint lifecycle audits]
@@ -310,7 +312,10 @@ flowchart LR
     GH[GitHub repo] --> CI[GitHub Actions]
     CI --> CHECKS[agent-kit/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
     CHECKS --> DRY[wrangler deploy --dry-run]
-    DRY --> DEPLOY[Doppler-injected credentials<br/>pnpm wrangler deploy --env production]
+    CHECKS --> PREVIEW[deploy.preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
+    PREVIEW --> WORKERSDEV[workers.dev preview Workers]
+    DRY --> RELEASE[release metadata gate<br/>version_pr releaseVersion]
+    RELEASE --> DEPLOY[Doppler-injected credentials<br/>wrangler deploy --env production]
     DEPLOY --> URL[edge-matte.ozby.dev]
     URL --> SMOKE[post-deploy smoke<br/>GET /health + GET /]
 
@@ -327,8 +332,11 @@ flowchart LR
 ```
 
 Boundary rule: Pulumi owns durable infrastructure. Wrangler owns Worker-scoped
-deployment, static assets, routes, bindings, and secret names. Provider secret
-values live in Cloudflare, not GitHub.
+deployment, static assets, routes, bindings, and secret names. Preview Workers
+are separate `workers.dev` Worker names (`edge-matte-preview-main` and
+`edge-matte-preview-pr-<n>`) managed by the preview deploy script; production
+remains the stable `edge-matte` Worker and `edge-matte.ozby.dev` route. Provider
+secret values live in Cloudflare, not GitHub.
 
 ## Optional queue execution
 

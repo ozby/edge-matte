@@ -12,6 +12,8 @@ export interface ImageJob {
   id: string;
   status: ImageJobStatus;
   imageUrl: string;
+  originalImageUrl: string;
+  resultUrl: string;
   pollUrl: string;
   originalObjectKey: string;
   processedObjectKey: string;
@@ -30,6 +32,8 @@ export interface PublicImageJob {
   id: string;
   status: ImageJobStatus;
   imageUrl: string;
+  originalImageUrl: string;
+  resultUrl: string;
   pollUrl: string;
   errorCode: string | null;
   createdAt: string;
@@ -67,6 +71,8 @@ export const createImageJob = async ({
       id,
       status: "validating",
       imageUrl: `${appOrigin}/i/${id}`,
+      originalImageUrl: `${appOrigin}/i/${id}/original`,
+      resultUrl: `${appOrigin}/r/${id}`,
       pollUrl: `${appOrigin}/api/jobs/${id}`,
       originalObjectKey: keys.original,
       processedObjectKey: keys.processed,
@@ -83,6 +89,8 @@ export const toPublicImageJob = (job: ImageJob): PublicImageJob => ({
   id: job.id,
   status: job.status,
   imageUrl: job.imageUrl,
+  originalImageUrl: job.originalImageUrl,
+  resultUrl: job.resultUrl,
   pollUrl: job.pollUrl,
   errorCode: job.errorCode,
   createdAt: job.createdAt,

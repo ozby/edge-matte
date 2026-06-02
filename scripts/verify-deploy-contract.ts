@@ -8,6 +8,7 @@ const WRANGLER_PATH = path.join(ROOT, "wrangler.toml");
 
 type ReleaseMetadata = {
   releaseKind: "version_pr" | "manual_hotfix";
+  releaseVersion?: string;
   durableObjectMigration: "none" | "required";
   rolloutMode: "direct" | "gradual";
   requiredChecks: string[];
@@ -34,6 +35,15 @@ function main() {
   const metadata = readJson<ReleaseMetadata>(METADATA_PATH);
   if (!Array.isArray(metadata.requiredChecks) || metadata.requiredChecks.length === 0) {
     fail("release metadata must declare at least one required check");
+  }
+
+  if (
+    metadata.releaseKind === "version_pr" &&
+    !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(metadata.releaseVersion ?? "")
+  ) {
+    fail(
+      "version_pr release metadata must declare a semver releaseVersion before production deploy",
+    );
   }
 
   if (metadata.durableObjectMigration === "required" && metadata.rolloutMode !== "direct") {

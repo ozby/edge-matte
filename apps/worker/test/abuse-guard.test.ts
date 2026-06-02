@@ -44,6 +44,7 @@ const createDeps = (): WorkerTestDeps => ({
   objectStore: {
     putOriginal: vi.fn(async () => {}),
     putProcessed: vi.fn(async () => {}),
+    getOriginal: vi.fn(async () => null),
     getProcessed: vi.fn(async () => null),
     deleteAll: vi.fn(async () => {}),
   },

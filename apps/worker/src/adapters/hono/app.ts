@@ -157,6 +157,15 @@ export const createApp = (
     return image;
   });
 
+  app.get("/i/:id/original", async (c) => {
+    const image = await deps.objectStore.getOriginal(c.req.param("id"));
+    if (!image) {
+      const mapped = errorResponse(imageNotFoundError());
+      return toJsonResponse(mapped.body, mapped.status);
+    }
+    return image;
+  });
+
   app.delete("/api/jobs/:id", async (c) => {
     const id = c.req.param("id");
     const job = await deps.repository.get(id);

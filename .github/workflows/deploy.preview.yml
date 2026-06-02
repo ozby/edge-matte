@@ -1,0 +1,93 @@
+name: Deploy preview
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Preview lane: preview-main or preview-pr-<n>"
+        required: true
+        type: string
+
+concurrency:
+  group: edge-matte-preview-${{ github.event.pull_request.number || github.ref_name || inputs.lane }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Set up Webpresso tooling
+        uses: ./.github/actions/setup-webpresso
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+      - run: vp run verify:secrets
+      - run: wp audit absolute-path-policy --root .
+      - run: vp run audit:secret-provider-quarantine
+      - run: vp run format:check
+      - run: vp run lint
+      - run: vp run check-types
+      - run: vp run build
+      - run: vp run test
+
+      - name: Inject preview deploy credentials from Doppler
+        if: env.HAS_DOPPLER_TOKEN == '1'
+        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+          inject-env-vars: true
+
+      - name: Deploy preview-main
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: vp run deploy:preview -- --lane preview-main
+
+      - name: Deploy preview-pr
+        if: github.event_name == 'pull_request'
+        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }}
+
+      - name: Deploy manual preview
+        if: github.event_name == 'workflow_dispatch'
+        run: vp run deploy:preview -- --lane "${{ inputs.lane }}"
+
+  destroy-preview:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Set up Webpresso tooling
+        uses: ./.github/actions/setup-webpresso
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+
+      - name: Inject preview cleanup credentials from Doppler
+        if: env.HAS_DOPPLER_TOKEN == '1'
+        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+          inject-env-vars: true
+
+      - name: Destroy preview-pr
+        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }} --destroy

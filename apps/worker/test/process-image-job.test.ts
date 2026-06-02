@@ -85,14 +85,22 @@ class InMemoryObjectStore implements ImageObjectStore {
     });
   }
 
-  async getProcessed(id: string) {
-    const object = this.objects.get(deriveObjectKeys(id).processed);
+  private getObjectResponse(key: string) {
+    const object = this.objects.get(key);
     if (!object) {
       return null;
     }
     return new Response(object.body, {
       headers: { "content-type": object.contentType },
     });
+  }
+
+  async getOriginal(id: string) {
+    return this.getObjectResponse(deriveObjectKeys(id).original);
+  }
+
+  async getProcessed(id: string) {
+    return this.getObjectResponse(deriveObjectKeys(id).processed);
   }
 
   async deleteAll(job: ImageJob) {
@@ -124,6 +132,8 @@ describe("core pipeline", () => {
       status: "validating",
       pollUrl: "https://edge-matte.ozby.dev/api/jobs/job_1234",
       imageUrl: "https://edge-matte.ozby.dev/i/job_1234",
+      originalImageUrl: "https://edge-matte.ozby.dev/i/job_1234/original",
+      resultUrl: "https://edge-matte.ozby.dev/r/job_1234",
     });
   });
 

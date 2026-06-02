@@ -65,24 +65,41 @@ describe("worker routes", () => {
       id: string;
       status: string;
       imageUrl: string;
+      originalImageUrl: string;
+      resultUrl: string;
       pollUrl: string;
       deleteToken: string;
     };
     expect(created.status).toBe("ready");
-    expect(created.imageUrl).toContain("/i/");
+    expect(created.imageUrl).toBe(`https://edge-matte.ozby.dev/i/${created.id}`);
+    expect(created.originalImageUrl).toBe(`https://edge-matte.ozby.dev/i/${created.id}/original`);
+    expect(created.resultUrl).toBe(`https://edge-matte.ozby.dev/r/${created.id}`);
     expect(created.pollUrl).toContain("/api/jobs/");
 
     const statusResponse = await app.fetch(
       new Request(`https://edge-matte.ozby.dev/api/jobs/${created.id}`),
     );
     expect(statusResponse.status).toBe(200);
-    expect((await statusResponse.json()) as { id: string }).toMatchObject({ id: created.id });
+    expect((await statusResponse.json()) as { id: string }).toMatchObject({
+      id: created.id,
+      imageUrl: created.imageUrl,
+      originalImageUrl: created.originalImageUrl,
+      resultUrl: created.resultUrl,
+    });
 
     const imageResponse = await app.fetch(
       new Request(`https://edge-matte.ozby.dev/i/${created.id}`),
     );
     expect(imageResponse.status).toBe(200);
     expect(imageResponse.headers.get("content-type")).toContain("image/");
+    expect(imageResponse.headers.get("cache-control")).toBe("no-store");
+
+    const originalResponse = await app.fetch(
+      new Request(`https://edge-matte.ozby.dev/i/${created.id}/original`),
+    );
+    expect(originalResponse.status).toBe(200);
+    expect(originalResponse.headers.get("content-type")).toContain("image/png");
+    expect(originalResponse.headers.get("cache-control")).toBe("no-store");
 
     const deleteResponse = await app.fetch(
       new Request(`https://edge-matte.ozby.dev/api/jobs/${created.id}`, {
@@ -97,6 +114,8 @@ describe("worker routes", () => {
       new Request(`https://edge-matte.ozby.dev/api/jobs/${created.id}`),
     );
     expect(missingResponse.status).toBe(404);
+    expect((await app.fetch(new Request(created.imageUrl))).status).toBe(404);
+    expect((await app.fetch(new Request(created.originalImageUrl))).status).toBe(404);
   });
 
   it("returns contract errors for invalid upload and delete token", async () => {

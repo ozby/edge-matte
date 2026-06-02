@@ -49,15 +49,16 @@ and [`infra/README.md#deployment-chart`](../infra/README.md#deployment-chart).
 
 ## Production target
 
-| Item              | Value                                                                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Public URL        | `https://edge-matte.ozby.dev`                                                                                                         |
-| Worker name       | `edge-matte`                                                                                                                          |
-| Wrangler env      | `production`                                                                                                                          |
-| Shared lane ID    | `prd` (mapped to Wrangler env `production`)                                                                                           |
-| R2 bucket         | `edge-matte-images`                                                                                                                   |
-| Health check      | `GET /health`                                                                                                                         |
-| Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy) |
+| Item              | Value                                                                                                                                                                |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public URL        | `https://edge-matte.ozby.dev`                                                                                                                                        |
+| Worker name       | `edge-matte`                                                                                                                                                         |
+| Wrangler env      | `production`                                                                                                                                                         |
+| Shared lane ID    | `prd` (mapped to Wrangler env `production`)                                                                                                                          |
+| Preview lanes     | `preview_main` -> `edge-matte-preview-main.<workers.dev subdomain>.workers.dev`; `preview_pr_<n>` -> `edge-matte-preview-pr-<n>.<workers.dev subdomain>.workers.dev` |
+| R2 bucket         | `edge-matte-images`                                                                                                                                                  |
+| Health check      | `GET /health`                                                                                                                                                        |
+| Confidence suites | `upload-delete-contract`, `smoke`, `upload-delete` (hermetic PR gate / local), `production-smoke`, `production-journey` (post-deploy)                                |
 
 A deployment is **not healthy** until both `production-smoke` and
 `production-journey` pass against the public URL.
@@ -73,7 +74,10 @@ EdgeMatte now adopts the shared deploy-contract surface on the canonical
 - `prd` maps to Wrangler env `production`
 - the stable production Worker name remains `edge-matte`
 - production release gating is driven by
-  `infra/release-metadata.production.json`
+  `infra/release-metadata.production.json`; `version_pr` metadata must include a
+  semver `releaseVersion`
+- `main` deploys to `preview_main`; pull requests deploy to
+  `preview_pr_<n>` and closed pull requests destroy their preview Worker
 
 Current EdgeMatte remains a **non-DO consumer**, so it does not declare Durable
 Object bindings yet. Preview transport is currently declared as
@@ -218,6 +222,17 @@ and in [`docs/secrets.md`](./secrets.md).
 
 ## Local deploy
 
+Operator-local preview deploy:
+
+```bash
+vp run deploy:preview -- --lane preview-main
+vp run deploy:preview -- --lane preview-pr-123
+vp run deploy:preview -- --lane preview-pr-123 --destroy
+```
+
+Preview deploys render a temporary Wrangler config outside the repo, deploy a
+separate `workers.dev` Worker name, and never deploy `env.production`.
+
 Operator-local production deploy (mirrors ingest-lens `deploy.ts` + Doppler):
 
 ```bash
@@ -270,19 +285,34 @@ but Git alone cannot enforce that review. Maintainers must also enable GitHub
 branch protection or rulesets with **Require review from Code Owners** for that
 protection to become mandatory.
 
-### `main` branch deploy
+### Preview deploys
+
+Implemented in [`.github/workflows/deploy.preview.yml`](../.github/workflows/deploy.preview.yml):
+
+1. Pushes to `main` run quality gates and deploy `preview_main` as
+   `edge-matte-preview-main`.
+2. Pull requests run quality gates and deploy `preview_pr_<n>` as
+   `edge-matte-preview-pr-<n>`.
+3. Closed pull requests call the preview destroy path for
+   `edge-matte-preview-pr-<n>`.
+4. Preview deploys use `workers.dev` transport and do not mutate
+   `edge-matte.ozby.dev`.
+
+### Production release deploy
 
 Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
 
-1. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
-2. Run `vp run verify:deploy-contract` so production release metadata is
-   present and valid before any deploy
-3. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
-4. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-5. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
-6. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
+1. Trigger only from a `v*` tag or manual `workflow_dispatch` with an explicit
+   `release_version`; ordinary `main` pushes go to preview only.
+2. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
+3. Run `vp run verify:deploy-contract` so production release metadata is
+   present, contains a semver `releaseVersion`, and is valid before any deploy
+4. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
+5. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
+6. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
+7. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
    (`cancel-in-progress: false`)
-7. **Post-deploy production evidence** — after deploy succeeds:
+8. **Post-deploy production evidence** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`

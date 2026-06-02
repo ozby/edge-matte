@@ -65,7 +65,8 @@ const toSecurityConfig = (env: WorkerEnv) => {
 
 const createInMemoryDeps = (): ProcessImageJobDeps => {
   const jobs = new Map<string, unknown>();
-  const images = new Map<string, Response>();
+  const originals = new Map<string, Response>();
+  const processed = new Map<string, Response>();
   return {
     repository: {
       async create(job) {
@@ -84,21 +85,35 @@ const createInMemoryDeps = (): ProcessImageJobDeps => {
       },
     },
     objectStore: {
-      async putOriginal() {},
-      async putProcessed(job, body, contentType) {
-        const blob = body instanceof Blob ? body : await new Response(body).blob();
-        images.set(
+      async putOriginal(job, file) {
+        originals.set(
           job.id,
-          new Response(blob.stream(), {
-            headers: { "content-type": contentType },
+          new Response(file.stream(), {
+            headers: {
+              "content-type": file.type || "application/octet-stream",
+              "cache-control": "no-store",
+            },
           }),
         );
       },
+      async putProcessed(job, body, contentType) {
+        const blob = body instanceof Blob ? body : await new Response(body).blob();
+        processed.set(
+          job.id,
+          new Response(blob.stream(), {
+            headers: { "content-type": contentType, "cache-control": "no-store" },
+          }),
+        );
+      },
+      async getOriginal(id) {
+        return originals.get(id) ?? null;
+      },
       async getProcessed(id) {
-        return images.get(id) ?? null;
+        return processed.get(id) ?? null;
       },
       async deleteAll(job) {
-        images.delete(job.id);
+        originals.delete(job.id);
+        processed.delete(job.id);
       },
     },
     provider: new MockBackgroundRemovalProvider(),

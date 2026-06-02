@@ -1,13 +1,15 @@
 #!/usr/bin/env bun
-import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
 
-const entryPath = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
-  "../node_modules/@webpresso/agent-kit/dist/esm/mutation/affected.js",
-);
-const { runAffectedMutation } = (await import(pathToFileURL(entryPath).href)) as {
-  runAffectedMutation: () => 0 | 1;
-};
+import { findRepoRoot } from "./lib/find-repo-root";
 
-process.exit(runAffectedMutation());
+const result = spawnSync("vp", ["run", "test:mutation"], {
+  cwd: findRepoRoot(import.meta.dirname),
+  shell: false,
+  stdio: "inherit",
+});
+
+if (result.error) {
+  throw result.error;
+}
+process.exit(result.status ?? 1);
