@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 
 import { findRepoRoot } from "./lib/find-repo-root";
 
-const result = spawnSync("wp", ["test", "--mutation"], {
+const result = spawnSync("vp", ["run", "test:mutation"], {
   cwd: findRepoRoot(import.meta.dirname),
   shell: false,
   stdio: "inherit",
