@@ -7,20 +7,17 @@
     "#*": "./src/*"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "test": "vitest run",
-    "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "vp lint src test --tsconfig tsconfig.json --type-aware"
+    "dev": "wp exec vite",
+    "build": "wp exec wp exec vite build",
+    "test": "wp test --file vitest.config.ts",
+    "check-types": "wp typecheck",
+    "lint": "wp lint"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.2.8",
     "@fontsource/dm-mono": "^5.2.7"
   },
   "devDependencies": {
-    "happy-dom": "^18.0.1",
-    "typescript": "catalog:",
-    "vite": "^8.0.14",
-    "vitest": "catalog:"
+    "happy-dom": "^18.0.1"
   }
 }

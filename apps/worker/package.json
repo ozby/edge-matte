@@ -7,27 +7,20 @@
     "#*": "./src/*"
   },
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:mock": "wrangler dev --var E2E_MOCK_PIPELINE:1",
-    "build": "wrangler deploy --dry-run",
-    "cf-typegen": "wrangler types ../../worker-configuration.d.ts",
-    "test": "vp run --filter @edge-matte/client build && vitest run",
-    "mutation": "stryker run",
-    "check-types": "tsc --noEmit -p tsconfig.json",
-    "lint": "vp lint src"
+    "dev": "wp exec wrangler dev",
+    "dev:mock": "wp exec wrangler dev --var E2E_MOCK_PIPELINE:1",
+    "build": "wp exec wrangler deploy --dry-run",
+    "cf-typegen": "wp exec wrangler types ../../worker-configuration.d.ts",
+    "test": "wp test --file vitest.config.ts",
+    "mutation": "wp test --mutation",
+    "check-types": "wp typecheck",
+    "lint": "wp lint"
   },
   "dependencies": {
     "hono": "^4.12.23"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.10",
-    "@cloudflare/workers-types": "^4.20260528.1",
-    "@stryker-mutator/core": "catalog:",
-    "@stryker-mutator/typescript-checker": "catalog:",
-    "@stryker-mutator/vitest-runner": "catalog:",
-    "oxlint": "^1.36.0",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
-    "wrangler": "^4.95.0"
+    "@cloudflare/workers-types": "^4.20260528.1"
   }
 }

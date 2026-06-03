@@ -3,6 +3,7 @@ export const agentKitConfig = {
     hostAdapterModule: "./apps/e2e/src/agent-kit-host-adapter.ts",
   },
   deploy: {
+    adapterModule: "./scripts/agent-kit-deploy-adapter.ts",
     cloudflare: {
       lanes: {
         dev: { wranglerEnvName: "dev" },
