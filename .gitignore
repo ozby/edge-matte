@@ -125,6 +125,7 @@ agent-rules/ts-coding-conventions.md
 .opencode/
 .codex/
 .claude/settings.json
+.claude/settings.local.json
 .claude/agents/
 .claude/hooks/
 .claude/rules/

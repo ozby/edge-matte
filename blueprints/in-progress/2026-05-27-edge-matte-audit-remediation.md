@@ -3,7 +3,7 @@ type: blueprint
 title: "EdgeMatte: audit remediation and confidence hardening"
 status: in-progress
 created: 2026-05-27
-last_updated: 2026-05-30
+last_updated: 2026-06-03
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
 progress: "67% (6/9 tasks done, 2 in progress, 1 todo, updated 2026-05-30)"
@@ -143,10 +143,11 @@ pass. The live write surface still includes:
 - `.github/workflows/*.yml`
 - `scripts/wait-for-http.sh`
 - `scripts/deploy-production.ts`
-- `test/helpers/infra-release-workflow-expectations.mjs`
+- `test/helpers/infra-release-workflow-expectations.ts`
 - `apps/e2e/**`
 - `apps/worker/**`
 - root/workspace quality-rail files (`package.json`, `tsconfig.json`, `oxlint.config.ts`, `pnpm-lock.yaml`)
+- root governance/runtime glue (`.codex/hooks.json`, `scripts/lib/find-repo-root.ts`, `scripts/mcp-first-pretool-guard.ts`, `test/**/*.test.ts`)
 - package-local quality-rail files under `apps/client`, `apps/e2e`, `apps/worker`, and `infra`
 
 Docs / completed-blueprint truth tightening already landed in the repo history;
@@ -553,14 +554,15 @@ blueprint claims it enforces.
 - Modify: `infra/tsconfig.json`
 - Modify: `.github/workflows/ci.webpresso.yml`
 - Modify: `.github/workflows/deploy.production.yml`
-- Modify: `test/helpers/infra-release-workflow-expectations.mjs`
+- Modify: `test/helpers/infra-release-workflow-expectations.ts`
 
 **Steps (TDD):**
 
 1. Encode any missing workflow/package expectations before changing the commands or config.
 2. Finish routing root/app/infra typecheck, lint, and Vitest config through shared `agent-kit` / `vite-plus` surfaces instead of bespoke per-package drift.
-3. Keep CI on frozen-lockfile installs, direct `wp audit architecture-drift --root .`, and the current pinned-action supply-chain posture.
-4. Verify docs/blueprint/workflow expectations stay in lockstep after the config changes land.
+3. Keep root governance tests/scripts on Node-correct `.ts` execution (`node --test "test/**/*.test.ts"`) so the repo has no tracked first-party `.mjs` files.
+4. Keep CI on frozen-lockfile installs, direct `wp audit architecture-drift --root .`, `wp audit no-first-party-mjs --root .`, and the current pinned-action supply-chain posture.
+5. Verify docs/blueprint/workflow expectations stay in lockstep after the config changes land.
 
 **Acceptance:**
 
@@ -587,7 +589,7 @@ green run.
 - Modify: `.github/workflows/deploy.production.yml`
 - Modify: `scripts/wait-for-http.sh`
 - Modify: `scripts/deploy-production.ts`
-- Modify: `test/helpers/infra-release-workflow-expectations.mjs`
+- Modify: `test/helpers/infra-release-workflow-expectations.ts`
 
 **Steps (TDD):**
 

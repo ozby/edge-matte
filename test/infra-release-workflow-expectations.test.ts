@@ -8,7 +8,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 import {
   PR_CI_WORKFLOW,
   PRODUCTION_DEPLOY_WORKFLOW,
@@ -32,7 +32,7 @@ import {
   listWorkflowFiles,
   WAIT_FOR_HTTP_REQUIREMENTS,
   WAIT_FOR_HTTP_SCRIPT,
-} from "./helpers/infra-release-workflow-expectations.mjs";
+} from "./helpers/infra-release-workflow-expectations.ts";
 
 const root = findRepoRoot(import.meta.dirname);
 

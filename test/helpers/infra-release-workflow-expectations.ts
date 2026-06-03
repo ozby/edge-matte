@@ -1,7 +1,10 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 
-/** @typedef {{ label: string; pattern: RegExp }} WorkflowExpectation */
+export interface WorkflowExpectation {
+  label: string;
+  pattern: RegExp;
+}
 
 export const PRODUCTION_DOMAIN = "edge-matte.ozby.dev";
 
@@ -18,7 +21,7 @@ export const CODEOWNERS_WORKFLOW_GOVERNANCE_PATH = ".github/CODEOWNERS";
 export const FULL_SHA_ACTION_REFERENCE_PATTERN = /^[^@\s]+@[0-9a-f]{40}$/u;
 
 /** PR CI must prove deployability without mutating production (IR-1 / blueprint task 5). */
-export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
+export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
   { label: "format check", pattern: /format:check|vp fmt --check/u },
   { label: "lint", pattern: /vp run lint/u },
@@ -38,10 +41,10 @@ export const PR_CI_REQUIRED_RUNS = /** @type {WorkflowExpectation[]} */ ([
     label: "deploy credential verify (dry-run or full probe)",
     pattern: /verify-cloudflare-deploy-creds|deploy --dry-run|deploy:dry-run/u,
   },
-]);
+];
 
 /** Preview deploy must mutate only preview Workers for main and pull requests. */
-export const PREVIEW_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
+export const PREVIEW_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "main preview trigger", pattern: /branches:\s*\[[^\]]*main/u },
   { label: "pull request preview trigger", pattern: /^\s*pull_request:/mu },
   { label: "preview concurrency", pattern: /edge-matte-preview-/u },
@@ -51,10 +54,10 @@ export const PREVIEW_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ 
   { label: "preview-main custom domain", pattern: /preview-main\.edge-matte\.ozby\.dev/u },
   { label: "preview-pr custom domain", pattern: /preview-pr-<n>\.edge-matte\.ozby\.dev/u },
   { label: "closed PR cleanup", pattern: /--destroy/u },
-]);
+];
 
 /** Production deploy must serialize releases and verify smoke (IR-1 / blueprint tasks 6–7). */
-export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
+export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "release tag trigger", pattern: /tags:\s*\[[^\]]*v\*/u },
   { label: "manual release version input", pattern: /release_version/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
@@ -93,9 +96,9 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} 
     label: "optional access service-token pairing guard",
     pattern: /CF_ACCESS_CLIENT_ID|CF_ACCESS_CLIENT_SECRET/u,
   },
-]);
+];
 
-export const WAIT_FOR_HTTP_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
+export const WAIT_FOR_HTTP_REQUIREMENTS: WorkflowExpectation[] = [
   {
     label: "partial access env guard",
     pattern:
@@ -109,9 +112,9 @@ export const WAIT_FOR_HTTP_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ (
     label: "2xx-only success contract",
     pattern: /status.*\^2.*0-9.*0-9.*\$/su,
   },
-]);
+];
 
-export const LOCAL_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
+export const LOCAL_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   {
     label: "with-secrets deploy",
     pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/su,
@@ -132,13 +135,13 @@ export const LOCAL_DEPLOY_REQUIREMENTS = /** @type {WorkflowExpectation[]} */ ([
     label: "production-journey suite",
     pattern: /production-journey/u,
   },
-]);
+];
 
 /**
  * @param {string} repoRoot
  * @param {string} relativePath
  */
-export function readWorkflow(repoRoot, relativePath) {
+export function readWorkflow(repoRoot: string, relativePath: string) {
   const absolutePath = resolve(repoRoot, relativePath);
   if (!existsSync(absolutePath)) {
     return { exists: false, absolutePath, contents: "" };
@@ -155,11 +158,11 @@ export function readWorkflow(repoRoot, relativePath) {
  *
  * @param {string} contents
  */
-export function collectWorkflowRunSteps(contents) {
+export function collectWorkflowRunSteps(contents: string): string[] {
   return contents
     .split("\n")
-    .filter((line) => /^\s*-\s+run:/u.test(line))
-    .map((line) => line.replace(/^\s*-\s+run:\s*/u, "").trim());
+    .filter((line: string) => /^\s*-\s+run:/u.test(line))
+    .map((line: string) => line.replace(/^\s*-\s+run:\s*/u, "").trim());
 }
 
 /**
@@ -167,7 +170,7 @@ export function collectWorkflowRunSteps(contents) {
  *
  * @param {string} contents
  */
-export function collectWorkflowUses(contents) {
+export function collectWorkflowUses(contents: string): string[] {
   return contents.split("\n").flatMap((line) => {
     const match = line.match(/^\s*(?:-\s+)?uses:\s*([^\s#]+)\s*(?:#.*)?$/u);
     return match ? [match[1]] : [];
@@ -177,7 +180,7 @@ export function collectWorkflowUses(contents) {
 /**
  * @param {string} actionReference
  */
-export function isImmutableActionReference(actionReference) {
+export function isImmutableActionReference(actionReference: string): boolean {
   if (
     actionReference.startsWith("./") ||
     actionReference.startsWith("../") ||
@@ -191,9 +194,9 @@ export function isImmutableActionReference(actionReference) {
 /**
  * @param {string} contents
  */
-export function findMutableUsesReferences(contents) {
+export function findMutableUsesReferences(contents: string): string[] {
   return collectWorkflowUses(contents).filter(
-    (actionReference) => !isImmutableActionReference(actionReference),
+    (actionReference: string) => !isImmutableActionReference(actionReference),
   );
 }
 
@@ -201,14 +204,17 @@ export function findMutableUsesReferences(contents) {
  * @param {string} contents
  * @param {WorkflowExpectation[]} expectations
  */
-export function findMissingExpectations(contents, expectations) {
-  return expectations.filter(({ pattern }) => !pattern.test(contents));
+export function findMissingExpectations(
+  contents: string,
+  expectations: WorkflowExpectation[],
+): WorkflowExpectation[] {
+  return expectations.filter(({ pattern }: WorkflowExpectation) => !pattern.test(contents));
 }
 
 /**
  * @param {string} repoRoot
  */
-export function listWorkflowFiles(repoRoot) {
+export function listWorkflowFiles(repoRoot: string): string[] {
   const workflowsDir = resolve(repoRoot, ".github/workflows");
   if (!existsSync(workflowsDir)) {
     return [];
@@ -222,15 +228,15 @@ export function listWorkflowFiles(repoRoot) {
 /**
  * @param {string} repoRoot
  */
-export function readCodeowners(repoRoot) {
+export function readCodeowners(repoRoot: string) {
   return readWorkflow(repoRoot, CODEOWNERS_WORKFLOW_GOVERNANCE_PATH);
 }
 
 /**
  * @param {string} contents
  */
-export function findMissingCodeownersProtections(contents) {
-  const expectations = [
+export function findMissingCodeownersProtections(contents: string): WorkflowExpectation[] {
+  const expectations: WorkflowExpectation[] = [
     {
       label: "workflow ownership",
       pattern: /^(?!\s*#)\s*\/?\.github\/workflows\/\*\*\s+@[\w./-]+/mu,
@@ -247,11 +253,14 @@ export function findMissingCodeownersProtections(contents) {
  * @param {WorkflowExpectation[]} missing
  * @param {string} workflowPath
  */
-export function formatMissingExpectations(missing, workflowPath) {
+export function formatMissingExpectations(
+  missing: WorkflowExpectation[],
+  workflowPath: string,
+): string {
   if (missing.length === 0) {
     return "";
   }
-  const labels = missing.map(({ label }) => `- ${label}`).join("\n");
+  const labels = missing.map(({ label }: WorkflowExpectation) => `- ${label}`).join("\n");
   return `${workflowPath} is missing IR-1 release expectations:\n${labels}`;
 }
 
@@ -259,10 +268,10 @@ export function formatMissingExpectations(missing, workflowPath) {
  * @param {string[]} mutableUses
  * @param {string} workflowPath
  */
-export function formatMutableUses(mutableUses, workflowPath) {
+export function formatMutableUses(mutableUses: string[], workflowPath: string): string {
   if (mutableUses.length === 0) {
     return "";
   }
-  const list = mutableUses.map((entry) => `- ${entry}`).join("\n");
+  const list = mutableUses.map((entry: string) => `- ${entry}`).join("\n");
   return `${workflowPath} contains mutable GitHub Actions references:\n${list}`;
 }

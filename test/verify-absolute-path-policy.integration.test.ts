@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 
 const REPO_ROOT = findRepoRoot(import.meta.dirname);
 

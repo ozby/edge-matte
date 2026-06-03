@@ -2,25 +2,29 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 
 const root = findRepoRoot(import.meta.dirname);
 
-function readJson(relativePath) {
-  return JSON.parse(readFileSync(resolve(root, relativePath), "utf8"));
+function readJson(relativePath: string): any {
+  return JSON.parse(readFileSync(resolve(root, relativePath), "utf8")) as any;
 }
 
-function readText(relativePath) {
+function readText(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
-test("root package.json routes quality scripts through vp", () => {
+test("root package.json keeps vp for recursive build and wp for quality lanes", () => {
   const pkg = readJson("package.json");
-  for (const script of ["build", "lint", "check-types"]) {
-    assert.match(pkg.scripts[script], /^vp run -r /u, `${script} must delegate to vp recursively`);
+  assert.match(pkg.scripts.build, /^vp run -r build$/u);
+  for (const [script, expected] of [
+    ["lint", "wp lint"],
+    ["check-types", "wp typecheck"],
+    ["test", 'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts'],
+    ["e2e", "wp e2e"],
+  ]) {
+    assert.equal(pkg.scripts[script], expected, `${script} must use the wp surface`);
   }
-  assert.match(pkg.scripts.test, /vp run -r test/u, "test must include vp run -r test");
-  assert.match(pkg.scripts.test, /node --test/u, "test must run root governance tests");
 });
 
 test("required workspace config files exist", () => {

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "wp exec vite",
-    "build": "wp exec wp exec vite build",
+    "build": "wp exec vite build",
     "test": "wp test --file vitest.config.ts",
     "check-types": "wp typecheck",
     "lint": "wp lint"
@@ -18,6 +18,9 @@
     "@fontsource/dm-mono": "^5.2.7"
   },
   "devDependencies": {
-    "happy-dom": "^18.0.1"
+    "happy-dom": "^18.0.1",
+    "typescript": "catalog:",
+    "vite": "^8.0.14",
+    "vitest": "catalog:"
   }
 }

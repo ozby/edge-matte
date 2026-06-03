@@ -446,8 +446,8 @@ agent-kit or the private infra package.
 
 **Files:**
 
-- Modify: `test/helpers/infra-release-workflow-expectations.mjs`
-- Modify: `test/infra-release-workflow-expectations.test.mjs`
+- Modify: `test/helpers/infra-release-workflow-expectations.ts`
+- Modify: `test/infra-release-workflow-expectations.test.ts`
 
 **Steps (TDD):**
 
@@ -597,7 +597,6 @@ has been removed. The remaining local scripts fall into two groups:
 
 ### Keep local for now
 
-- `scripts/mcp-first-pretool-guard.mjs` — repo-specific routing/policy overlay
   on top of packaged hook infrastructure
 - `scripts/deploy-production.ts` — EdgeMatte-specific deploy orchestration
 - `scripts/verify-cloudflare-deploy-creds.sh` — app/provider-specific deploy

@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 const scriptPath = resolve("scripts/audit-secret-provider-quarantine.ts");
 
-function withTempDir(run) {
+function withTempDir(run: (cwd: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-secret-quarantine-"));
   try {
     run(dir);
@@ -16,7 +16,7 @@ function withTempDir(run) {
   }
 }
 
-function runCheck(cwd) {
+function runCheck(cwd: string) {
   return spawnSync("bun", [scriptPath], {
     cwd,
     encoding: "utf8",

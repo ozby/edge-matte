@@ -37,7 +37,7 @@
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "lint": "wp lint",
-    "test": "wp test --file vitest.config.ts",
+    "test": "node --test \"test/**/*.test.ts\" && wp test --file vitest.config.ts",
     "e2e": "wp e2e",
     "act:ci:e2e": "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
     "deploy:preview": "wp deploy --lane preview_main",
@@ -56,14 +56,20 @@
     "prepare": "husky && bun scripts/sync-webpresso-config.ts",
     "mutation": "wp test --mutation",
     "test:mutation": "wp test --mutation",
-    "qa": "wp lint && wp typecheck && wp test --file vitest.config.ts && wp test --mutation && wp e2e",
+    "qa": "wp lint && wp typecheck && vp run test && wp test --mutation && wp e2e",
     "deploy:dry-run": "wp deploy --lane prd --dry-run"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
-    "vite-plus": "^0.1.22"
+    "oxlint": "^1.36.0",
+    "typescript": "catalog:",
+    "vite-plus": "^0.1.22",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24"

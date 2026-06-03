@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { spawnSync } from "node:child_process";
 
-import { findRepoRoot } from "./lib/find-repo-root";
+import { findRepoRoot } from "./lib/find-repo-root.ts";
 
 const result = spawnSync("vp", ["run", "test:mutation"], {
   cwd: findRepoRoot(import.meta.dirname),

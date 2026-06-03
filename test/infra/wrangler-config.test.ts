@@ -8,7 +8,7 @@ import {
   blockHasAssignment,
   readText,
   sectionLines,
-} from "./helpers.mjs";
+} from "./helpers.ts";
 
 const wrangler = readText("wrangler.toml");
 

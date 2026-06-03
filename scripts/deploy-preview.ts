@@ -11,7 +11,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { findRepoRoot } from "./lib/find-repo-root";
+import { findRepoRoot } from "./lib/find-repo-root.ts";
 
 const TOP_LEVEL_WORKER_NAME = "edge-matte";
 const DEPLOY_DOMAIN = "edge-matte.ozby.dev";

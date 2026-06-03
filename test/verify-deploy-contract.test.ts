@@ -4,12 +4,20 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
-import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 
 const REPO_ROOT = findRepoRoot(import.meta.dirname);
 const SCRIPT = join(REPO_ROOT, "scripts/verify-deploy-contract.ts");
 
-function writeBaseRepo(dir, wranglerToml) {
+interface ReleaseMetadata {
+  releaseKind: string;
+  releaseVersion?: string;
+  durableObjectMigration: string;
+  rolloutMode: string;
+  requiredChecks: string[];
+}
+
+function writeBaseRepo(dir: string, wranglerToml: string) {
   mkdirSync(join(dir, "infra"), { recursive: true });
   writeReleaseMetadata(dir, {
     releaseKind: "version_pr",
@@ -21,14 +29,14 @@ function writeBaseRepo(dir, wranglerToml) {
   writeFileSync(join(dir, "wrangler.toml"), wranglerToml);
 }
 
-function writeReleaseMetadata(dir, metadata) {
+function writeReleaseMetadata(dir: string, metadata: ReleaseMetadata) {
   writeFileSync(
     join(dir, "infra/release-metadata.production.json"),
     JSON.stringify(metadata, null, 2) + "\n",
   );
 }
 
-function runVerifier(cwd) {
+function runVerifier(cwd: string) {
   return spawnSync("bun", [SCRIPT], { cwd, encoding: "utf8" });
 }
 

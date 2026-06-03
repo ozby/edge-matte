@@ -81,7 +81,7 @@ Repo-level infra contract tests (no Cloudflare credentials required):
 
 ```bash
 cd ..
-node --test test/infra/pulumi-ownership.test.mjs
+node --test test/infra/pulumi-ownership.test.ts
 ```
 
 ## Ownership

@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
@@ -21,7 +23,8 @@
     "vitest.config.ts",
     "webpresso.config.ts",
     "worker-configuration.d.ts",
-    "scripts/**/*.ts"
+    "scripts/**/*.ts",
+    "test/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", ".agent", ".agents", ".claude", ".husky", "coverage", ".git"]
 }

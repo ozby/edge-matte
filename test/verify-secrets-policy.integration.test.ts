@@ -7,11 +7,11 @@ import assert from "node:assert/strict";
 
 const scriptPath = resolve("scripts/verify-secrets-policy.ts");
 
-function runCheck(cwd) {
+function runCheck(cwd: string) {
   return spawnSync("bun", [scriptPath], { cwd, encoding: "utf8" });
 }
 
-function withTempDir(run) {
+function withTempDir(run: (cwd: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-secret-check-"));
   try {
     run(dir);
@@ -20,7 +20,7 @@ function withTempDir(run) {
   }
 }
 
-function withTempGitRepo(run) {
+function withTempGitRepo(run: (cwd: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-git-secret-check-"));
   try {
     spawnSync("git", ["init"], { cwd: dir, encoding: "utf8" });
@@ -32,7 +32,7 @@ function withTempGitRepo(run) {
   }
 }
 
-function stageAll(cwd) {
+function stageAll(cwd: string) {
   spawnSync("git", ["add", "-A"], { cwd, encoding: "utf8" });
 }
 

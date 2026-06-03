@@ -1,0 +1,129 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import assert from "node:assert/strict";
+import test from "node:test";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
+
+const root = findRepoRoot(import.meta.dirname);
+
+function readJson(relativePath: string): any {
+  return JSON.parse(readFileSync(resolve(root, relativePath), "utf8")) as any;
+}
+
+const packagePaths = [
+  "apps/client/package.json",
+  "apps/e2e/package.json",
+  "apps/worker/package.json",
+  "infra/package.json",
+];
+
+const requiredToolchainDependencies = new Map([
+  [
+    "package.json",
+    [
+      "@playwright/test",
+      "@stryker-mutator/core",
+      "@stryker-mutator/vitest-runner",
+      "oxlint",
+      "typescript",
+      "vitest",
+    ],
+  ],
+  ["apps/client/package.json", ["typescript", "vite", "vitest"]],
+  ["apps/e2e/package.json", ["@playwright/test", "typescript", "vitest"]],
+  [
+    "apps/worker/package.json",
+    [
+      "@stryker-mutator/core",
+      "@stryker-mutator/typescript-checker",
+      "@stryker-mutator/vitest-runner",
+      "oxlint",
+      "typescript",
+      "vitest",
+      "wrangler",
+    ],
+  ],
+  ["infra/package.json", ["tsx", "typescript"]],
+]);
+
+test("root command surface keeps vp as substrate while routing quality work through wp", () => {
+  const pkg = readJson("package.json");
+
+  assert.match(pkg.scripts.build, /^vp run -r build$/u);
+
+  assert.equal(pkg.scripts["setup:agent"], "wp setup");
+  assert.equal(pkg.scripts.lint, "wp lint");
+  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts');
+  assert.equal(pkg.scripts.typecheck, "wp typecheck");
+  assert.equal(pkg.scripts["check-types"], "wp typecheck");
+  assert.equal(pkg.scripts.e2e, "wp e2e");
+  assert.equal(pkg.scripts.mutation, "wp test --mutation");
+  assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
+  assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle --legacy-omx");
+  assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
+  assert.equal(
+    pkg.scripts["act:ci:e2e"],
+    "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
+  );
+});
+
+test("package-local quality scripts route through wp surfaces", () => {
+  for (const packagePath of packagePaths) {
+    const pkg = readJson(packagePath);
+
+    assert.equal(pkg.scripts["check-types"], "wp typecheck");
+    if ("lint" in pkg.scripts) {
+      assert.equal(pkg.scripts.lint, "wp lint");
+    }
+    if ("test" in pkg.scripts) {
+      assert.match(pkg.scripts.test, /^wp test\b/u);
+    }
+    if ("test:journeys" in pkg.scripts) {
+      assert.equal(pkg.scripts["test:journeys"], "wp e2e");
+    }
+  }
+});
+
+test("toolchain-owning packages declare the binaries and imports they execute", () => {
+  for (const [packagePath, requiredDependencies] of requiredToolchainDependencies) {
+    const pkg = readJson(packagePath);
+    const deps = {
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
+    };
+    for (const dependency of requiredDependencies) {
+      assert.ok(dependency in deps, `${packagePath} must declare ${dependency}`);
+    }
+  }
+});
+
+test("package-local wp exec scripts stay normalized without duplicate wrappers", () => {
+  for (const packagePath of packagePaths) {
+    const pkg = readJson(packagePath);
+    for (const [name, command] of Object.entries(pkg.scripts as Record<string, string>)) {
+      assert.doesNotMatch(
+        command,
+        /\bwp exec\s+wp exec\b/u,
+        `${packagePath}#${name} must not duplicate wp exec`,
+      );
+    }
+  }
+});
+
+test("workspace packages stay thin consumers without local wrapper dependencies", () => {
+  for (const packagePath of packagePaths) {
+    const pkg = readJson(packagePath);
+    const deps = {
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
+    };
+    assert.ok(
+      !("@webpresso/agent-kit" in deps),
+      `${packagePath} must not add a package-local @webpresso/agent-kit dependency`,
+    );
+    assert.ok(
+      !("vite-plus" in deps),
+      `${packagePath} must not add a package-local vite-plus dependency`,
+    );
+  }
+});

@@ -5,9 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-import { inspectHookInput } from "../scripts/mcp-first-pretool-guard.mjs";
+import { inspectHookInput } from "../scripts/mcp-first-pretool-guard.ts";
 
-function bashInput(command) {
+function bashInput(command: string) {
   return JSON.stringify({
     tool_name: "Bash",
     tool_input: { command },
@@ -17,24 +17,35 @@ function bashInput(command) {
 test("denies wp audit commands in favor of wp_audit MCP", () => {
   const result = inspectHookInput(bashInput("wp audit architecture-drift --root ."));
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(result.reason, /wp_audit\(kind="architecture-drift"\)/);
+});
+
+test("denies new no-first-party-mjs audit commands in favor of wp_audit MCP", () => {
+  const result = inspectHookInput(bashInput("wp audit no-first-party-mjs --root ."));
+  assert.equal(result.action, "deny");
+  assert.ok(result.reason);
+  assert.match(result.reason, /wp_audit\(kind="no-first-party-mjs"\)/);
 });
 
 test("denies verify:paths wrapper in favor of wp_audit MCP", () => {
   const result = inspectHookInput(bashInput("pnpm run verify:paths"));
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(result.reason, /absolute-path-policy/);
 });
 
 test("denies docs:check wrapper in favor of wp_audit MCP", () => {
   const result = inspectHookInput(bashInput("pnpm run docs:check"));
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(result.reason, /docs-frontmatter/);
 });
 
 test("denies pnpm install in favor of vp install", () => {
   const result = inspectHookInput(bashInput("pnpm install --frozen-lockfile"));
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(result.reason, /Use vp install instead/);
 });
 
@@ -43,6 +54,7 @@ test("denies filtered pnpm exec in favor of vp exec", () => {
     bashInput("pnpm --filter @edge-matte/worker exec wrangler deploy --env production"),
   );
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(
     result.reason,
     /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/,
@@ -56,6 +68,7 @@ test("denies wrapped pnpm exec in favor of vp exec", () => {
     ),
   );
   assert.equal(result.action, "deny");
+  assert.ok(result.reason);
   assert.match(
     result.reason,
     /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/,
@@ -83,16 +96,12 @@ test("CLI delegates to wp-pretool-guard when no local MCP-first deny applies", (
   );
   fs.chmodSync(delegatePath, 0o755);
 
-  const result = spawnSync(
-    process.execPath,
-    [path.resolve("scripts/mcp-first-pretool-guard.mjs")],
-    {
-      cwd: path.resolve("."),
-      input: bashInput("git status"),
-      encoding: "utf8",
-      env: { ...process.env, WP_PRETOOL_GUARD_BIN: delegatePath },
-    },
-  );
+  const result = spawnSync(process.execPath, [path.resolve("scripts/mcp-first-pretool-guard.ts")], {
+    cwd: path.resolve("."),
+    input: bashInput("git status"),
+    encoding: "utf8",
+    env: { ...process.env, WP_PRETOOL_GUARD_BIN: delegatePath },
+  });
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /delegate-called/);

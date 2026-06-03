@@ -11,7 +11,7 @@ import {
 
 const scriptPath = resolve("scripts/audit-blueprint-link-policy.ts");
 
-function withTempBlueprintDir(run) {
+function withTempBlueprintDir(run: (root: string, blueprintDir: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-blueprint-links-"));
   const blueprintDir = join(dir, "blueprints", "planned");
   mkdirSync(blueprintDir, { recursive: true });
@@ -36,15 +36,19 @@ test("validateMarkdownLinkTarget accepts relative and cross-repo links", () => {
 });
 
 test("validateMarkdownLinkTarget rejects local file and same-repo GitHub URLs", () => {
-  assert.match(
-    validateMarkdownLinkTarget("file:../docs/architecture.md"),
-    /local file link target/,
+  const fileScheme = validateMarkdownLinkTarget("file:../docs/architecture.md");
+  assert.ok(fileScheme);
+  assert.match(fileScheme, /local file link target/);
+
+  const sameRepo = validateMarkdownLinkTarget(
+    "https://github.com/ozby/edge-matte/blob/main/docs/architecture.md",
   );
-  assert.match(
-    validateMarkdownLinkTarget("https://github.com/ozby/edge-matte/blob/main/docs/architecture.md"),
-    /same-repo GitHub URL/,
-  );
-  assert.match(validateMarkdownLinkTarget("/docs/architecture.md"), /absolute path link target/);
+  assert.ok(sameRepo);
+  assert.match(sameRepo, /same-repo GitHub URL/);
+
+  const absolutePath = validateMarkdownLinkTarget("/docs/architecture.md");
+  assert.ok(absolutePath);
+  assert.match(absolutePath, /absolute path link target/);
 });
 
 test("collectBlueprintLinkViolations scans all blueprint markdown files", () => {

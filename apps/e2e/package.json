@@ -17,5 +17,10 @@
     "check-types": "wp typecheck",
     "lint": "wp lint",
     "e2e:run": "bun src/cli/run-e2e.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

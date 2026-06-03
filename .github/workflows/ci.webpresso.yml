@@ -31,6 +31,7 @@ jobs:
       - run: vp install --frozen-lockfile
       - run: vp run verify:secrets
       - run: wp audit absolute-path-policy --root .
+      - run: wp audit no-first-party-mjs --root .
       - run: vp run audit:secret-provider-quarantine
       - run: vp run audit:blueprint-links
       - run: vp run format:check

@@ -16,6 +16,7 @@ const AUDIT_KINDS = new Set([
   "blueprint-lifecycle",
   "architecture-drift",
   "absolute-path-policy",
+  "no-first-party-mjs",
   "roadmap-links",
   "bundle-budget",
   "commit-message",
@@ -53,7 +54,7 @@ const SCRIPT_ROUTES = [
   },
 ];
 
-function makeDeny(reason) {
+function makeDeny(reason: string) {
   return {
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
@@ -63,11 +64,11 @@ function makeDeny(reason) {
   };
 }
 
-function writeJson(value) {
+function writeJson(value: unknown) {
   process.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
-function stripLeadingEnvironmentAssignments(command) {
+function stripLeadingEnvironmentAssignments(command: string) {
   let next = command.trim();
   const assignmentPrefix =
     /^(?:env\s+)?(?:[A-Za-z_][A-Za-z0-9_]*=(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+)\s+)+/u;
@@ -79,7 +80,7 @@ function stripLeadingEnvironmentAssignments(command) {
   return next;
 }
 
-function normalizeCommand(command) {
+function normalizeCommand(command: string) {
   const trimmed = stripLeadingEnvironmentAssignments(command);
   const unwrapped = trimmed.replace(/^(?:with-secrets\s+--\s+)+/u, "");
   const corepackMatch =
@@ -90,20 +91,24 @@ function normalizeCommand(command) {
   return corepackStripped.replace(/\s+/gu, " ").trim();
 }
 
-function matchesPrefix(command, prefix) {
+function matchesPrefix(command: string, prefix: string) {
   return command === prefix || command.startsWith(`${prefix} `);
 }
 
-function extractCommand(input) {
+function extractCommand(input: unknown) {
   if (!input || typeof input !== "object") return null;
-  const toolInput = input.tool_input;
+  const toolInput = (input as { tool_input?: unknown }).tool_input;
   if (!toolInput || typeof toolInput !== "object") return null;
-  if (typeof toolInput.command === "string") return toolInput.command;
-  if (typeof toolInput.cmd === "string") return toolInput.cmd;
+  if (typeof (toolInput as { command?: unknown }).command === "string") {
+    return (toolInput as { command: string }).command;
+  }
+  if (typeof (toolInput as { cmd?: unknown }).cmd === "string") {
+    return (toolInput as { cmd: string }).cmd;
+  }
   return null;
 }
 
-function routePackageManagerCommand(command) {
+function routePackageManagerCommand(command: string) {
   if (/^(?:pnpm|npm)\s+(?:install|i)\b/u.test(command)) {
     return "Use vp install instead — dependency installation should go through the vp surface in this repo.";
   }
@@ -141,7 +146,7 @@ function routePackageManagerCommand(command) {
   return "Use vp/wp/MCP surfaces instead — raw pnpm/npm commands are not part of the supported repo workflow except explicit edge-case exceptions.";
 }
 
-function routeCommand(command) {
+function routeCommand(command: string) {
   const normalized = normalizeCommand(command);
   if (!normalized) return null;
 
@@ -166,7 +171,7 @@ function routeCommand(command) {
   return null;
 }
 
-function delegate(rawInput) {
+function delegate(rawInput: string) {
   const result = spawnSync(delegateCommand, [], {
     input: rawInput,
     encoding: "utf8",
@@ -174,7 +179,7 @@ function delegate(rawInput) {
     env: process.env,
   });
 
-  if (result.error && result.error.code === "ENOENT") {
+  if (result.error && "code" in result.error && result.error.code === "ENOENT") {
     writeJson(
       makeDeny(
         "wp-pretool-guard is unavailable. Run vp install or wp setup to restore the agent-kit hook surface.",
@@ -193,25 +198,25 @@ function delegate(rawInput) {
   process.exit(1);
 }
 
-export function inspectHookInput(rawInput) {
-  let parsed;
+export function inspectHookInput(rawInput: string) {
+  let parsed: unknown;
   try {
     parsed = JSON.parse(rawInput);
   } catch {
-    return { action: "delegate", reason: null };
+    return { action: "delegate", reason: null as string | null };
   }
 
   const command = extractCommand(parsed);
-  if (!command) return { action: "delegate", reason: null };
+  if (!command) return { action: "delegate", reason: null as string | null };
 
   const reason = routeCommand(command);
-  if (!reason) return { action: "delegate", reason: null };
+  if (!reason) return { action: "delegate", reason: null as string | null };
   return { action: "deny", reason };
 }
 
-export function run(rawInput) {
+export function run(rawInput: string) {
   const decision = inspectHookInput(rawInput);
-  if (decision.action === "deny") {
+  if (decision.action === "deny" && decision.reason) {
     writeJson(makeDeny(decision.reason));
     return 0;
   }

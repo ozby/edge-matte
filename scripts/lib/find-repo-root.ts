@@ -3,11 +3,11 @@ import { dirname, join, resolve } from "node:path";
 
 const REPO_ROOT_MARKERS = ["package.json", "pnpm-workspace.yaml", "AGENTS.md"];
 
-function hasRepoMarkers(dir: string): boolean {
+function hasRepoMarkers(dir: string) {
   return REPO_ROOT_MARKERS.every((marker) => existsSync(join(dir, marker)));
 }
 
-export function findRepoRoot(startDir = process.cwd()): string {
+export function findRepoRoot(startDir = process.cwd()) {
   let current = resolve(startDir);
 
   while (true) {

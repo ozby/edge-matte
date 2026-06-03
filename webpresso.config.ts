@@ -1,4 +1,4 @@
-import { agentKitConfig } from "./agent-kit.config";
+import { agentKitConfig } from "./agent-kit.config.ts";
 
 export const webpressoConfig = agentKitConfig;
 

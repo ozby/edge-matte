@@ -4,16 +4,16 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findRepoRoot } from "#scripts/lib/find-repo-root.mjs";
+import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 
 const REPO_ROOT = findRepoRoot(import.meta.dirname);
 const SCRIPT = join(REPO_ROOT, "scripts/sync-webpresso-config.ts");
 
-function runSync(cwd, args = []) {
+function runSync(cwd: string, args: string[] = []) {
   return spawnSync("bun", [SCRIPT, ...args], { cwd, encoding: "utf8" });
 }
 
-function initRepo(dir) {
+function initRepo(dir: string) {
   mkdirSync(join(dir, ".webpresso"), { recursive: true });
   const init = spawnSync("git", ["init"], { cwd: dir, encoding: "utf8" });
   assert.equal(init.status, 0, init.stderr || init.stdout);

@@ -5,7 +5,7 @@ import test from "node:test";
 
 const repoRoot = process.cwd();
 
-function read(relativePath) {
+function read(relativePath: string) {
   return readFileSync(resolve(repoRoot, relativePath), "utf8");
 }
 
