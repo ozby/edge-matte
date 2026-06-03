@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -48,6 +48,7 @@ const requiredToolchainDependencies = new Map([
 
 test("root command surface keeps vp as substrate while routing quality work through wp", () => {
   const pkg = readJson("package.json");
+  const config = readJson(".webpressorc.json");
 
   assert.match(pkg.scripts.build, /^vp run -r build$/u);
 
@@ -65,6 +66,12 @@ test("root command surface keeps vp as substrate while routing quality work thro
     pkg.scripts["act:ci:e2e"],
     "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
   );
+  assert.equal(config.guard?.packageManager, "vp-only");
+  assert.deepEqual(config.guard?.scriptRoutes, {
+    "verify:paths": "absolute-path-policy",
+    "docs:check": "docs-frontmatter",
+    "blueprints:check": "blueprint-lifecycle",
+  });
 });
 
 test("package-local quality scripts route through wp surfaces", () => {
@@ -126,4 +133,13 @@ test("workspace packages stay thin consumers without local wrapper dependencies"
       `${packagePath} must not add a package-local vite-plus dependency`,
     );
   }
+});
+
+test("repo does not keep a local pretool-guard workaround", () => {
+  assert.equal(existsSync(resolve(root, "scripts/mcp-first-pretool-guard.ts")), false);
+  assert.equal(
+    readJson(".webpressorc.json").guard?.packageManager,
+    "vp-only",
+    "guard policy must live in .webpressorc.json",
+  );
 });

@@ -30,6 +30,14 @@
       }
     }
   },
+  "guard": {
+    "packageManager": "vp-only",
+    "scriptRoutes": {
+      "verify:paths": "absolute-path-policy",
+      "docs:check": "docs-frontmatter",
+      "blueprints:check": "blueprint-lifecycle"
+    }
+  },
   "rules": {
     "overrides": []
   },

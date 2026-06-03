@@ -92,7 +92,7 @@ fix(ci): route edge-matte act e2e through with-secrets
 Short rationale describing the decision and why.
 
 Verified:
-- node --test test/thin-consumer-contract.test.mjs
+- node --test test/thin-consumer-contract.test.ts
 - wp audit docs-frontmatter
 - git diff --check on the staged files
 
