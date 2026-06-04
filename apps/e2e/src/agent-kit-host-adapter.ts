@@ -4,7 +4,7 @@ import {
   resolveE2ESuiteId,
   type E2ESuiteDefinition,
   type E2ESuiteStep,
-} from "./e2e-suite-manifest";
+} from "./e2e-suite-manifest.ts";
 
 type E2eExecutionRequest = {
   suite?: string;
@@ -25,20 +25,26 @@ type E2eExecutionBatch = {
   runs: E2ePlanRun[];
 };
 
+function normalizeE2EConfigPath(configPath: string): string {
+  const normalized = configPath.replace(/\\/gu, "/");
+  if (normalized.startsWith("apps/e2e/")) return normalized;
+  return `apps/e2e/${normalized.replace(/^\.?\//u, "")}`;
+}
+
 function rootifySuites(): readonly E2ESuiteDefinition[] {
   return listE2ESuites().map((suite) => ({
     ...suite,
     fileMatchers: suite.fileMatchers.map(normalizeE2EPath),
     steps: suite.steps.map((step) => ({
       ...step,
-      configPath: step.configPath ? normalizeE2EPath(step.configPath) : undefined,
+      configPath: step.configPath ? normalizeE2EConfigPath(step.configPath) : undefined,
       fixedFiles: step.fixedFiles?.map(normalizeE2EPath),
     })),
   }));
 }
 
 function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
-  const files = step.fixedFiles?.map((file) => file.replace(/^apps\/e2e\//u, "")) ?? [];
+  const files = step.fixedFiles ?? [];
 
   switch (step.runner) {
     case "vitest":
@@ -49,7 +55,7 @@ function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
           "vitest",
           "run",
           "--config",
-          step.configPath ?? "vitest.config.ts",
+          step.configPath ?? "apps/e2e/vitest.config.ts",
           ...files,
         ],
       };
@@ -61,7 +67,7 @@ function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
           "playwright",
           "test",
           "--config",
-          step.configPath ?? "playwright.config.mjs",
+          step.configPath ?? "apps/e2e/playwright.config.ts",
           ...files,
         ],
       };

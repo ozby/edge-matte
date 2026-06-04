@@ -2,8 +2,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["journeys/**/*.contract.test.ts", "journeys/**/*.smoke.test.ts"],
-    globalSetup: ["./global-setup.ts"],
+    include: ["apps/e2e/journeys/**/*.contract.test.ts", "apps/e2e/journeys/**/*.smoke.test.ts"],
+    globalSetup: ["apps/e2e/global-setup.ts"],
     testTimeout: 30_000,
   },
 });

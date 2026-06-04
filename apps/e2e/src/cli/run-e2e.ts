@@ -20,7 +20,7 @@ if (batches.length === 0) {
   process.exit(1);
 }
 
-const e2eRoot = `${findRepoRoot(import.meta.dirname)}/apps/e2e`;
+const repoRoot = findRepoRoot(import.meta.dirname);
 
 for (const batch of batches) {
   console.log(`e2e batch: ${batch.batchKey}`);
@@ -29,7 +29,7 @@ for (const batch of batches) {
       `  ${run.suiteId}/${run.logName} [${run.runner}]: ${run.command} ${run.args.join(" ")}`,
     );
     const result = spawnSync(run.command, run.args, {
-      cwd: e2eRoot,
+      cwd: repoRoot,
       stdio: "inherit",
       env: process.env,
     });

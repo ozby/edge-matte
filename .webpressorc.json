@@ -38,14 +38,26 @@
       "blueprints:check": "blueprint-lifecycle"
     }
   },
+  "audit": {
+    "toolchainIsolation": {
+      "allowDependencies": [
+        "@playwright/test",
+        "@stryker-mutator/core",
+        "@stryker-mutator/typescript-checker",
+        "@stryker-mutator/vitest-runner",
+        "oxlint",
+        "tsx",
+        "typescript",
+        "vite",
+        "vitest",
+        "wrangler"
+      ]
+    }
+  },
   "rules": {
     "overrides": []
   },
   "scripts": {},
   "durablePlanningRoot": ".agent/planning/",
-  "audit": {
-    "toolchainIsolation": {
-      "allowDependencies": ["tsx", "@playwright/test", "vitest", "typescript", "vite", "wrangler"]
-    }
-  }
+  "globalInstall": true
 }

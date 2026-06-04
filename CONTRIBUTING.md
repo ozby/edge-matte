@@ -10,6 +10,18 @@ the commit/PR conventions this repo expects.
 - `pnpm@11.1.1` (managed via the `packageManager` field)
 - `vp` (vite-plus) and `wp` (`@webpresso/agent-kit` CLI) on your `PATH`
 
+Bootstrap `wp` once per machine:
+
+```bash
+npm install -g @webpresso/agent-kit
+```
+
+One-shot fallback when you do not want a global install:
+
+```bash
+npm exec --yes --package @webpresso/agent-kit@latest -- wp setup
+```
+
 The worker runs on Cloudflare Workers (Hono). Background removal in production
 uses the native `cf.image segment: "foreground"` (BiRefNet) transform — there
 is **no external API key**. Locally you can run the full flow against a mock
@@ -20,6 +32,9 @@ pipeline with no Cloudflare account or secrets.
 ```bash
 vp install --frozen-lockfile
 ```
+
+`vp install` runs `postinstall`, which invokes `wp setup` to bootstrap the
+managed hooks/runtime surfaces. If those drift later, rerun `wp setup`.
 
 Run the app locally against the no-setup mock pipeline:
 

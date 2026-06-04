@@ -59,7 +59,9 @@ export const webpressoDeployAdapter: DeployAdapter = {
           id: "edge-matte-deploy",
           label: `Run edge-matte ${lane} deploy script`,
           command: "bun",
-          args: [resolve(scriptsDir, lane === "prd" ? "deploy-production.ts" : "deploy-preview.ts")],
+          args: [
+            resolve(scriptsDir, lane === "prd" ? "deploy-production.ts" : "deploy-preview.ts"),
+          ],
           cwd: repoRoot,
         },
       ],

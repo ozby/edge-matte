@@ -61,9 +61,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
+    "oxlint": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "^0.1.22",
     "vitest": "catalog:"

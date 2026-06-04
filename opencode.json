@@ -10,8 +10,6 @@
     "webpresso": {
       "type": "local",
       "command": [
-        "vp",
-        "exec",
         "wp",
         "mcp"
       ]

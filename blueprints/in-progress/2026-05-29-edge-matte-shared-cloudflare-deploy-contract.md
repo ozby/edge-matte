@@ -597,7 +597,8 @@ has been removed. The remaining local scripts fall into two groups:
 
 ### Keep local for now
 
-  on top of packaged hook infrastructure
+on top of packaged hook infrastructure
+
 - `scripts/deploy-production.ts` — EdgeMatte-specific deploy orchestration
 - `scripts/verify-cloudflare-deploy-creds.sh` — app/provider-specific deploy
   preflight
