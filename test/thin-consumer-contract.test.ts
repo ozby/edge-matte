@@ -54,10 +54,7 @@ test("root command surface keeps vp as substrate while routing quality work thro
 
   assert.equal(pkg.scripts["setup:agent"], "wp setup");
   assert.equal(pkg.scripts.lint, "wp lint");
-  assert.equal(
-    pkg.scripts.test,
-    'node --test "test/**/*.test.ts" && vp exec vitest run --config vitest.config.ts',
-  );
+  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts"');
   assert.equal(pkg.scripts.typecheck, "wp typecheck");
   assert.equal(pkg.scripts["check-types"], "wp typecheck");
   assert.equal(pkg.scripts.e2e, "wp e2e");
