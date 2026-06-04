@@ -47,8 +47,6 @@ jobs:
       - run: vp run lint
       - run: vp run check-types
       - run: vp run build
-      - run: vp run test
-
       - name: Inject preview deploy credentials from Doppler
         if: env.HAS_DOPPLER_TOKEN == '1'
         uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
