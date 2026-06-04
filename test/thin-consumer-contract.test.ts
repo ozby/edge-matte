@@ -54,16 +54,13 @@ test("root command surface keeps vp as substrate while routing quality work thro
 
   assert.equal(pkg.scripts["setup:agent"], "wp setup");
   assert.equal(pkg.scripts.lint, "wp lint");
-  assert.equal(
-    pkg.scripts.test,
-    'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts',
-  );
+  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts" && wp test');
   assert.equal(pkg.scripts.typecheck, "wp typecheck");
   assert.equal(pkg.scripts["check-types"], "wp typecheck");
   assert.equal(pkg.scripts.e2e, "wp e2e");
   assert.equal(pkg.scripts.mutation, "wp test --mutation");
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
-  assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle --legacy-omx");
+  assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle --omx-plans");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
   assert.equal(
     pkg.scripts["act:ci:e2e"],

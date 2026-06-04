@@ -38,7 +38,7 @@ jobs:
       - run: vp run check-types
       - run: vp run lint
       - run: wp audit docs-frontmatter
-      - run: wp audit blueprint-lifecycle --legacy-omx
+      - run: wp audit blueprint-lifecycle --omx-plans
       - run: wp audit architecture-drift --root .
 
   test:

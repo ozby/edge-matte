@@ -376,6 +376,6 @@ E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 vp run act:ci:e2e
 wp audit architecture-drift --root .
-wp audit blueprint-lifecycle --legacy-omx
+wp audit blueprint-lifecycle --omx-plans
 vp run audit:blueprint-links
 ```

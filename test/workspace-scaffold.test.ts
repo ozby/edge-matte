@@ -21,7 +21,7 @@ test("root package.json keeps vp for recursive build and wp for quality lanes", 
   for (const [script, expected] of [
     ["lint", "wp lint"],
     ["check-types", "wp typecheck"],
-    ["test", 'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts'],
+    ["test", 'node --test "test/**/*.test.ts" && wp test'],
     ["e2e", "wp e2e"],
   ]) {
     assert.equal(pkg.scripts[script], expected, `${script} must use the wp surface`);

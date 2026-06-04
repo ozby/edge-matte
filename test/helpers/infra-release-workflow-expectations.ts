@@ -31,7 +31,7 @@ export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
   { label: "docs frontmatter audit", pattern: /wp audit docs-frontmatter/u },
   {
     label: "blueprint lifecycle audit",
-    pattern: /wp audit blueprint-lifecycle --legacy-omx/u,
+    pattern: /wp audit blueprint-lifecycle --omx-plans/u,
   },
   {
     label: "architecture drift audit",
