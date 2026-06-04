@@ -50,10 +50,7 @@ test("fails when docs/scripts contain direct provider-run usage", () => {
 test("fails when provider-specific with-secrets flag is used", () => {
   withTempDir((cwd) => {
     mkdirSync(join(cwd, "docs"), { recursive: true });
-    writeFileSync(
-      join(cwd, "docs", "secrets.md"),
-      `${WITH_SECRETS_PROVIDER_FLAG} -- vp run dev\n`,
-    );
+    writeFileSync(join(cwd, "docs", "secrets.md"), `${WITH_SECRETS_PROVIDER_FLAG} -- vp run dev\n`);
     const result = runCheck(cwd);
     assert.equal(result.status, 1);
     assert.match(

@@ -1,20 +1,11 @@
 {
   "version": "1",
   "installed": {
-    "tier3Skills": [
-      "base-kit"
-    ]
+    "tier3Skills": ["base-kit"]
   },
   "hosts": {
-    "selected": [
-      "codex",
-      "claude",
-      "opencode"
-    ],
-    "requiredCapabilities": [
-      "verify",
-      "plan-refine"
-    ],
+    "selected": ["codex", "claude", "opencode"],
+    "requiredCapabilities": ["verify", "plan-refine"],
     "visibility": {
       "codex": {
         "verify": "visible-after-restart",

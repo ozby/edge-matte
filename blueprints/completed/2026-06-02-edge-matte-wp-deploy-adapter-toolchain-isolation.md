@@ -25,12 +25,13 @@ tags:
 **Goal:** Move EdgeMatte from direct Wrangler/test/tool scripts onto the
 agent-kit-owned generic toolchain runtime and `wp deploy` orchestrator, while
 preserving its current route/assets/R2/images contract and its production smoke
-+ e2e gates. This is the **global `wp` + required `wp setup`** contract, not a
-zero-install or "no repo-local package" contract: EdgeMatte still keeps root
-`@webpresso/agent-kit` where the repo imports its shared config/test subpaths.
-EdgeMatte's existing preview/production deploy scripts become a small
-consumer-owned **deploy adapter**; provider plumbing stays in EdgeMatte, not in
-agent-kit.
+
+- e2e gates. This is the **global `wp` + required `wp setup`** contract, not a
+  zero-install or "no repo-local package" contract: EdgeMatte still keeps root
+  `@webpresso/agent-kit` where the repo imports its shared config/test subpaths.
+  EdgeMatte's existing preview/production deploy scripts become a small
+  consumer-owned **deploy adapter**; provider plumbing stays in EdgeMatte, not in
+  agent-kit.
 
 Upstream: `webpresso/agent-kit/blueprints/in-progress/2026-06-02-agent-kit-wp-deploy-orchestrator-toolchain-isolation.md`.
 This blueprint **extends** the existing in-progress
@@ -85,21 +86,21 @@ edge-matte
 
 ## Key Decisions
 
-| Decision              | Choice                                                                                                             | Rationale                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Deploy scripts        | Convert preview/production scripts into a consumer deploy adapter behind `deploy.adapterModule`.                   | Provider plumbing stays consumer-owned (`extraction-parity.md` §5). |
-| Toolchain             | Replace direct Wrangler/test/tool scripts with `wp` commands using agent-kit-owned tools.                          | Toolchain-isolation model from the upstream blueprint.              |
+| Decision              | Choice                                                                                                             | Rationale                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Deploy scripts        | Convert preview/production scripts into a consumer deploy adapter behind `deploy.adapterModule`.                   | Provider plumbing stays consumer-owned (`extraction-parity.md` §5).                                                                  |
+| Toolchain             | Replace direct Wrangler/test/tool scripts with `wp` commands using agent-kit-owned tools.                          | Toolchain-isolation model from the upstream blueprint.                                                                               |
 | Shared package deps   | Keep root `@webpresso/agent-kit` where repo config/test imports still require it.                                  | Toolchain isolation is about consumer-owned generic runtime tools, not removing shared config/test packages that are still imported. |
-| Contract preservation | Keep route/assets/R2/images contract, production smoke + e2e gates, and `cloudflare-deploy-contract` verification. | EdgeMatte is a live private-beta product; no behavior regression.   |
-| Lane IDs              | `preview_main`, `preview_pr_<n>`, `prd` (underscores).                                                             | Canonical internal lane IDs.                                        |
+| Contract preservation | Keep route/assets/R2/images contract, production smoke + e2e gates, and `cloudflare-deploy-contract` verification. | EdgeMatte is a live private-beta product; no behavior regression.                                                                    |
+| Lane IDs              | `preview_main`, `preview_pr_<n>`, `prd` (underscores).                                                             | Canonical internal lane IDs.                                                                                                         |
 
 ## Quick Reference (Execution Waves)
 
-| Wave              | Tasks     | Dependencies                              | Parallelizable         |
-| ----------------- | --------- | ----------------------------------------- | ---------------------- |
-| **Wave 0**        | 1.1       | adapter wiring already landed in the repo | 1 agent                |
-| **Wave 1**        | 2.1, 2.2  | 1.1                                       | 2 agents               |
-| **Critical path** | 1.1 → 2.2 | —                                         | completed 2026-06-04   |
+| Wave              | Tasks     | Dependencies                              | Parallelizable       |
+| ----------------- | --------- | ----------------------------------------- | -------------------- |
+| **Wave 0**        | 1.1       | adapter wiring already landed in the repo | 1 agent              |
+| **Wave 1**        | 2.1, 2.2  | 1.1                                       | 2 agents             |
+| **Critical path** | 1.1 → 2.2 | —                                         | completed 2026-06-04 |
 
 ### Phase 1: Adapter extraction [Complexity: M]
 
