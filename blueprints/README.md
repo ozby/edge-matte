@@ -29,7 +29,7 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
-## Active work (2026-06-03)
+## Active work (2026-06-04)
 
 | Blueprint                                 | Path                                                                                                                                                         | Purpose                                                                                                                                                                                                 |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -37,11 +37,9 @@ Move files with `git mv` so history follows the spec through its lifecycle.
 | Deploy contract                           | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md)         | Extract a reusable Cloudflare deploy contract: EdgeMatte now uses the same custom-domain preview lane shape as IngestLens while `agent-kit` policy is in scope and private infra plumbing stays private |
 | Security hardening                        | [`in-progress/2026-05-28-edge-matte-security-hardening.md`](./in-progress/2026-05-28-edge-matte-security-hardening.md)                                       | Private-beta security controls: Access, Turnstile, public security config, WAF/rate limiting                                                                                                            |
 | E2E confidence suite                      | [`in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`](./in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)                                   | Partially landed follow-through lane: hermetic PR `e2e` gate is shipped; remaining work is release/docs parity, live `production-smoke` + `production-journey` evidence, and required-check proof       |
-| `wp` deploy adapter + toolchain isolation | [`in-progress/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md`](./in-progress/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md) | Deploy adapter and root `wp deploy` scripts are wired; remaining work is local tool-ownership cleanup plus dry-run/audit proof before the lane can close.                                               |
-
-Wave 0 (secrets governance) is complete in the working tree. All five active or
-next-up blueprints were refreshed against the current repo state on
-**2026-06-03**; use each blueprint’s lane-boundary notes before parallel edits.
+Wave 0 (secrets governance) is complete in the working tree. The four remaining
+active or next-up blueprints were refreshed against the current repo state on
+**2026-06-04**; use each blueprint’s lane-boundary notes before parallel edits.
 
 For the deploy-contract lane specifically, treat **agent-kit** as the only
 shared-policy upstream in scope; do not expand that blueprint into gstack or
@@ -62,6 +60,7 @@ denied-content auditing; reusability alone is not permission to publish.
 | UI + E2E           | [`completed/2026-05-27-edge-matte-ui-and-e2e.md`](./completed/2026-05-27-edge-matte-ui-and-e2e.md)                 |
 | Infra + release    | [`completed/2026-05-27-edge-matte-infra-and-release.md`](./completed/2026-05-27-edge-matte-infra-and-release.md)   |
 | Result page URL    | [`completed/2026-06-02-edge-matte-result-page-url.md`](./completed/2026-06-02-edge-matte-result-page-url.md)       |
+| `wp` deploy adapter + toolchain isolation | [`completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md`](./completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md) | Closed with preview-lane mapping fix, fresh dry-run proof for `prd` / `preview_main` / `preview_pr_123`, and green `wp` quality + audit gates. |
 
 The parent roadmap retains one open acceptance item (manual production smoke)
 until [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)

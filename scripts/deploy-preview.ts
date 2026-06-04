@@ -23,6 +23,7 @@ const VALID_LANE = /^preview-(?:main|pr-\d+)$/u;
 
 const args = process.argv.slice(2);
 const destroy = args.includes("--destroy");
+const dryRun = args.includes("--dry-run");
 const printConfig = args.includes("--print-config");
 const laneArg = args[args.indexOf("--lane") + 1];
 const lane = laneArg || deriveLaneFromGitHubEnv();
@@ -131,6 +132,9 @@ function writePreviewConfig(): string {
 }
 
 if (destroy) {
+  if (dryRun) {
+    throw new Error("--destroy and --dry-run cannot be combined");
+  }
   console.log(`\n▶ Destroying preview Worker ${workerName}\n`);
   runWithSecrets("vp", [
     "exec",
@@ -152,15 +156,15 @@ const configPath = writePreviewConfig();
 if (printConfig) {
   console.log(`Preview Wrangler config: ${configPath}`);
 }
-runWithSecrets("vp", [
-  "exec",
-  "--filter",
-  "@edge-matte/worker",
-  "--",
-  "wrangler",
-  "deploy",
-  "--config",
-  configPath,
-]);
+
+const deployArgs = ["exec", "--filter", "@edge-matte/worker", "--", "wrangler", "deploy"];
+if (dryRun) {
+  console.log(`\n▶ Validating preview Worker ${workerName} without publishing\n`);
+  run("vp", [...deployArgs, "--dry-run", "--config", configPath]);
+  console.log(`\n✅ Preview dry-run validated: ${previewOrigin()}\n`);
+  process.exit(0);
+}
+
+runWithSecrets("vp", [...deployArgs, "--config", configPath]);
 
 console.log(`\n✅ Preview deployed: ${previewOrigin()}\n`);

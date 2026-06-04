@@ -25,11 +25,49 @@ type DeployAdapter = {
 const scriptsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptsDir, "..");
 
+function toPreviewScriptLane(lane: string): string {
+  if (lane === "preview_main") {
+    return "preview-main";
+  }
+  const previewPrMatch = lane.match(/^preview_pr_(\d+)$/u);
+  if (previewPrMatch) {
+    return `preview-pr-${previewPrMatch[1]}`;
+  }
+  throw new Error(`Unsupported deploy lane: ${lane}`);
+}
+
 export const webpressoDeployAdapter: DeployAdapter = {
   createPlan(request): DeployPlan {
     const lane = request.lane;
     const dryRun = request.dryRun;
+    const isProductionLane = lane === "prd";
+
     if (dryRun) {
+      if (!isProductionLane) {
+        const previewScriptLane = toPreviewScriptLane(lane);
+        return {
+          schemaVersion: 1,
+          lane,
+          provider: "cloudflare",
+          requiredCredentials: [],
+          steps: [
+            {
+              kind: "command",
+              id: "edge-matte-preview-dry-run",
+              label: `Validate edge-matte ${lane} preview deploy without publishing`,
+              command: "bun",
+              args: [
+                resolve(scriptsDir, "deploy-preview.ts"),
+                "--lane",
+                previewScriptLane,
+                "--dry-run",
+              ],
+              cwd: repoRoot,
+            },
+          ],
+        };
+      }
+
       return {
         schemaVersion: 1,
         lane,
@@ -41,7 +79,27 @@ export const webpressoDeployAdapter: DeployAdapter = {
             id: "wrangler-dry-run",
             label: "Validate Cloudflare Worker deploy without publishing",
             tool: "wrangler",
-            args: ["deploy", "--dry-run", "--env", lane === "prd" ? "production" : "preview-main"],
+            args: ["deploy", "--dry-run", "--env", "production"],
+            cwd: repoRoot,
+          },
+        ],
+      };
+    }
+
+    if (!isProductionLane) {
+      const previewScriptLane = toPreviewScriptLane(lane);
+      return {
+        schemaVersion: 1,
+        lane,
+        provider: "cloudflare",
+        requiredCredentials: ["CLOUDFLARE_API_TOKEN"],
+        steps: [
+          {
+            kind: "command",
+            id: "edge-matte-deploy",
+            label: `Run edge-matte ${lane} deploy script`,
+            command: "bun",
+            args: [resolve(scriptsDir, "deploy-preview.ts"), "--lane", previewScriptLane],
             cwd: repoRoot,
           },
         ],
@@ -59,9 +117,7 @@ export const webpressoDeployAdapter: DeployAdapter = {
           id: "edge-matte-deploy",
           label: `Run edge-matte ${lane} deploy script`,
           command: "bun",
-          args: [
-            resolve(scriptsDir, lane === "prd" ? "deploy-production.ts" : "deploy-preview.ts"),
-          ],
+          args: [resolve(scriptsDir, "deploy-production.ts")],
           cwd: repoRoot,
         },
       ],
