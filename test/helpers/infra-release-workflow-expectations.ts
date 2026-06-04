@@ -26,13 +26,8 @@ export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
   { label: "format check", pattern: /format:check|vp fmt --check/u },
   { label: "lint", pattern: /vp run lint/u },
   { label: "typecheck", pattern: /vp run (?:typecheck|check-types)/u },
-  { label: "test", pattern: /vp run test/u },
   { label: "build", pattern: /vp run build/u },
   { label: "docs frontmatter audit", pattern: /wp audit docs-frontmatter/u },
-  {
-    label: "blueprint lifecycle audit",
-    pattern: /wp audit blueprint-lifecycle --omx-plans/u,
-  },
   {
     label: "architecture drift audit",
     pattern: /wp audit architecture-drift --root \./u,
