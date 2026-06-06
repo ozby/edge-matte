@@ -52,7 +52,7 @@
     "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
     "audit:blueprint-links": "bun scripts/audit-blueprint-link-policy.ts",
     "docs:check": "wp audit docs-frontmatter",
-    "blueprints:check": "wp audit blueprint-lifecycle --omx-plans",
+    "blueprints:check": "wp audit blueprint-lifecycle",
     "prepare": "husky && bun scripts/sync-webpresso-config.ts",
     "mutation": "wp test --mutation",
     "test:mutation": "wp test --mutation",

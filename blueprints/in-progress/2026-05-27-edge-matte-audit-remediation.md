@@ -653,7 +653,7 @@ vp run lint
 vp run test
 vp run audit:blueprint-links
 wp audit docs-frontmatter
-wp audit blueprint-lifecycle --omx-plans
+wp audit blueprint-lifecycle
 vp run e2e -- --suite smoke
 vp run e2e -- --suite upload-delete-contract
 vp run e2e -- --suite upload-delete

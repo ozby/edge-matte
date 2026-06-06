@@ -202,7 +202,7 @@ vp run e2e -- --suite upload-delete
 
 # Architecture + docs governance
 wp audit docs-frontmatter
-wp audit blueprint-lifecycle --omx-plans
+wp audit blueprint-lifecycle
 wp audit architecture-drift --root .
 wp audit guardrails
 ```

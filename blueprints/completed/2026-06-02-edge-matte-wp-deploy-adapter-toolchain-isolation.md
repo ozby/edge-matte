@@ -179,7 +179,7 @@ fix and setup refresh.
   and covered by [`test/agent-kit-deploy-adapter.test.ts`](../../test/agent-kit-deploy-adapter.test.ts).
 - Fresh gate results:
   - `wp audit docs-frontmatter` → OK (19 checked)
-  - `wp audit blueprint-lifecycle --legacy-omx` → OK (13 checked)
+  - `wp audit blueprint-lifecycle` → OK (13 checked)
   - `wp lint` → passed
   - `wp typecheck` → passed
   - `wp test` → passed (`node --test`: 79/79, Vitest root suite: 3/3)
