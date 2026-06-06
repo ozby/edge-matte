@@ -1,5 +1,7 @@
 ---
 type: blueprint
+complexity: L
+owner: ozby
 title: "EdgeMatte: shared Cloudflare deployment contract extraction"
 status: in-progress
 created: 2026-05-29T00:00:00.000Z
@@ -113,7 +115,7 @@ deployment becomes a shared **multi-repo contract**:
 
 Repo-local deployment behavior is now concrete:
 
-- pushes to `main` run [`deploy.preview.yml`](../../.github/workflows/deploy.preview.yml)
+- pushes to `main` run [`deploy-preview.yml`](../../.github/workflows/deploy-preview.yml)
   and deploy `preview_main` as `edge-matte-preview-main` on `https://preview-main.edge-matte.ozby.dev`;
 - pull requests deploy `preview_pr_<n>` as `edge-matte-preview-pr-<n>` on `https://preview-pr-<n>.edge-matte.ozby.dev` and
   closed pull requests call the destroy path;
@@ -317,7 +319,7 @@ manual prod promotion, and audits. Keep provider execution details out.
 
 Concrete target artifacts:
 
-- `catalog/base-kit/.github/workflows/ci.webpresso.yml.tmpl` for preview/main/prd
+- `catalog/base-kit/.github/workflows/ci.yml.tmpl` for preview/main/prd
   workflow skeletons or reusable job fragments
 - `catalog/base-kit/scripts/*.tmpl` for generated repo helper wrappers only
   when they stay provider-agnostic
@@ -329,7 +331,7 @@ Concrete target artifacts:
 
 **Files:**
 
-- Modify: `@webpresso/agent-kit/catalog/base-kit/.github/workflows/ci.webpresso.yml.tmpl` (external upstream)
+- Modify: `@webpresso/agent-kit/catalog/base-kit/.github/workflows/ci.yml.tmpl` (external upstream)
 - Modify: `@webpresso/agent-kit/catalog/agent/rules/extraction-parity.md` (external upstream)
 - Modify: `@webpresso/agent-kit/catalog/agent/rules/public-package-safety.md` (external upstream)
 - Modify: `@webpresso/agent-kit` deployment-contract audit source (external upstream; exact source file verified during kickoff)
@@ -416,8 +418,8 @@ explicit compatibility constraint.
 **Files:**
 
 - Modify: `wrangler.toml`
-- Modify: `.github/workflows/ci.webpresso.yml`
-- Modify: `.github/workflows/deploy.production.yml`
+- Modify: `.github/workflows/ci.yml`
+- Modify: `.github/workflows/deploy-production.yml`
 - Modify: `docs/release.md`
 - Modify: external IngestLens deploy/workflow/docs counterparts (exact upstream paths verified during kickoff)
 
@@ -484,7 +486,7 @@ are tracked as upstream bugs rather than quietly re-entering this lane.
 
 - Modify: `blueprints/in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`
 - Modify: `blueprints/README.md`
-- Modify: `blueprints/in-progress/2026-05-28-edge-matte-security-hardening.md`
+- Modify: `blueprints/parked/2026-05-28-edge-matte-security-hardening.md`
 - Modify: `blueprints/in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`
 
 **Steps (TDD):**

@@ -23,7 +23,7 @@ env:
   PREVIEW_PR_URL_PATTERN: "https://preview-pr-<n>.edge-matte.ozby.dev"
 
 jobs:
-  deploy-preview:
+  deploy-verify:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.action != 'closed'
     steps:

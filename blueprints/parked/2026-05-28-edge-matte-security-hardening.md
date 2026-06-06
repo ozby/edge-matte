@@ -1,9 +1,11 @@
 ---
 type: blueprint
+complexity: L
+owner: ozby
 title: "EdgeMatte: private-beta security hardening"
-status: in-progress
+status: parked
 created: 2026-05-28
-last_updated: 2026-05-30
+last_updated: "2026-06-06"
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
@@ -34,11 +36,11 @@ Architecture docs:
   [app.ts](../../apps/client/src/app.ts)
 - The static SPA has no Worker-served public security-config surface for a
   Turnstile site key; current production builds happen before Doppler injection:
-  [deploy.production.yml](../../.github/workflows/deploy.production.yml),
+  [deploy-production.yml](../../.github/workflows/deploy-production.yml),
   [app.ts](../../apps/client/src/app.ts)
 - Production deploy smoke, local deploy smoke, and both production E2E suites
   hit `edge-matte.ozby.dev` without Access machine-auth headers:
-  [deploy.production.yml](../../.github/workflows/deploy.production.yml),
+  [deploy-production.yml](../../.github/workflows/deploy-production.yml),
   [wait-for-http.sh](../../scripts/wait-for-http.sh),
   [deploy-production.ts](../../scripts/deploy-production.ts),
   [production-smoke.smoke.test.ts](../../apps/e2e/journeys/production-smoke.smoke.test.ts),
@@ -191,7 +193,7 @@ task must cover both GitHub Actions post-deploy smoke and
 
 **Files:**
 
-- Modify: [deploy.production.yml](../../.github/workflows/deploy.production.yml)
+- Modify: [deploy-production.yml](../../.github/workflows/deploy-production.yml)
 - Modify: [wait-for-http.sh](../../scripts/wait-for-http.sh)
 - Modify: [deploy-production.ts](../../scripts/deploy-production.ts)
 - Modify: [infra-release-workflow-expectations.test.mjs](../../test/infra-release-workflow-expectations.test.mjs)

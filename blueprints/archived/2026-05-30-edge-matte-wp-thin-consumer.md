@@ -1,9 +1,11 @@
 ---
 type: blueprint
-status: completed
+owner: ozby
+title: "EdgeMatte: align thin-consumer cleanup with the shipped `vp` + `wp` contract"
+status: archived
 complexity: M
 created: "2026-05-30"
-last_updated: "2026-05-31"
+last_updated: "2026-06-06"
 progress: "100% (contract verified and finalized on 2026-05-31)"
 cross_repo_depends_on:
   - repo: webpresso/agent-kit
@@ -40,7 +42,7 @@ future `wp`-only consumer model.
 - Goal input: `EdgeMatte thin-consumer cleanup aligned to the shipped vp + wp split`
 - Complexity: `M`
 - Draft slug: `2026-05-30-edge-matte-wp-thin-consumer`
-- Output path: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Output path: `blueprints/archived/2026-05-30-edge-matte-wp-thin-consumer.md`
 - Validation scope: parser compliance + architecture-contract consistency
 - Current upstream truth: `agent-kit@0.21.5` still treats `vp` as the substrate
   for install/workspace script orchestration while shipping `wp` for setup,
@@ -115,7 +117,7 @@ Inventory every remaining package-local generic tool surface (`vitest run`,
 
 - Modify: `apps/**/package.json`
 - Modify: `infra/package.json`
-- Modify: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Modify: `blueprints/archived/2026-05-30-edge-matte-wp-thin-consumer.md`
 
 **Steps (TDD):**
 
@@ -169,7 +171,7 @@ not yet ship a package-local `wp test` surface.
 
 **Files:**
 
-- Modify: `blueprints/completed/2026-05-30-edge-matte-wp-thin-consumer.md`
+- Modify: `blueprints/archived/2026-05-30-edge-matte-wp-thin-consumer.md`
 - Modify: `test/**`
 
 **Steps (TDD):**

@@ -6,7 +6,7 @@ status: completed
 complexity: M
 created: "2026-06-02"
 last_updated: "2026-06-04"
-progress: "Completed 2026-06-04. Repo-local closure required one real adapter fix: preview lanes now map from internal `preview_main` / `preview_pr_<n>` ids to the existing hyphenated preview deploy script, and preview dry-runs validate generated Wrangler config without publishing. The upstream `wp` toolchain-isolation/audit surfaces pass as-is; repo-local authoring deps (`typescript`, `vitest`, `@playwright/test`) remain intentionally installed because the repo imports them directly."
+progress: "100% (completed 2026-06-04. Repo-local closure required one real adapter fix: preview lanes now map from internal `preview_main` / `preview_pr_<n>` ids to the existing hyphenated preview deploy script, and preview dry-runs validate generated Wrangler config without publishing. The upstream `wp` toolchain-isolation/audit surfaces pass as-is; repo-local authoring deps (`typescript`, `vitest`, `@playwright/test`) remain intentionally installed because the repo imports them directly.)"
 review_target: internal multi-repo platform work
 depends_on:
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
@@ -106,7 +106,7 @@ edge-matte
 
 #### [infra] Task 1.1: Consumer deploy adapter from existing scripts
 
-**Status:** completed
+**Status:** done
 
 `agent-kit.config.ts` already pointed at `scripts/agent-kit-deploy-adapter.ts`,
 but the adapter still needed one repo-local correctness fix before closure:
@@ -126,7 +126,7 @@ dry-run evidence covers `prd`, `preview_main`, and `preview_pr_123`.
 
 #### [qa] Task 2.1: Replace direct tool scripts with wp verbs
 
-**Status:** completed
+**Status:** done
 
 Root deploy/QA verbs already used `wp`. The remaining repo-local truth work was
 to verify whether any dependency cleanup was still actually required. After
@@ -145,7 +145,7 @@ contract without additional manifest churn in this lane.
 
 #### [qa] Task 2.2: Toolchain-isolation audit
 
-**Status:** completed
+**Status:** done
 
 The upstream audit surface now passes directly in this repo after the adapter
 fix and setup refresh.

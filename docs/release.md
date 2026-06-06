@@ -266,15 +266,21 @@ vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env productio
 
 ### Pull requests
 
-Implemented in [`.github/workflows/ci.webpresso.yml`](../.github/workflows/ci.webpresso.yml):
+Implemented across:
+
+- [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- [`.github/workflows/architecture-drift.yml`](../.github/workflows/architecture-drift.yml)
+- [`.github/workflows/deploy-preview.yml`](../.github/workflows/deploy-preview.yml)
+
+Canonical PR contract:
 
 1. **check** job — install, `verify:secrets`, shared path-policy audit,
-   `audit:secret-provider-quarantine`, format, typecheck, lint, docs/blueprint audits
-2. **test** job — `vp run test`
-3. **e2e** job — hermetic PR gate for `upload-delete-contract`, `smoke`, and
+   `audit:secret-provider-quarantine`, format, typecheck, lint, docs-frontmatter
+2. **e2e** job — hermetic PR gate for `upload-delete-contract`, `smoke`, and
    `upload-delete` using local `wrangler dev` + `E2E_MOCK_PIPELINE:1`
-4. **mutation** job — affected-only mutation run on pull requests
-5. **deploy-verify** job — build, Doppler-injected credentials, `wrangler deploy --dry-run --env production`
+3. **architecture-drift** job — dedicated architecture contract verification
+4. **deploy-verify** job — preview-lane verification on pull requests plus
+   preview deploy orchestration on `main` / manual runs
 
 All workflow `uses:` references are intentionally pinned to full 40-character
 commit SHAs, including GitHub-authored actions, so the repo can enforce
@@ -289,7 +295,7 @@ protection to become mandatory.
 
 ### Preview deploys
 
-Implemented in [`.github/workflows/deploy.preview.yml`](../.github/workflows/deploy.preview.yml):
+Implemented in [`.github/workflows/deploy-preview.yml`](../.github/workflows/deploy-preview.yml):
 
 1. Pushes to `main` run quality gates and deploy `preview_main` as
    `edge-matte-preview-main` on `https://preview-main.edge-matte.ozby.dev`.
@@ -303,7 +309,7 @@ Implemented in [`.github/workflows/deploy.preview.yml`](../.github/workflows/dep
 
 ### Production release deploy
 
-Implemented in [`.github/workflows/deploy.production.yml`](../.github/workflows/deploy.production.yml):
+Implemented in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
 
 1. Trigger only from a `v*` tag or manual `workflow_dispatch` with an explicit
    `release_version`; ordinary `main` pushes go to preview only.
@@ -397,4 +403,4 @@ delete TTL or lifecycle rules apply.
 - [`infra/README.md`](../infra/README.md) — Pulumi bootstrap + infra deployment chart
 - [`docs/secrets.md`](./secrets.md) — secret stores and bootstrap
 - [`docs/runbooks/abuse-response.md`](./runbooks/abuse-response.md) — upload abuse triage, rollback, and credential rotation
-- [`blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/completed/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint
+- [`blueprints/archived/2026-05-27-edge-matte-infra-and-release.md`](../blueprints/archived/2026-05-27-edge-matte-infra-and-release.md) — implementation blueprint

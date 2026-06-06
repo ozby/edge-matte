@@ -7,11 +7,11 @@ last_updated: 2026-05-27
 links:
   - ../docs/architecture.md
   - ../docs/architecture.contract.json
-  - ../blueprints/completed/2026-05-27-edge-matte.md
-  - ../blueprints/completed/2026-05-27-edge-matte-workspace-scaffold.md
-  - ../blueprints/completed/2026-05-27-edge-matte-core-pipeline.md
-  - ../blueprints/completed/2026-05-27-edge-matte-ui-and-e2e.md
-  - ../blueprints/completed/2026-05-27-edge-matte-infra-and-release.md
+  - ../blueprints/archived/2026-05-27-edge-matte.md
+  - ../blueprints/archived/2026-05-27-edge-matte-workspace-scaffold.md
+  - ../blueprints/archived/2026-05-27-edge-matte-core-pipeline.md
+  - ../blueprints/archived/2026-05-27-edge-matte-ui-and-e2e.md
+  - ../blueprints/archived/2026-05-27-edge-matte-infra-and-release.md
 ---
 
 # EdgeMatte Execution Sheet

@@ -1,7 +1,10 @@
 ---
 type: blueprint
+last_updated: "2026-06-06"
+complexity: S
+owner: ozby
 title: "EdgeMatte: workspace scaffold and runtime skeleton"
-status: completed
+status: archived
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte

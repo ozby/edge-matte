@@ -1,5 +1,7 @@
 ---
 type: blueprint
+complexity: M
+owner: ozby
 title: "EdgeMatte: end-to-end confidence suite"
 status: in-progress
 created: 2026-05-29
@@ -27,10 +29,10 @@ lane**, not a net-new test-harness design.
   ([Architecture](../../docs/architecture.md) flow) on first contact — the
   upload → matte → flip → host → delete journey is the product.
 - **Consuming surface:** the CI `e2e` job in
-  [ci.webpresso.yml](../../.github/workflows/ci.webpresso.yml), the journey specs
+  [ci.yml](../../.github/workflows/ci.yml), the journey specs
   under [apps/e2e/journeys](../../apps/e2e/journeys), and the post-deploy
   `production-journey` in
-  [deploy.production.yml](../../.github/workflows/deploy.production.yml).
+  [deploy-production.yml](../../.github/workflows/deploy-production.yml).
 - **New user-visible capability:** every PR should show a green check that proves
   the full mock-mode journey, and every successful production deploy should prove
   the real background-removal + flip transform on `edge-matte.ozby.dev` before
@@ -48,7 +50,7 @@ If execution resumes with multiple agents, treat these as lane boundaries:
 
 | Lane             | Primary paths                                                                                                                                                                                                                                                                                                                                                                        | Notes                                                                                                |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| E2E runtime      | `apps/e2e/**`, `apps/worker/**`, `.github/workflows/ci.webpresso.yml`, `.github/workflows/deploy.production.yml`                                                                                                                                                                                                                                                                     | Main confidence-lane code already partly landed; avoid duplicate suite rewrites.                     |
+| E2E runtime      | `apps/e2e/**`, `apps/worker/**`, `.github/workflows/ci.yml`, `.github/workflows/deploy-production.yml`                                                                                                                                                                                                                                                                                 | Main confidence-lane code already partly landed; avoid duplicate suite rewrites.                     |
 | Shared config    | `apps/client/package.json`, `apps/client/tsconfig.json`, `apps/client/vitest.config.ts`, `apps/e2e/package.json`, `apps/e2e/tsconfig.json`, `apps/e2e/vitest.config.ts`, `apps/worker/package.json`, `apps/worker/tsconfig.json`, `apps/worker/vitest.config.ts`, `infra/package.json`, `infra/tsconfig.json`, `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `oxlint.config.ts` | Uncommitted config updates are in flight; do not revert them while closing this blueprint.           |
 | Docs / lifecycle | `README.md`, `docs/architecture.md`, `docs/release.md`, `blueprints/README.md`                                                                                                                                                                                                                                                                                                       | README + architecture are already largely updated; release/lifecycle docs still need parity cleanup. |
 
@@ -64,7 +66,7 @@ Architecture docs:
 As of 2026-05-30, the repo is no longer at the original "missing suite" stage:
 
 - PR CI already has a hermetic `e2e` job in
-  [ci.webpresso.yml](../../.github/workflows/ci.webpresso.yml) running explicit
+  [ci.yml](../../.github/workflows/ci.yml) running explicit
   `upload-delete-contract`, `smoke`, and `upload-delete` suites with Playwright
   browser caching and no `secrets.*` dependency.
 - The browser journey is already TypeScript
@@ -74,7 +76,7 @@ As of 2026-05-30, the repo is no longer at the original "missing suite" stage:
   bytes, security headers, SPA delegation, and honest mock-mode expectations.
 - Post-deploy production verification already runs both
   `production-smoke` and `production-journey` in
-  [deploy.production.yml](../../.github/workflows/deploy.production.yml), and
+  [deploy-production.yml](../../.github/workflows/deploy-production.yml), and
   local setup is skipped for production journeys.
 - The remaining gaps are now narrower: production-green evidence is still
   coupled to the remediation blueprint’s deploy-credential truth, GitHub
@@ -100,8 +102,8 @@ release truth close the final gaps:
 
 | ID  | Severity | Claim in older blueprint text                            | Current repo reality                                                                                                                                                                                                                                                                                    | Blueprint fix                                                                                 |
 | --- | -------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| F1  | HIGH     | "No PR-gating e2e"                                       | [`.github/workflows/ci.webpresso.yml`](../../.github/workflows/ci.webpresso.yml) already has an `e2e` job running `upload-delete-contract`, `smoke`, and `upload-delete`, with pinned action SHAs and Playwright caching.                                                                               | Mark repo wiring complete and narrow remaining work to required-check enforcement + evidence. |
-| F2  | HIGH     | "Only production-smoke runs post-deploy"                 | [`.github/workflows/deploy.production.yml`](../../.github/workflows/deploy.production.yml) now runs both `production-smoke` and `production-journey`; [global-setup.test.ts](../../apps/e2e/src/global-setup.test.ts) proves production journeys skip local boot.                                       | Mark suite/workflow wiring landed; track live-green verification separately.                  |
+| F1  | HIGH     | "No PR-gating e2e"                                       | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) already has an `e2e` job running `upload-delete-contract`, `smoke`, and `upload-delete`, with pinned action SHAs and Playwright caching.                                                                                                   | Mark repo wiring complete and narrow remaining work to required-check enforcement + evidence. |
+| F2  | HIGH     | "Only production-smoke runs post-deploy"                 | [`.github/workflows/deploy-production.yml`](../../.github/workflows/deploy-production.yml) now runs both `production-smoke` and `production-journey`; [global-setup.test.ts](../../apps/e2e/src/global-setup.test.ts) proves production journeys skip local boot.                                   | Mark suite/workflow wiring landed; track live-green verification separately.                  |
 | F3  | MEDIUM   | "Browser spec is `.mjs` and stale"                       | [`apps/e2e/journeys/upload-delete.spec.ts`](../../apps/e2e/journeys/upload-delete.spec.ts) exists, uses current UI IDs/text, and no `.mjs` files remain in `apps/e2e/`.                                                                                                                                 | Mark the browser rewrite complete and keep the current file paths authoritative.              |
 | F4  | MEDIUM   | "Contract test passes by accident on `length !==`"       | [`apps/e2e/journeys/upload-delete.contract.test.ts`](../../apps/e2e/journeys/upload-delete.contract.test.ts) now checks PNG magic bytes, honest mock-mode expectations, error envelopes, security headers, and SPA delegation.                                                                          | Mark the contract-suite correction complete.                                                  |
 | F5  | HIGH     | Real transform proof still assumes the old provider path | [`cf-image-segment-provider.ts`](../../apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts) now uses the IMAGES binding for background removal, and [`production-journey.smoke.test.ts`](../../apps/e2e/journeys/production-journey.smoke.test.ts) asserts served bytes differ from input. | Update remaining work to "prove it green in production" rather than "design the suite."       |
@@ -151,7 +153,7 @@ implementation wave.
 
 #### [test] Task 1.1: Real image fixture + path-safe reader
 
-**Status:** complete
+**Status:** done
 
 **Depends:** None
 
@@ -179,7 +181,7 @@ already follow the repo’s absolute-path policy.
 
 #### [test] Task 1.2: Browser journey rewritten as TypeScript Playwright coverage
 
-**Status:** complete
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -208,7 +210,7 @@ delete flow plus drag-drop and recoverable client-side validation failure.
 
 #### [test] Task 1.3: Honest HTTP contract suite
 
-**Status:** complete
+**Status:** done
 
 **Depends:** Task 1.1
 
@@ -233,7 +235,7 @@ The contract suite now asserts honest mock-mode behavior instead of a false
 
 #### [ci] Task 2.1: Hermetic PR-gating `e2e` job
 
-**Status:** complete
+**Status:** done
 
 **Depends:** Task 1.2, Task 1.3
 
@@ -243,7 +245,7 @@ Playwright artifacts on failure.
 
 **Files:**
 
-- Modify: `.github/workflows/ci.webpresso.yml`
+- Modify: `.github/workflows/ci.yml`
 - Modify: `package.json`
 - Modify: `.gitignore`
 
@@ -262,9 +264,11 @@ Playwright artifacts on failure.
 
 #### [release] Task 2.2: Live `production-journey` proof stays green post-deploy
 
-**Status:** in_progress
+**Status:** blocked
 
 **Depends:** Task 1.1, Task 1.2
+
+**Blocked:** GitHub required-check enforcement and durable live post-deploy evidence are still external to the repo.
 
 The live suite and workflow wiring already exist, but this blueprint should not
 claim completion until the production lane repeatedly proves the real transform
@@ -275,7 +279,7 @@ on `edge-matte.ozby.dev` with truthful deploy evidence.
 - Create: `apps/e2e/journeys/production-journey.smoke.test.ts`
 - Modify: `apps/e2e/src/e2e-suite-manifest.ts`
 - Modify: `apps/e2e/src/e2e-suite-manifest.test.ts`
-- Modify: `.github/workflows/deploy.production.yml`
+- Modify: `.github/workflows/deploy-production.yml`
 
 **Steps (TDD):**
 

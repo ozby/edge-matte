@@ -285,7 +285,7 @@ flowchart TD
     CONTRACT --> PRGATE[CI e2e job — gates every PR, hermetic mock mode]
     SMOKE --> PRGATE
     UPLOAD --> PRGATE
-    PROD --> POSTDEPLOY[deploy.production.yml — release post-deploy]
+    PROD --> POSTDEPLOY[deploy-production.yml — release post-deploy]
     PRODJOURNEY --> POSTDEPLOY
 
     WP --> DOCS[docs + blueprint lifecycle audits]
@@ -312,7 +312,7 @@ flowchart LR
     GH[GitHub repo] --> CI[GitHub Actions]
     CI --> CHECKS[agent-kit/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
     CHECKS --> DRY[wrangler deploy --dry-run]
-    CHECKS --> PREVIEW[deploy.preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
+    CHECKS --> PREVIEW[deploy-preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
     PREVIEW --> PREVIEWDOMAINS[custom-domain preview Workers<br/>preview-main.edge-matte.ozby.dev<br/>preview-pr-&lt;n&gt;.edge-matte.ozby.dev]
     DRY --> RELEASE[release metadata gate<br/>version_pr releaseVersion]
     RELEASE --> DEPLOY[Doppler-injected credentials<br/>wrangler deploy --env production]

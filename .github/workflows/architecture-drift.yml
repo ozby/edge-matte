@@ -1,4 +1,4 @@
-name: architecture-contract
+name: architecture-drift
 
 on:
   pull_request:

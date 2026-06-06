@@ -1,7 +1,7 @@
 # EdgeMatte
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/ozby/edge-matte/ci.webpresso.yml?branch=main&label=CI)](https://github.com/ozby/edge-matte/actions/workflows/ci.webpresso.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/ozby/edge-matte/ci.yml?branch=main&label=CI)](https://github.com/ozby/edge-matte/actions/workflows/ci.yml)
 
 ## Deployment lanes
 
@@ -74,7 +74,7 @@ The mock pipeline path needs no Cloudflare account, secrets, or network. (`dev:m
 | Abuse / security guarding on the worker                                                                                                                                                 | [abuse-guard test](./apps/worker/test/abuse-guard.test.ts), [security test](./apps/worker/test/security-and-assets.test.ts)                                                                            |
 | Hermetic + production e2e suites (smoke, upload-delete, upload-delete-contract, production-smoke, production-journey)                                                                   | [`apps/e2e/src/e2e-suite-manifest.ts`](./apps/e2e/src/e2e-suite-manifest.ts), [`apps/e2e/src/cli/run-e2e.ts`](./apps/e2e/src/cli/run-e2e.ts)                                                           |
 | Cloudflare Access private-beta service-token contract                                                                                                                                   | [`apps/e2e/src/journeys/access.test.ts`](./apps/e2e/src/journeys/access.test.ts), [`docs/release.md`](./docs/release.md)                                                                               |
-| CI: quality pipeline + architecture-drift gate + custom-domain previews (`preview-main.edge-matte.ozby.dev`, `preview-pr-<n>.edge-matte.ozby.dev`) + release-gated production deploy    | [`ci.webpresso.yml`](./.github/workflows/ci.webpresso.yml), [`deploy.preview.yml`](./.github/workflows/deploy.preview.yml), [`deploy.production.yml`](./.github/workflows/deploy.production.yml)       |
+| Canonical PR check contract — `check`, `e2e`, `architecture-drift`, `deploy-verify` — plus custom-domain previews (`preview-main.edge-matte.ozby.dev`, `preview-pr-<n>.edge-matte.ozby.dev`) and release-gated production deploy | [`ci.yml`](./.github/workflows/ci.yml), [`architecture-drift.yml`](./.github/workflows/architecture-drift.yml), [`deploy-preview.yml`](./.github/workflows/deploy-preview.yml), [`deploy-production.yml`](./.github/workflows/deploy-production.yml) |
 | Machine-checkable architecture drift contract via `wp audit architecture-drift`                                                                                                         | [`docs/architecture.contract.json`](./docs/architecture.contract.json), [`docs/architecture.md`](./docs/architecture.md)                                                                               |
 | Pulumi-managed Cloudflare infrastructure with a Wrangler deploy split                                                                                                                   | [`scripts/deploy-production.ts`](./scripts/deploy-production.ts), [`scripts/verify-deploy-contract.ts`](./scripts/verify-deploy-contract.ts), [`docs/release.md`](./docs/release.md)                   |
 
@@ -114,6 +114,13 @@ E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 ```
 
 `production-journey` is the only suite that proves the real background-removal + flip transform; the hermetic suites prove plumbing, the API contract, and the browser UI.
+
+PRs are gated by the canonical four checks:
+
+- `check`
+- `e2e`
+- `architecture-drift`
+- `deploy-verify`
 
 ## Contribute / Security / License
 

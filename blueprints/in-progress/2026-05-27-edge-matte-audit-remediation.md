@@ -1,5 +1,7 @@
 ---
 type: blueprint
+complexity: L
+owner: ozby
 title: "EdgeMatte: audit remediation and confidence hardening"
 status: in-progress
 created: 2026-05-27
@@ -27,7 +29,7 @@ boundaries** — coordinate before crossing them:
 | Lane             | Primary paths                                                                                                                                                                     | Notes                                                                           |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Secrets / policy | `scripts/verify-secrets-policy.ts`, `scripts/lib/secrets-policy.ts`, `scripts/sync-webpresso-config.ts`, `docs/secrets.md`, `.webpresso/secrets.config.json`, `.husky/pre-commit` | Wave 0 largely complete in working tree — avoid drive-by edits                  |
-| Production CI    | `.github/workflows/deploy.production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts`                                                                             | Wave 0.5 — health polling after wrangler deploy                                 |
+| Production CI    | `.github/workflows/deploy-production.yml`, `scripts/wait-for-http.sh`, `scripts/deploy-production.ts`                                                                             | Wave 0.5 — health polling after wrangler deploy                                 |
 | E2E boundaries   | `apps/e2e/**`, `agent-kit.config.ts`                                                                                                                                              | Browser + contract suite split landed — keep reviewer-flow boundaries intact    |
 | Worker runtime   | `apps/worker/src/adapters/**`, `apps/worker/src/core/process-image-job.ts`, `apps/worker/test/**`                                                                                 | Fail-loud adapters + cleanup/deadline behavior landed — avoid overlapping edits |
 | Docs truth       | `README.md`, `docs/release.md`, `blueprints/README.md`, completion notes in `blueprints/completed/*.md`                                                                           | Truth lane mostly closed — reopen only if final verification changes status     |
@@ -166,12 +168,12 @@ only touch them again if final verification changes the truth state.
 ## Evidence motivating this blueprint
 
 - Historical internal-import E2E harness: `apps/e2e/src/test-harness.ts`
-- E2E blueprint forbids internal-import manufactured passes: `blueprints/completed/2026-05-27-edge-matte-ui-and-e2e.md`
-- Infra blueprint stop condition requires a live healthy deployment before completion: `blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`
+- E2E blueprint forbids internal-import manufactured passes: `blueprints/archived/2026-05-27-edge-matte-ui-and-e2e.md`
+- Infra blueprint stop condition requires a live healthy deployment before completion: `blueprints/archived/2026-05-27-edge-matte-infra-and-release.md`
 - Background removal now routes through the Cloudflare Images binding: `apps/worker/src/adapters/cloudflare/cf-image-segment-provider.ts`
 - Cleanup + deadline semantics now live in the core pipeline: `apps/worker/src/core/process-image-job.ts`, `apps/worker/test/process-image-job.test.ts`
 - Production-journey local-setup skip is explicit: `apps/e2e/src/global-setup.test.ts`
-- Supply-chain pinning + direct architecture-drift audit are in the workflows: `.github/workflows/ci.webpresso.yml`, `.github/workflows/deploy.production.yml`, `.github/workflows/architecture-contract.yml`
+- Supply-chain pinning + direct architecture-drift audit are in the workflows: `.github/workflows/ci.yml`, `.github/workflows/deploy-production.yml`, `.github/workflows/architecture-drift.yml`
 - Workspace quality-rail alignment is active in the working tree: `package.json`, `tsconfig.json`, `oxlint.config.ts`, `apps/*/tsconfig.json`, `apps/*/vitest.config.ts`, `infra/tsconfig.json`
 
 ## Refinement findings (2026-05-30)
@@ -365,8 +367,8 @@ Only reopen this task if final verification materially changes the truth state.
 
 - Modify: `README.md`
 - Modify: `docs/release.md`
-- Modify: `blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`
-- Modify: `blueprints/completed/2026-05-27-edge-matte-ui-and-e2e.md`
+- Modify: `blueprints/archived/2026-05-27-edge-matte-infra-and-release.md`
+- Modify: `blueprints/archived/2026-05-27-edge-matte-ui-and-e2e.md`
 
 **Steps (TDD):**
 
@@ -552,8 +554,8 @@ blueprint claims it enforces.
 - Modify: `apps/worker/vitest.config.ts`
 - Modify: `infra/package.json`
 - Modify: `infra/tsconfig.json`
-- Modify: `.github/workflows/ci.webpresso.yml`
-- Modify: `.github/workflows/deploy.production.yml`
+- Modify: `.github/workflows/ci.yml`
+- Modify: `.github/workflows/deploy-production.yml`
 - Modify: `test/helpers/infra-release-workflow-expectations.ts`
 
 **Steps (TDD):**
@@ -586,7 +588,7 @@ green run.
 
 **Files:**
 
-- Modify: `.github/workflows/deploy.production.yml`
+- Modify: `.github/workflows/deploy-production.yml`
 - Modify: `scripts/wait-for-http.sh`
 - Modify: `scripts/deploy-production.ts`
 - Modify: `test/helpers/infra-release-workflow-expectations.ts`
@@ -622,9 +624,9 @@ live-production evidence still need one final pass.
 **Files:**
 
 - Modify: `blueprints/in-progress/2026-05-27-edge-matte-audit-remediation.md`
-- Modify: `blueprints/completed/2026-05-27-edge-matte.md`
-- Modify: `blueprints/completed/2026-05-27-edge-matte-infra-and-release.md`
-- Modify: `blueprints/completed/2026-05-27-edge-matte-ui-and-e2e.md`
+- Modify: `blueprints/archived/2026-05-27-edge-matte.md`
+- Modify: `blueprints/archived/2026-05-27-edge-matte-infra-and-release.md`
+- Modify: `blueprints/archived/2026-05-27-edge-matte-ui-and-e2e.md`
 - Modify: `README.md`
 - Modify: `docs/release.md`
 

@@ -1,7 +1,10 @@
 ---
 type: blueprint
+last_updated: "2026-06-06"
+complexity: M
+owner: ozby
 title: "EdgeMatte: UI flow and agent-kit E2E adoption"
-status: completed
+status: archived
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte

@@ -1,9 +1,11 @@
 ---
 type: blueprint
+complexity: S
+owner: ozby
 title: "EdgeMatte: result page URL contract"
 status: completed
 created: 2026-06-02
-last_updated: 2026-06-02
+last_updated: "2026-06-06"
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte

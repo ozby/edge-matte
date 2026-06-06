@@ -1,7 +1,10 @@
 ---
 type: blueprint
+last_updated: "2026-06-06"
+complexity: M
+owner: ozby
 title: "EdgeMatte: infrastructure, CI, and production release"
-status: completed
+status: archived
 created: 2026-05-27
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
@@ -75,7 +78,7 @@ codified. This blueprint closes the production-readiness gap.
 5. Add PR CI: install, format, lint, typecheck, test, build, docs/blueprints check, dry-run deploy.
 6. Add `main` deploy workflow using `cloudflare/wrangler-action@v3`.
    (Superseded: production deploy uses inline `wrangler deploy` + Doppler injection —
-   see `.github/workflows/deploy.production.yml` and `docs/release.md`.)
+   see `.github/workflows/deploy-production.yml` and `docs/release.md`.)
 7. Add post-deploy smoke checks for `/health`, `/`, and `production-smoke` E2E.
 8. Document GitHub-vs-Cloudflare secret ownership and setup.
 9. Add concurrency/serialization so production deploys do not overlap.

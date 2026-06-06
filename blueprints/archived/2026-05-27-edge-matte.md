@@ -1,7 +1,10 @@
 ---
 type: blueprint
+last_updated: "2026-06-06"
+complexity: L
+owner: ozby
 title: "EdgeMatte: Cloudflare-native image matting platform"
-status: completed
+status: archived
 created: 2026-05-27
 review_target: public GitHub repository
 timebox: "6 hours"

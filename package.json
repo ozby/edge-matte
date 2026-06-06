@@ -39,7 +39,7 @@
     "lint": "wp lint",
     "test": "node --test \"test/**/*.test.ts\"",
     "e2e": "wp e2e",
-    "act:ci:e2e": "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
+    "act:ci:e2e": "with-secrets -- act -W .github/workflows/ci.yml -j e2e",
     "deploy:preview": "wp deploy --lane preview_main",
     "deploy:production": "wp deploy --lane prd",
     "deploy:production:wrangler": "wp deploy --lane prd",

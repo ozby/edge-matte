@@ -1,5 +1,6 @@
 ---
 type: blueprint
+owner: ozby
 title: "EdgeMatte: result compare slider and Ozby network footer"
 status: completed
 complexity: S
