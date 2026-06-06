@@ -423,7 +423,7 @@ vp run typecheck
 vp run lint
 vp run test
 wp audit docs-frontmatter
-wp audit blueprint-lifecycle --legacy-omx
+wp audit blueprint-lifecycle
 wp audit architecture-drift --root .
 ```
 

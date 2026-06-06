@@ -24,12 +24,18 @@ Live demo: **[edge-matte.ozby.dev](https://edge-matte.ozby.dev)** (private-beta 
 
 ## Quick start
 
-Requires Node `>=24` with `vp` (vite-plus) on `PATH`.
+Requires Node `>=24` with `vp` (vite-plus) and the global `wp` CLI on `PATH`.
+
+```bash
+npm install -g @webpresso/agent-kit
+# fallback: npm exec --yes --package @webpresso/agent-kit@latest -- wp setup
+```
 
 ```bash
 # Install workspace deps from the frozen lockfile
 vp install --frozen-lockfile
 # → pnpm@11.1.1 substrate installs all workspace deps; exits 0
+#   postinstall runs wp setup to scaffold hooks/runtime surfaces
 
 # Run the no-setup mock pipeline (no Cloudflare account or secrets needed)
 vp run --filter @edge-matte/worker dev:mock
@@ -48,6 +54,8 @@ vp run e2e -- --suite smoke
 vp run e2e -- --suite upload-delete-contract
 # → upload → serve → delete plus every error code pass
 ```
+
+If hooks or generated runtime surfaces drift later, repair them with `wp setup`.
 
 The mock pipeline path needs no Cloudflare account, secrets, or network. (`dev:mock` is `wrangler dev --var E2E_MOCK_PIPELINE:1`; the shell-only `E2E_MOCK_PIPELINE=1` form does not propagate to Workers `env`.)
 

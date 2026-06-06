@@ -497,7 +497,7 @@ Root scripts should follow the IngestLens/Webpresso shape:
     "setup:agent": "wp setup",
     "postinstall": "WP_SKIP_GSTACK=1 WP_SKIP_UPDATE_CHECK=1 wp setup --yes --overwrite",
     "docs:check": "WP_SKIP_UPDATE_CHECK=1 wp audit docs-frontmatter",
-    "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle --legacy-omx",
+    "blueprints:check": "WP_SKIP_UPDATE_CHECK=1 wp audit blueprint-lifecycle",
     "e2e": "bun ./apps/e2e/src/cli/run-e2e.ts",
   },
 }

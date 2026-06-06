@@ -218,20 +218,20 @@ Pin the actual intended split:
 
 ## Verification Gates
 
-| Gate                | Command                                     | Success Criteria |
-| ------------------- | ------------------------------------------- | ---------------- |
-| Format check        | `vp run format:check`                       | Pass             |
-| Lint                | `vp run -r lint`                            | Zero violations  |
-| Type safety         | `vp run -r check-types`                     | Zero errors      |
-| Governance tests    | `node --test "test/**/*.test.mjs"`          | Pass             |
-| Workspace tests     | `vp run -r test`                            | Pass             |
-| Docs audit          | `wp audit docs-frontmatter`                 | Pass             |
-| Blueprint lifecycle | `wp audit blueprint-lifecycle --legacy-omx` | Pass             |
-| Architecture drift  | `wp audit architecture-drift --root .`      | No drift         |
-| Absolute paths      | `wp audit absolute-path-policy --root .`    | Pass             |
-| Secrets policy      | `vp run verify:secrets`                     | Pass             |
-| Secret quarantine   | `vp run audit:secret-provider-quarantine`   | Pass             |
-| Blueprint links     | `vp run audit:blueprint-links`              | Pass             |
+| Gate                | Command                                   | Success Criteria |
+| ------------------- | ----------------------------------------- | ---------------- |
+| Format check        | `vp run format:check`                     | Pass             |
+| Lint                | `vp run -r lint`                          | Zero violations  |
+| Type safety         | `vp run -r check-types`                   | Zero errors      |
+| Governance tests    | `node --test "test/**/*.test.mjs"`        | Pass             |
+| Workspace tests     | `vp run -r test`                          | Pass             |
+| Docs audit          | `wp audit docs-frontmatter`               | Pass             |
+| Blueprint lifecycle | `wp audit blueprint-lifecycle`            | Pass             |
+| Architecture drift  | `wp audit architecture-drift --root .`    | No drift         |
+| Absolute paths      | `wp audit absolute-path-policy --root .`  | Pass             |
+| Secrets policy      | `vp run verify:secrets`                   | Pass             |
+| Secret quarantine   | `vp run audit:secret-provider-quarantine` | Pass             |
+| Blueprint links     | `vp run audit:blueprint-links`            | Pass             |
 
 ## Cross-Plan References
 

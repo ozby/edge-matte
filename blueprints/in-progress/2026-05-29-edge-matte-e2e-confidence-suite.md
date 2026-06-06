@@ -3,12 +3,12 @@ type: blueprint
 title: "EdgeMatte: end-to-end confidence suite"
 status: in-progress
 created: 2026-05-29
-last_updated: 2026-05-30
+last_updated: 2026-06-05
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
-progress: "71% (5 complete, 1 in progress, 1 blocked; refined against current repo state on 2026-05-30)"
+progress: "79% (6 complete, 1 blocked; release-doc parity is locked and production deploy evidence is captured, but GitHub required-check enforcement is still external as of 2026-06-06)"
 ---
 
 # EdgeMatte: end-to-end confidence suite
@@ -298,14 +298,16 @@ on `edge-matte.ozby.dev` with truthful deploy evidence.
 
 **Depends:** Task 2.1
 
-README and architecture are already largely current, but release/lifecycle docs
-still need parity so maintainers do not treat `production-smoke` as the only
-post-deploy proof.
+README and architecture are already largely current, and the release/lifecycle
+parity is now locked by repo-local regression coverage so maintainers do not
+silently drift back to treating `production-smoke` as the only post-deploy
+proof.
 
 **Files:**
 
 - Modify: `docs/release.md`
 - Modify: `blueprints/README.md`
+- Create: `test/release-docs-parity.test.ts`
 
 **Steps (TDD):**
 
@@ -319,6 +321,7 @@ post-deploy proof.
 
 - [x] Release docs describe the hermetic PR gate plus both post-deploy production suites.
 - [x] Blueprint/lifecycle docs no longer hide this blueprint’s partially landed status.
+- [x] Repo-local regression coverage now fails if `docs/release.md` drops either production suite from the healthy deploy, release checklist, or rollback contract.
 
 #### [ops] Task 3.2: External required-check and completion evidence follow-through
 
@@ -327,8 +330,10 @@ post-deploy proof.
 **Depends:** Task 2.1, Task 2.2
 
 The repo can define workflows, but it cannot by itself prove GitHub branch
-protection/ruleset enforcement or production credential health. Keep this as an
-explicit external follow-through item instead of over-claiming repo completion.
+protection/ruleset enforcement. Production deploy evidence can be captured from
+GitHub Actions logs, but whether the `e2e` check is truly required on `main`
+still lives outside git state. Keep this as an explicit external follow-through
+item instead of over-claiming repo completion.
 
 **Files:**
 
@@ -345,8 +350,10 @@ explicit external follow-through item instead of over-claiming repo completion.
 **Acceptance:**
 
 - [ ] GitHub required-check enforcement is confirmed outside the repo.
-- [ ] Production deploy evidence is captured and linked from lifecycle docs.
-- [ ] This blueprint’s lifecycle state matches reality.
+- [x] Production deploy evidence is captured and linked from lifecycle docs.
+- [x] This blueprint’s lifecycle state matches reality.
+
+**Progress note (2026-06-06):** GitHub-side evidence is now captured with `gh`: `gh api repos/ozby/edge-matte/branches/main/protection` returns `404 Branch not protected`, `gh api repos/ozby/edge-matte/rulesets` returns `[]`, and `gh run view 26811663121 --log` shows the 2026-06-02 production deploy on `main` passed `/health`, app-shell smoke, `production-smoke`, and `production-journey` against `https://edge-matte.ozby.dev`, including the live transform assertion. The remaining blocker is therefore narrowed to missing required-check enforcement on the protected branch.
 
 ## Edge cases
 
@@ -376,6 +383,6 @@ E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
 E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
 vp run act:ci:e2e
 wp audit architecture-drift --root .
-wp audit blueprint-lifecycle --legacy-omx
+wp audit blueprint-lifecycle
 vp run audit:blueprint-links
 ```

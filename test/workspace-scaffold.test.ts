@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
@@ -20,7 +21,7 @@ test("root package.json keeps vp for recursive build and wp for quality lanes", 
   for (const [script, expected] of [
     ["lint", "wp lint"],
     ["check-types", "wp typecheck"],
-    ["test", 'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts'],
+    ["test", 'node --test "test/**/*.test.ts"'],
     ["e2e", "wp e2e"],
   ]) {
     assert.equal(pkg.scripts[script], expected, `${script} must use the wp surface`);
@@ -55,6 +56,12 @@ test("agent-kit.config.ts wires the e2e host adapter", () => {
   assert.match(config, /\.\/apps\/e2e\/src\/agent-kit-host-adapter/u);
   assert.match(config, /deploy:\s*\{/u);
   assert.match(config, /metadataPath:\s*"infra\/release-metadata\.production\.json"/u);
+});
+
+test("configured e2e host adapter stays importable on the Node ESM surface", async () => {
+  const moduleHref = pathToFileURL(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")).href;
+  const module = await import(moduleHref);
+  assert.equal(typeof module.buildExecutionPlan, "function");
 });
 
 test("webpresso.config.ts re-exports the repo config on the canonical upstream surface", () => {

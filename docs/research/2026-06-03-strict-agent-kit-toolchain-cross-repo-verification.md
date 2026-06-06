@@ -1,4 +1,5 @@
 ---
+type: research
 title: Strict agent-kit toolchain cross-repo verification
 status: completed
 owner: worker-3

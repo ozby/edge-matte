@@ -15,8 +15,8 @@ describe("agent-kit-host-adapter", () => {
           "playwright",
           "test",
           "--config",
-          "playwright.config.ts",
-          "journeys/upload-delete.spec.ts",
+          "apps/e2e/playwright.config.ts",
+          "apps/e2e/journeys/upload-delete.spec.ts",
         ],
       }),
     ]);
@@ -35,8 +35,8 @@ describe("agent-kit-host-adapter", () => {
           "vitest",
           "run",
           "--config",
-          "vitest.journeys.config.ts",
-          "journeys/upload-delete.contract.test.ts",
+          "apps/e2e/vitest.journeys.config.ts",
+          "apps/e2e/journeys/upload-delete.contract.test.ts",
         ],
       }),
     ]);

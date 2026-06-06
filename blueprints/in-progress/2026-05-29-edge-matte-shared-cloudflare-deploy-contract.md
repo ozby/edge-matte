@@ -242,7 +242,7 @@ silently widening scope into unrelated external code.
 
 1. Update the active-work table and this blueprint so the ownership split is written plainly.
 2. Run `vp run audit:blueprint-links` — verify PASS.
-3. Run `wp audit blueprint-lifecycle --legacy-omx` — verify PASS.
+3. Run `wp audit blueprint-lifecycle` — verify PASS.
 
 **Acceptance:**
 
@@ -519,7 +519,7 @@ risks, edge cases, technology choices, and cross-plan references.
 2. Update `blueprints/README.md` active-work wording and date only if it is still stale when this contract blueprint is ready to leave `in-progress`.
 3. Run:
    - `vp run audit:blueprint-links`
-   - `wp audit blueprint-lifecycle --legacy-omx`
+   - `wp audit blueprint-lifecycle`
    - `wp audit docs-frontmatter`
    - `wp audit architecture-drift --root .`
 
@@ -597,7 +597,8 @@ has been removed. The remaining local scripts fall into two groups:
 
 ### Keep local for now
 
-  on top of packaged hook infrastructure
+on top of packaged hook infrastructure
+
 - `scripts/deploy-production.ts` — EdgeMatte-specific deploy orchestration
 - `scripts/verify-cloudflare-deploy-creds.sh` — app/provider-specific deploy
   preflight
@@ -632,7 +633,7 @@ dead code by this blueprint.
 | Hermetic PR e2e      | `vp run e2e -- --suite upload-delete-contract && vp run e2e -- --suite smoke && vp run e2e -- --suite upload-delete`           | Repo-local preview/PR confidence remains secret-free and deterministic |
 | Live post-deploy e2e | `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke && E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey` | Live production lane still proves upload → transform → delete          |
 | Blueprint links      | `vp run audit:blueprint-links`                                                                                                 | No local-path or broken-link violations                                |
-| Blueprint lifecycle  | `wp audit blueprint-lifecycle --legacy-omx`                                                                                    | Blueprint structure valid                                              |
+| Blueprint lifecycle  | `wp audit blueprint-lifecycle`                                                                                                 | Blueprint structure valid                                              |
 | Docs frontmatter     | `wp audit docs-frontmatter`                                                                                                    | Frontmatter valid                                                      |
 | Architecture drift   | `wp audit architecture-drift --root .`                                                                                         | No architecture contract drift                                         |
 

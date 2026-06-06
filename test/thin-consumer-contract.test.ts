@@ -54,24 +54,30 @@ test("root command surface keeps vp as substrate while routing quality work thro
 
   assert.equal(pkg.scripts["setup:agent"], "wp setup");
   assert.equal(pkg.scripts.lint, "wp lint");
-  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts" && wp test --file vitest.config.ts');
+  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts"');
   assert.equal(pkg.scripts.typecheck, "wp typecheck");
   assert.equal(pkg.scripts["check-types"], "wp typecheck");
   assert.equal(pkg.scripts.e2e, "wp e2e");
   assert.equal(pkg.scripts.mutation, "wp test --mutation");
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
-  assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle --legacy-omx");
+  assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
   assert.equal(
     pkg.scripts["act:ci:e2e"],
     "with-secrets -- act -W .github/workflows/ci.webpresso.yml -j e2e",
   );
+  assert.equal(config.globalInstall, true);
   assert.equal(config.guard?.packageManager, "vp-only");
   assert.deepEqual(config.guard?.scriptRoutes, {
     "verify:paths": "absolute-path-policy",
     "docs:check": "docs-frontmatter",
     "blueprints:check": "blueprint-lifecycle",
   });
+});
+
+test("root package intentionally keeps @webpresso/agent-kit as the shared config dependency", () => {
+  const pkg = readJson("package.json");
+  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], "catalog:");
 });
 
 test("package-local quality scripts route through wp surfaces", () => {
@@ -142,4 +148,9 @@ test("repo does not keep a local pretool-guard workaround", () => {
     "vp-only",
     "guard policy must live in .webpressorc.json",
   );
+});
+
+test("generated OpenCode surface uses direct wp mcp in global-install mode", () => {
+  const opencode = readJson("opencode.json");
+  assert.deepEqual(opencode.mcp?.webpresso?.command, ["wp", "mcp"]);
 });

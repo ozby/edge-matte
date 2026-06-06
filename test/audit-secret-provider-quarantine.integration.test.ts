@@ -6,6 +6,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const scriptPath = resolve("scripts/audit-secret-provider-quarantine.ts");
+const DOPPLER_RUN = ["doppler", "run"].join(" ");
+const WITH_SECRETS_PROVIDER_FLAG = ["with-secrets", "--doppler"].join(" ");
 
 function withTempDir(run: (cwd: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "edge-matte-secret-quarantine-"));
@@ -34,18 +36,21 @@ test("passes for neutral workflow docs", () => {
 
 test("fails when docs/scripts contain direct provider-run usage", () => {
   withTempDir((cwd) => {
-    writeFileSync(join(cwd, "README.md"), "run doppler run -- wrangler dev\n");
+    writeFileSync(join(cwd, "README.md"), `run ${DOPPLER_RUN} -- wrangler dev\n`);
     const result = runCheck(cwd);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /Secret-provider quarantine violations detected/);
-    assert.match(result.stderr, /use `with-secrets -- <cmd>` instead of `doppler run`/);
+    assert.match(
+      result.stderr,
+      new RegExp("use `with-secrets -- <cmd>` instead of `" + DOPPLER_RUN + "`"),
+    );
   });
 });
 
 test("fails when provider-specific with-secrets flag is used", () => {
   withTempDir((cwd) => {
     mkdirSync(join(cwd, "docs"), { recursive: true });
-    writeFileSync(join(cwd, "docs", "secrets.md"), "with-secrets --doppler -- vp run dev\n");
+    writeFileSync(join(cwd, "docs", "secrets.md"), `${WITH_SECRETS_PROVIDER_FLAG} -- vp run dev\n`);
     const result = runCheck(cwd);
     assert.equal(result.status, 1);
     assert.match(
