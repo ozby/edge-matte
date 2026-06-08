@@ -196,7 +196,7 @@ task must cover both GitHub Actions post-deploy smoke and
 - Modify: [deploy-production.yml](../../.github/workflows/deploy-production.yml)
 - Modify: [wait-for-http.sh](../../scripts/wait-for-http.sh)
 - Modify: [deploy-production.ts](../../scripts/deploy-production.ts)
-- Modify: [infra-release-workflow-expectations.test.mjs](../../test/infra-release-workflow-expectations.test.mjs)
+- Modify: [infra-release-workflow-expectations.test.ts](../../test/infra-release-workflow-expectations.test.ts)
 
 **Steps (TDD):**
 

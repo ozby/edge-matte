@@ -3,12 +3,19 @@
   "mcp": {
     "context-mode": {
       "type": "local",
-      "command": ["context-mode"]
+      "command": [
+        "context-mode"
+      ]
     },
     "webpresso": {
       "type": "local",
-      "command": ["wp", "mcp"]
+      "command": [
+        "wp",
+        "mcp"
+      ]
     }
   },
-  "plugin": ["context-mode"]
+  "plugin": [
+    "context-mode"
+  ]
 }
