@@ -16,7 +16,6 @@
   "include": [
     "agent-kit.config.ts",
     "commitlint.config.ts",
-    "oxlint.config.ts",
     "playwright.config.ts",
     "stryker.config.ts",
     "vite.config.ts",
