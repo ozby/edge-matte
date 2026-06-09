@@ -14,103 +14,65 @@ concurrency:
   group: edge-matte-production-deploy
   cancel-in-progress: false
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  PRODUCTION_URL: https://edge-matte.ozby.dev
-  HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
-
 jobs:
-  deploy:
+  resolve-release:
     runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.resolve.outputs.release_version }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: "24.16.0"
-          cache: pnpm
-      - name: Set up Webpresso tooling
-        uses: ./.github/actions/setup-webpresso
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: latest
-      - run: vp install --frozen-lockfile
-      - run: vp run verify:secrets
-      - run: wp audit absolute-path-policy --root .
-      - run: wp audit no-first-party-mjs --root .
-      - run: vp run audit:secret-provider-quarantine
-      - run: vp run audit:blueprint-links
-      - run: vp run format:check
-      - run: vp run check-types
-      - run: vp run lint
-      - run: wp audit docs-frontmatter
-      - run: wp audit blueprint-lifecycle
-      - run: wp audit architecture-drift --root .
-      - run: vp run verify:deploy-contract
-      - run: vp run build
-      - run: vp run test
-
-      - name: Resolve Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Install chromium + system deps
-        run: vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
-
-      # Hermetic pre-deploy gate — no secrets, no external network.
-      # IMPORTANT: always pass an explicit --suite.
-      # A bare `vp run e2e` runs ALL five suites (default = all, see
-      # apps/e2e/src/agent-kit-host-adapter.ts buildExecutionPlan), and on
-      # Actions CI=true un-skips shouldRunProductionSmoke (env.ts:31), which
-      # would fire production-journey against live prod BEFORE wrangler deploy.
-      - name: Gate — contract (HTTP) suite
-        run: vp run e2e -- --suite upload-delete-contract
-      - name: Gate — smoke (HTTP) suite
-        run: vp run e2e -- --suite smoke
-      - name: Gate — browser (Playwright) journey
-        run: vp run e2e -- --suite upload-delete
-
-      - name: Upload gate artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: deploy-gate-playwright-artifacts
-          path: |
-            apps/e2e/playwright-report
-            apps/e2e/test-results
-          retention-days: 7
-
-      - name: Inject deploy credentials from Doppler
-        if: env.HAS_DOPPLER_TOKEN == '1'
-        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
-        with:
-          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
-          inject-env-vars: true
-
-      - name: Verify Cloudflare deploy credentials
-        run: bash scripts/verify-cloudflare-deploy-creds.sh
-
-      - name: Verify optional Cloudflare Access service-token pairing
+      - name: Resolve release version
+        id: resolve
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
-          if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then
-            [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "push" ]]; then
+            release_version="${REF_NAME#v}"
+          else
+            release_version="${INPUT_RELEASE_VERSION}"
           fi
+          if [[ ! "${release_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid semantic release version: ${release_version}" >&2
+            exit 1
+          fi
+          printf 'release_version=%s\n' "${release_version}" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy Worker to edge-matte.ozby.dev
-        run: vp exec --filter @edge-matte/worker -- wrangler deploy --env production
-
-      - name: Post-deploy smoke /health
-        run: bash scripts/wait-for-http.sh "${PRODUCTION_URL}/health" 24 5
-
-      - name: Post-deploy smoke app shell
-        run: bash scripts/wait-for-http.sh "${PRODUCTION_URL}/" 12 5
-
-      - name: Post-deploy production-smoke e2e
-        env:
-          E2E_RUN_PRODUCTION: "1"
-        run: vp run e2e -- --suite production-smoke
-
-      - name: Post-deploy production-journey e2e (real upload -> transform -> delete)
-        env:
-          E2E_RUN_PRODUCTION: "1"
-        run: vp run e2e -- --suite production-journey
+  deploy:
+    needs: resolve-release
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@317fc3aa5952f5dee0604413a0b9dd1e6d7635dd
+    with:
+      install_command: vp install --frozen-lockfile
+      verify_command: |
+        vp run verify:secrets
+        wp audit absolute-path-policy --root .
+        wp audit no-first-party-mjs --root .
+        vp run audit:secret-provider-quarantine
+        vp run audit:blueprint-links
+        vp run format:check
+        vp run check-types
+        vp run lint
+        wp audit docs-frontmatter
+        wp audit blueprint-lifecycle
+        wp audit architecture-drift --root .
+        vp run verify:deploy-contract
+        vp run build
+        vp run test
+        vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
+        vp run e2e -- --suite upload-delete-contract
+        vp run e2e -- --suite smoke
+        vp run e2e -- --suite upload-delete
+        bash scripts/verify-cloudflare-deploy-creds.sh
+        if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; fi
+      deploy_command: wp deploy --lane prd
+      smoke_command: |
+        bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/health" 24 5
+        bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
+        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+      release_version: ${{ needs.resolve-release.outputs.release_version }}
+      runner: ubuntu-latest
+    secrets:
+      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}

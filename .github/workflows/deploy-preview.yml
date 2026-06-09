@@ -11,84 +11,101 @@ on:
         description: "Preview lane: preview-main or preview-pr-<n>"
         required: true
         type: string
+      mode:
+        description: "deploy or destroy"
+        required: false
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - destroy
 
 concurrency:
   group: edge-matte-preview-${{ github.event.pull_request.number || github.ref_name || inputs.lane }}
   cancel-in-progress: true
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
-  PREVIEW_MAIN_URL: "https://preview-main.edge-matte.ozby.dev"
-  PREVIEW_PR_URL_PATTERN: "https://preview-pr-<n>.edge-matte.ozby.dev"
-
 jobs:
-  deploy-verify:
+  resolve:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    outputs:
+      dashed_lane: ${{ steps.resolve.outputs.dashed_lane }}
+      canonical_lane: ${{ steps.resolve.outputs.canonical_lane }}
+      mode: ${{ steps.resolve.outputs.mode }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
-      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: "24.16.0"
-          cache: pnpm
-      - name: Set up Webpresso tooling
-        uses: ./.github/actions/setup-webpresso
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: latest
-      - run: vp install --frozen-lockfile
-      - run: vp run verify:secrets
-      - run: wp audit absolute-path-policy --root .
-      - run: wp audit no-first-party-mjs --root .
-      - run: vp run audit:secret-provider-quarantine
-      - run: vp run format:check
-      - run: vp run lint
-      - run: vp run check-types
-      - run: vp run build
-      - name: Inject preview deploy credentials from Doppler
-        if: env.HAS_DOPPLER_TOKEN == '1'
-        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
-        with:
-          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
-          inject-env-vars: true
+      - name: Resolve preview lane + mode
+        id: resolve
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MANUAL_LANE: ${{ inputs.lane }}
+          MANUAL_MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "push" ]]; then
+            dashed_lane="preview-main"
+            canonical_lane="preview_main"
+            mode="deploy"
+          elif [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            dashed_lane="preview-pr-${PR_NUMBER}"
+            canonical_lane="preview_pr_${PR_NUMBER}"
+            if [[ "${EVENT_ACTION}" == "closed" ]]; then
+              mode="destroy"
+            else
+              mode="deploy"
+            fi
+          else
+            dashed_lane="${MANUAL_LANE}"
+            mode="${MANUAL_MODE}"
+            if [[ "${dashed_lane}" == "preview-main" ]]; then
+              canonical_lane="preview_main"
+            elif [[ "${dashed_lane}" =~ ^preview-pr-([0-9]+)$ ]]; then
+              canonical_lane="preview_pr_${BASH_REMATCH[1]}"
+            else
+              echo "Invalid preview lane: ${dashed_lane}" >&2
+              exit 1
+            fi
+          fi
+          {
+            printf 'dashed_lane=%s\n' "${dashed_lane}"
+            printf 'canonical_lane=%s\n' "${canonical_lane}"
+            printf 'mode=%s\n' "${mode}"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Deploy preview-main
-        if: github.event_name == 'push' && github.ref_name == 'main'
-        run: vp run deploy:preview -- --lane preview-main
-
-      - name: Deploy preview-pr
-        if: github.event_name == 'pull_request'
-        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }}
-
-      - name: Deploy manual preview
-        if: github.event_name == 'workflow_dispatch'
-        run: vp run deploy:preview -- --lane "${{ inputs.lane }}"
+  deploy-preview:
+    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
+    needs: resolve
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@317fc3aa5952f5dee0604413a0b9dd1e6d7635dd
+    with:
+      lane: ${{ needs.resolve.outputs.canonical_lane }}
+      mode: deploy
+      install_command: vp install --frozen-lockfile
+      verify_command: |
+        vp run verify:secrets
+        wp audit absolute-path-policy --root .
+        wp audit no-first-party-mjs --root .
+        vp run audit:secret-provider-quarantine
+        vp run format:check
+        vp run lint
+        vp run check-types
+        vp run build
+      deploy_command: vp run deploy:preview -- --lane ${{ needs.resolve.outputs.dashed_lane }}
+      runner: ubuntu-latest
+    secrets:
+      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
 
   destroy-preview:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
-      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: "24.16.0"
-          cache: pnpm
-      - name: Set up Webpresso tooling
-        uses: ./.github/actions/setup-webpresso
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: latest
-      - run: vp install --frozen-lockfile
-
-      - name: Inject preview cleanup credentials from Doppler
-        if: env.HAS_DOPPLER_TOKEN == '1'
-        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
-        with:
-          doppler-token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
-          inject-env-vars: true
-
-      - name: Destroy preview-pr
-        run: vp run deploy:preview -- --lane preview-pr-${{ github.event.pull_request.number }} --destroy
+    if: ${{ needs.resolve.outputs.mode == 'destroy' }}
+    needs: resolve
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@317fc3aa5952f5dee0604413a0b9dd1e6d7635dd
+    with:
+      lane: ${{ needs.resolve.outputs.canonical_lane }}
+      mode: destroy
+      install_command: vp install --frozen-lockfile
+      verify_command: ":"
+      deploy_command: ":"
+      destroy_command: vp run deploy:preview -- --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
+      runner: ubuntu-latest
+    secrets:
+      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
