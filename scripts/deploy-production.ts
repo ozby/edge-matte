@@ -14,14 +14,23 @@
 import { spawnSync } from "node:child_process";
 
 const PRODUCTION_URL = "https://edge-matte.ozby.dev";
+const repoRoot = process.cwd();
 const args = process.argv.slice(2);
 const skipBuild = args.includes("--skip-build");
 const skipSmoke = args.includes("--skip-smoke");
 
+function buildChildEnv(root: string, env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const localBin = `${root}/node_modules/.bin`;
+  return {
+    ...env,
+    PATH: env.PATH ? `${localBin}:${env.PATH}` : localBin,
+  };
+}
+
 function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = process.env) {
   const result = spawnSync(command, commandArgs, {
     stdio: "inherit",
-    env,
+    env: buildChildEnv(repoRoot, env),
     shell: false,
   });
   if (result.error) {
@@ -37,11 +46,12 @@ function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = pr
 function requireCommand(name: string) {
   const result = spawnSync("command", ["-v", name], {
     encoding: "utf8",
+    env: buildChildEnv(repoRoot, process.env),
     shell: true,
   });
   if (result.status !== 0) {
     console.error(`Missing required command: ${name}`);
-    console.error("Install global Webpresso CLIs so `with-secrets` is on PATH.");
+    console.error("Run `vp install` (or your repo install command) so the repo-local `with-secrets` binary is available.");
     console.error("Configure infra credentials: wp config secrets set doppler ozby-shell");
     process.exit(1);
   }
