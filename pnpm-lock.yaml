@@ -16,8 +16,8 @@ catalogs:
       specifier: ^9.6.1
       version: 9.6.1
     '@webpresso/agent-kit':
-      specifier: ^0.27.0
-      version: 0.27.0
+      specifier: ^0.30.3
+      version: 0.30.3
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
@@ -43,7 +43,7 @@ importers:
         version: 24.12.4
       '@webpresso/agent-kit':
         specifier: 'catalog:'
-        version: 0.27.0(@cloudflare/workers-types@4.20260528.1)(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(happy-dom@18.0.1)(oxlint-tsgolint@0.22.1)(valibot@1.4.1(typescript@6.0.3))
+        version: 0.30.3(@cloudflare/workers-types@4.20260528.1)(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(happy-dom@18.0.1)(oxlint-tsgolint@0.22.1)(valibot@1.4.1(typescript@6.0.3))
       husky:
         specifier: ^9.0.0
         version: 9.1.7
@@ -2236,8 +2236,38 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@webpresso/agent-kit@0.27.0':
-    resolution: {integrity: sha512-zfIt8zCxhrdIpnn//16a0RnYCfLI0cIE9r2WIWL7ftLMZOUsG3iLAxV4hw0RZfy3vMGIN8JWgKJFvGpTPNL9fA==}
+  '@webpresso/agent-kit-runtime-darwin-arm64@0.30.3':
+    resolution: {integrity: sha512-VpgA5hHGj9QWRzgG5SX0++iybA4jPlyLXhC3cOnPk8YNFDeaAmka/yTytR2qrq3FNOoMaLX/S777lxgg2BWZuw==}
+    cpu: [arm64]
+    os: [darwin]
+    hasBin: true
+
+  '@webpresso/agent-kit-runtime-darwin-x64@0.30.3':
+    resolution: {integrity: sha512-0K2iVWchOq9z/lgypPdonJWmNpEgUrJy8hpz9MOPhFQOfl8gro60tlvAFs/L+ZU9g+2+1WPyOzre5lA2CraHRg==}
+    cpu: [x64]
+    os: [darwin]
+    hasBin: true
+
+  '@webpresso/agent-kit-runtime-linux-arm64@0.30.3':
+    resolution: {integrity: sha512-YUnHKVBFQe+MJqox+xQxx+TXOrtMtG996J351GGryEl4IszI0aOcC00zr3BDb9aXK5nO5bX30NNmOmaqM7zX0g==}
+    cpu: [arm64]
+    os: [linux]
+    hasBin: true
+
+  '@webpresso/agent-kit-runtime-linux-x64@0.30.3':
+    resolution: {integrity: sha512-PxcK2ihhs4wTl5vcgueOtzW4IyC4CY96TpXJrJNqYznlgvF1LmcLcqSYwPyDfFYrWyuD1Kkos8l2FyNBL3K2Fg==}
+    cpu: [x64]
+    os: [linux]
+    hasBin: true
+
+  '@webpresso/agent-kit-runtime-windows-x64@0.30.3':
+    resolution: {integrity: sha512-wBnjG5kRNGXfcZkwRthRTY5rI+gLnbmYpeuZ/S5NBqt4sP1jxjXKNrDWkueMtP12WTM6f8ZsSD20B8O5zmwHCA==}
+    cpu: [x64]
+    os: [win32]
+    hasBin: true
+
+  '@webpresso/agent-kit@0.30.3':
+    resolution: {integrity: sha512-LoEMIIywgK52T4Z9M/Mcsowmk+JHwyo+KX4DQZn3eImMsbelG3eiDHvr1f4vJh3DTsQToiPmFd/a993psgcyRg==}
     engines: {node: '>=24'}
     hasBin: true
 
@@ -6554,7 +6584,22 @@ snapshots:
   '@voidzero-dev/vite-plus-win32-x64-msvc@0.1.22':
     optional: true
 
-  '@webpresso/agent-kit@0.27.0(@cloudflare/workers-types@4.20260528.1)(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(happy-dom@18.0.1)(oxlint-tsgolint@0.22.1)(valibot@1.4.1(typescript@6.0.3))':
+  '@webpresso/agent-kit-runtime-darwin-arm64@0.30.3':
+    optional: true
+
+  '@webpresso/agent-kit-runtime-darwin-x64@0.30.3':
+    optional: true
+
+  '@webpresso/agent-kit-runtime-linux-arm64@0.30.3':
+    optional: true
+
+  '@webpresso/agent-kit-runtime-linux-x64@0.30.3':
+    optional: true
+
+  '@webpresso/agent-kit-runtime-windows-x64@0.30.3':
+    optional: true
+
+  '@webpresso/agent-kit@0.30.3(@cloudflare/workers-types@4.20260528.1)(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(esbuild@0.28.0)(happy-dom@18.0.1)(oxlint-tsgolint@0.22.1)(valibot@1.4.1(typescript@6.0.3))':
     dependencies:
       '@manypkg/find-root': 3.1.0
       '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
@@ -6587,6 +6632,11 @@ snapshots:
       '@stryker-mutator/core': 9.6.1(@types/node@24.12.4)
       '@stryker-mutator/typescript-checker': 9.6.1(@stryker-mutator/core@9.6.1(@types/node@24.12.4))(typescript@6.0.3)
       '@stryker-mutator/vitest-runner': 9.6.1(@stryker-mutator/core@9.6.1(@types/node@24.12.4))(vitest@4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(happy-dom@18.0.1)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.4)(yaml@2.9.0)))
+      '@webpresso/agent-kit-runtime-darwin-arm64': 0.30.3
+      '@webpresso/agent-kit-runtime-darwin-x64': 0.30.3
+      '@webpresso/agent-kit-runtime-linux-arm64': 0.30.3
+      '@webpresso/agent-kit-runtime-linux-x64': 0.30.3
+      '@webpresso/agent-kit-runtime-windows-x64': 0.30.3
       wrangler: 4.95.0(@cloudflare/workers-types@4.20260528.1)
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
