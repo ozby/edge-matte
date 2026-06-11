@@ -3,7 +3,7 @@ packages:
   - "infra"
 
 catalog:
-  "@webpresso/agent-kit": ^0.30.3
+  "@webpresso/agent-kit": ^0.31.0
   vite-plus: 0.1.22
   "@stryker-mutator/core": ^9.6.1
   "@stryker-mutator/typescript-checker": ^9.6.1
