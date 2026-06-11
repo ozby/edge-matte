@@ -42,5 +42,8 @@ test("production workflow delegates to the shared reusable production shell whil
   assert.match(workflow, /release_version:/u);
   assert.match(workflow, /pnpm exec vp run verify:deploy-contract/u);
   assert.match(workflow, /pnpm exec vp run e2e -- --suite upload-delete-contract/u);
-  assert.match(workflow, /E2E_RUN_PRODUCTION=1 pnpm exec vp run e2e -- --suite production-journey/u);
+  assert.match(
+    workflow,
+    /E2E_RUN_PRODUCTION=1 pnpm exec vp run e2e -- --suite production-journey/u,
+  );
 });
