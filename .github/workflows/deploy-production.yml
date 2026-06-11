@@ -42,7 +42,7 @@ jobs:
 
   deploy:
     needs: resolve-release
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@c53f2f2dc6ecce7d6191193609308cc0a1fbac23
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@1db9b8d3de11a67096b9cc56ed988ba95d6cc221
     with:
       install_command: pnpm install --frozen-lockfile
       verify_command: |
