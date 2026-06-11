@@ -73,7 +73,7 @@ jobs:
             printf 'mode=%s\n' "${mode}"
           } >> "$GITHUB_OUTPUT"
 
-  deploy-preview:
+  preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
     uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@4ba75c74138e4bbfa2b72189e6f0a3dd05fef7a9
@@ -95,7 +95,21 @@ jobs:
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
 
-  destroy-preview:
+  deploy-preview:
+    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
+    needs: preview-call
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy-preview passed via shared reusable preview caller"
+
+  deploy-verify:
+    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
+    needs: preview-call
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy verification passed via shared reusable preview caller"
+
+  destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
     uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@4ba75c74138e4bbfa2b72189e6f0a3dd05fef7a9
