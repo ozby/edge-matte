@@ -641,15 +641,15 @@ dead code by this blueprint.
 
 ## Cross-Plan References
 
-| Type       | Blueprint / source                                                                                                 | Relationship                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Upstream   | [`EdgeMatte: infrastructure, CI, and production release`](../archived/2026-05-27-edge-matte-infra-and-release.md)  | Supplies the current single-repo deploy truth surface, including Pulumi/Wrangler ownership split                         |
-| Upstream   | [`EdgeMatte: audit remediation and confidence hardening`](./2026-05-27-edge-matte-audit-remediation.md)            | Supplies the now-hardened workflow, `IMAGES` binding semantics, and production confidence gates                          |
-| Downstream | [`EdgeMatte: private-beta security hardening`](../parked/2026-05-28-edge-matte-security-hardening.md)               | Should consume shared lane semantics for Access-protected preview/prod flows, not invent a second taxonomy               |
-| Downstream | [`EdgeMatte: end-to-end confidence suite`](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)           | Should consume shared lane semantics for PR preview and post-deploy confidence while preserving explicit suite selection |
-| Downstream | `agent-kit` deployment-contract work (external upstream)                                                           | Will own the reusable contract templates, rules, and audits                                                              |
-| Downstream | `wrangler-sync` expansion / private Cloudflare deploy package (external upstream)                                  | Will own provider-specific sync/render plumbing                                                                          |
-| Reference  | IngestLens preview/deploy work (external upstream)                                                                 | Stronger existing lane model and sync/orchestration reference                                                            |
+| Type       | Blueprint / source                                                                                                | Relationship                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Upstream   | [`EdgeMatte: infrastructure, CI, and production release`](../archived/2026-05-27-edge-matte-infra-and-release.md) | Supplies the current single-repo deploy truth surface, including Pulumi/Wrangler ownership split                         |
+| Upstream   | [`EdgeMatte: audit remediation and confidence hardening`](./2026-05-27-edge-matte-audit-remediation.md)           | Supplies the now-hardened workflow, `IMAGES` binding semantics, and production confidence gates                          |
+| Downstream | [`EdgeMatte: private-beta security hardening`](../parked/2026-05-28-edge-matte-security-hardening.md)             | Should consume shared lane semantics for Access-protected preview/prod flows, not invent a second taxonomy               |
+| Downstream | [`EdgeMatte: end-to-end confidence suite`](../in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)          | Should consume shared lane semantics for PR preview and post-deploy confidence while preserving explicit suite selection |
+| Downstream | `agent-kit` deployment-contract work (external upstream)                                                          | Will own the reusable contract templates, rules, and audits                                                              |
+| Downstream | `wrangler-sync` expansion / private Cloudflare deploy package (external upstream)                                 | Will own provider-specific sync/render plumbing                                                                          |
+| Reference  | IngestLens preview/deploy work (external upstream)                                                                | Stronger existing lane model and sync/orchestration reference                                                            |
 
 ## Edge Cases and Error Handling
 

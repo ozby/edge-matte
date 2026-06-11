@@ -60,10 +60,7 @@ test("root command surface keeps vp as substrate while routing quality work thro
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
   assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
-  assert.equal(
-    pkg.scripts["act:ci:e2e"],
-    "with-secrets -- act -W .github/workflows/ci.yml -j e2e",
-  );
+  assert.equal(pkg.scripts["act:ci:e2e"], "with-secrets -- act -W .github/workflows/ci.yml -j e2e");
   assert.equal(config.globalInstall, true);
   assert.equal(config.guard?.packageManager, "vp-only");
   assert.deepEqual(config.guard?.scriptRoutes, {
