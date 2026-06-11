@@ -42,21 +42,21 @@ jobs:
 
   deploy:
     needs: resolve-release
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@148039c9932de794a8449b3dff03e404b5b97839
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@c53f2f2dc6ecce7d6191193609308cc0a1fbac23
     with:
       install_command: pnpm install --frozen-lockfile
       verify_command: |
         pnpm exec vp run verify:secrets
-        wp audit absolute-path-policy --root .
-        wp audit no-first-party-mjs --root .
+        pnpm exec wp audit absolute-path-policy --root .
+        pnpm exec wp audit no-first-party-mjs --root .
         pnpm exec vp run audit:secret-provider-quarantine
         pnpm exec vp run audit:blueprint-links
         pnpm exec vp run format:check
         pnpm exec vp run check-types
         pnpm exec vp run lint
-        wp audit docs-frontmatter
-        wp audit blueprint-lifecycle
-        wp audit architecture-drift --root .
+        pnpm exec wp audit docs-frontmatter
+        pnpm exec wp audit blueprint-lifecycle
+        pnpm exec wp audit architecture-drift --root .
         pnpm exec vp run verify:deploy-contract
         pnpm exec vp run build
         pnpm exec vp run test
@@ -66,7 +66,7 @@ jobs:
         pnpm exec vp run e2e -- --suite upload-delete
         bash scripts/verify-cloudflare-deploy-creds.sh
         if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; fi
-      deploy_command: wp deploy --lane prd
+      deploy_command: pnpm exec wp deploy --lane prd
       smoke_command: |
         bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/health" 24 5
         bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
