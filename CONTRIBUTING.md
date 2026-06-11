@@ -8,19 +8,9 @@ the commit/PR conventions this repo expects.
 
 - Node `>=24`
 - `pnpm@11.1.1` (managed via the `packageManager` field)
-- `vp` (vite-plus) and `wp` (`@webpresso/agent-kit` CLI) on your `PATH`
+- `vp` (vite-plus)
 
-Bootstrap `wp` once per machine:
-
-```bash
-npm install -g @webpresso/agent-kit
-```
-
-One-shot fallback when you do not want a global install:
-
-```bash
-npm exec --yes --package @webpresso/agent-kit@latest -- wp setup
-```
+`vp install --frozen-lockfile` installs the repo's pinned `@webpresso/agent-kit` dependency and runs `wp setup` during `postinstall`. If hooks or runtime surfaces drift later, prefer the repo-local wrapper (`pnpm exec wp ...`) over a separate npm-global bootstrap path.
 
 The worker runs on Cloudflare Workers (Hono). Background removal in production
 uses the native `cf.image segment: "foreground"` (BiRefNet) transform — there
