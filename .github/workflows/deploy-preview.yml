@@ -76,15 +76,15 @@ jobs:
   deploy-preview:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@148039c9932de794a8449b3dff03e404b5b97839
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@c53f2f2dc6ecce7d6191193609308cc0a1fbac23
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
       install_command: pnpm install --frozen-lockfile
       verify_command: |
         pnpm exec vp run verify:secrets
-        wp audit absolute-path-policy --root .
-        wp audit no-first-party-mjs --root .
+        pnpm exec wp audit absolute-path-policy --root .
+        pnpm exec wp audit no-first-party-mjs --root .
         pnpm exec vp run audit:secret-provider-quarantine
         pnpm exec vp run format:check
         pnpm exec vp run lint
@@ -98,7 +98,7 @@ jobs:
   destroy-preview:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@148039c9932de794a8449b3dff03e404b5b97839
+    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@c53f2f2dc6ecce7d6191193609308cc0a1fbac23
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
