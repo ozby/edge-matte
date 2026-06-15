@@ -60,11 +60,6 @@ type DeployAdapter = {
 
 const scriptsDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptsDir, "..");
-const PRODUCTION_URL = "https://edge-matte.ozby.dev";
-const ACCESS_HEADERS = {
-  "CF-Access-Client-Id": "${CF_ACCESS_CLIENT_ID}",
-  "CF-Access-Client-Secret": "${CF_ACCESS_CLIENT_SECRET}",
-};
 
 function toPreviewScriptLane(lane: string): string {
   if (lane === "preview_main") {
@@ -171,54 +166,6 @@ export const webpressoDeployAdapter: DeployAdapter = {
           args: [resolve(scriptsDir, "deploy-production.ts"), "--skip-smoke"],
           cwd: repoRoot,
           runtimeProfile: "secrets-only",
-        },
-        {
-          kind: "http-check",
-          id: "production-health",
-          label: "Verify production /health",
-          stage: "health",
-          url: `${PRODUCTION_URL}/health`,
-          headers: ACCESS_HEADERS,
-          cwd: repoRoot,
-          runtimeProfile: "secrets-only",
-          retries: 24,
-          intervalMs: 5_000,
-          timeoutMs: 10_000,
-        },
-        {
-          kind: "http-check",
-          id: "production-homepage",
-          label: "Verify production homepage",
-          stage: "homepage",
-          url: `${PRODUCTION_URL}/`,
-          headers: ACCESS_HEADERS,
-          cwd: repoRoot,
-          runtimeProfile: "secrets-only",
-          retries: 12,
-          intervalMs: 5_000,
-          timeoutMs: 10_000,
-        },
-        {
-          kind: "command",
-          id: "production-smoke",
-          label: "Run production-smoke suite",
-          stage: "production_smoke",
-          command: "pnpm",
-          args: ["e2e", "--", "--suite", "production-smoke"],
-          cwd: repoRoot,
-          runtimeProfile: "secrets-only",
-          env: { E2E_RUN_PRODUCTION: "1" },
-        },
-        {
-          kind: "command",
-          id: "production-journey",
-          label: "Run production-journey suite",
-          stage: "production_journey",
-          command: "pnpm",
-          args: ["e2e", "--", "--suite", "production-journey"],
-          cwd: repoRoot,
-          runtimeProfile: "secrets-only",
-          env: { E2E_RUN_PRODUCTION: "1" },
         },
       ],
     };

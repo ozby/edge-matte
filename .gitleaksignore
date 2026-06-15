@@ -1,0 +1,3 @@
+0bb402cba6754c2e546fd777425de6a0f372853a:apps/worker/test/abuse-guard.test.ts:generic-api-key:82
+36f7303c86577b77469e5b0e552bee0a05792275:test/verify-secrets-policy.integration.test.mjs:github-pat:110
+36f7303c86577b77469e5b0e552bee0a05792275:test/verify-secrets-policy.integration.test.mjs:generic-api-key:110

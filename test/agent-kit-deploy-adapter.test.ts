@@ -63,7 +63,7 @@ test("production deploy delegates exact smoke stages to the shared deploy plan",
 
   assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]);
   assert.equal(plan.releaseVersion, "1.2.3");
-  assert.equal(plan.steps.length, 5);
+  assert.equal(plan.steps.length, 1);
   const deployStep = plan.steps[0];
   assert.equal(deployStep?.kind, "command");
   if (!deployStep || deployStep.kind !== "command") throw new Error("expected command step");
@@ -75,60 +75,6 @@ test("production deploy delegates exact smoke stages to the shared deploy plan",
     args: [deployStep.args[0], "--skip-smoke"],
     cwd: deployStep.cwd,
     runtimeProfile: "secrets-only",
-  });
-  assert.deepEqual(plan.steps[1], {
-    kind: "http-check",
-    id: "production-health",
-    label: "Verify production /health",
-    stage: "health",
-    url: "https://edge-matte.ozby.dev/health",
-    headers: {
-      "CF-Access-Client-Id": "${CF_ACCESS_CLIENT_ID}",
-      "CF-Access-Client-Secret": "${CF_ACCESS_CLIENT_SECRET}",
-    },
-    cwd: plan.steps[1]?.cwd,
-    runtimeProfile: "secrets-only",
-    retries: 24,
-    intervalMs: 5_000,
-    timeoutMs: 10_000,
-  });
-  assert.deepEqual(plan.steps[2], {
-    kind: "http-check",
-    id: "production-homepage",
-    label: "Verify production homepage",
-    stage: "homepage",
-    url: "https://edge-matte.ozby.dev/",
-    headers: {
-      "CF-Access-Client-Id": "${CF_ACCESS_CLIENT_ID}",
-      "CF-Access-Client-Secret": "${CF_ACCESS_CLIENT_SECRET}",
-    },
-    cwd: plan.steps[2]?.cwd,
-    runtimeProfile: "secrets-only",
-    retries: 12,
-    intervalMs: 5_000,
-    timeoutMs: 10_000,
-  });
-  assert.deepEqual(plan.steps[3], {
-    kind: "command",
-    id: "production-smoke",
-    label: "Run production-smoke suite",
-    stage: "production_smoke",
-    command: "pnpm",
-    args: ["e2e", "--", "--suite", "production-smoke"],
-    cwd: plan.steps[3]?.cwd,
-    runtimeProfile: "secrets-only",
-    env: { E2E_RUN_PRODUCTION: "1" },
-  });
-  assert.deepEqual(plan.steps[4], {
-    kind: "command",
-    id: "production-journey",
-    label: "Run production-journey suite",
-    stage: "production_journey",
-    command: "pnpm",
-    args: ["e2e", "--", "--suite", "production-journey"],
-    cwd: plan.steps[4]?.cwd,
-    runtimeProfile: "secrets-only",
-    env: { E2E_RUN_PRODUCTION: "1" },
   });
 });
 

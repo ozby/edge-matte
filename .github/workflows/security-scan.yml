@@ -1,6 +1,8 @@
 name: Security scan
 
 on:
+  push:
+    branches: [main, master]
   pull_request:
   schedule:
     - cron: "0 3 * * *"
@@ -21,7 +23,6 @@ jobs:
 
       - name: OSV Scanner
         uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
-        continue-on-error: true
         with:
           scan-args: |-
             --recursive
