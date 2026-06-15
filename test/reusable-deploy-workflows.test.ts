@@ -25,7 +25,10 @@ test("preview workflow delegates to the shared reusable preview shell while pres
   assert.match(workflow, /mode == 'destroy'/u);
   assert.match(workflow, /deploy-preview:/u);
   assert.match(workflow, /deploy-verify:/u);
-  assert.match(workflow, /deploy:preview -- --lane .* --destroy/u);
+  assert.match(
+    workflow,
+    /deploy:preview -- --lane .* --destroy|scripts\/deploy-preview\.ts.*--destroy/u,
+  );
 });
 
 test("production workflow delegates to the shared reusable production shell while preserving release gating and post-deploy checks", () => {
@@ -40,10 +43,13 @@ test("production workflow delegates to the shared reusable production shell whil
   );
   assert.match(workflow, /tags:\s*\["v\*"\]/u);
   assert.match(workflow, /release_version:/u);
-  assert.match(workflow, /pnpm exec vp run verify:deploy-contract/u);
-  assert.match(workflow, /pnpm exec vp run e2e -- --suite upload-delete-contract/u);
+  assert.match(workflow, /vp run verify:deploy-contract|pnpm run verify:deploy-contract/u);
   assert.match(
     workflow,
-    /E2E_RUN_PRODUCTION=1 pnpm exec vp run e2e -- --suite production-journey/u,
+    /vp run e2e -- --suite upload-delete-contract|pnpm run e2e -- --suite upload-delete-contract/u,
+  );
+  assert.match(
+    workflow,
+    /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey|E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey/u,
   );
 });

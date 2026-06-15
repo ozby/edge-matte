@@ -20,6 +20,8 @@ jobs:
     # drift and mutation coverage remain lane-owned follow-up work outside this PR gate.
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
@@ -40,6 +42,22 @@ jobs:
       - run: vp run check-types
       - run: vp run lint
       - run: wp audit docs-frontmatter
+
+      - name: Validate Lore commits
+        run: |
+          BASE=${{ github.base_ref || 'main' }}
+          git fetch origin "$BASE" --depth=50 2>/dev/null || true
+          COMMITS=$(git rev-list --no-merges "origin/$BASE..HEAD" 2>/dev/null || true)
+          if [ -z "$COMMITS" ]; then
+            echo "No branch commits to validate."
+            exit 0
+          fi
+          FAIL=0
+          for SHA in $COMMITS; do
+            git log -1 --format="%B" "$SHA" > /tmp/commit-msg.txt
+            WP_SKIP_UPDATE_CHECK=1 wp audit commit-message --require-lore --message-file /tmp/commit-msg.txt || FAIL=1
+          done
+          exit $FAIL
 
   e2e:
     # Hermetic end-to-end suite — no secrets, no external network. The local
@@ -89,3 +107,25 @@ jobs:
             apps/e2e/playwright-report
             apps/e2e/test-results
           retention-days: 7
+
+  mutation:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Set up Webpresso tooling
+        uses: ./.github/actions/setup-webpresso
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+      - run: wp test --affected
+        env:
+          GITHUB_BASE_REF: main

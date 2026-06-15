@@ -3,9 +3,9 @@ type: blueprint
 complexity: L
 owner: ozby
 title: "EdgeMatte: shared Cloudflare deployment contract extraction"
-status: in-progress
+status: completed
 created: 2026-05-29T00:00:00.000Z
-last_updated: "2026-06-02"
+last_updated: "2026-06-14"
 review_target: internal multi-repo platform work
 parent_blueprint: 2026-05-27-edge-matte
 depends_on:

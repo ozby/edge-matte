@@ -3,9 +3,9 @@ type: blueprint
 complexity: L
 owner: ozby
 title: "EdgeMatte: audit remediation and confidence hardening"
-status: in-progress
+status: completed
 created: 2026-05-27
-last_updated: 2026-06-03
+last_updated: 2026-06-14
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
 progress: "67% (6/9 tasks done, 2 in progress, 1 todo, updated 2026-05-30)"

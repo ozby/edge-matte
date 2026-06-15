@@ -29,6 +29,7 @@
   },
   "scripts": {
     "setup:agent": "wp setup",
+    "postinstall": "test -n \"$CI\" || wp setup",
     "build": "vp run -r build",
     "catalog:check": "wp audit catalog-drift",
     "check": "vp check",
@@ -48,8 +49,8 @@
     "pulumi:up": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
     "verify:paths": "wp audit absolute-path-policy --root .",
-    "verify:secrets": "bun scripts/verify-secrets-policy.ts && bun scripts/sync-webpresso-config.ts --check-only",
-    "audit:secret-provider-quarantine": "bun scripts/audit-secret-provider-quarantine.ts",
+    "verify:secrets": "WP_SKIP_UPDATE_CHECK=1 wp audit secrets-policy && WP_SKIP_UPDATE_CHECK=1 wp audit secrets-config",
+    "audit:secret-provider-quarantine": "WP_SKIP_UPDATE_CHECK=1 wp audit secret-provider-quarantine",
     "audit:blueprint-links": "bun scripts/audit-blueprint-link-policy.ts",
     "docs:check": "wp audit docs-frontmatter",
     "blueprints:check": "wp audit blueprint-lifecycle",
@@ -61,11 +62,14 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "@secretlint/secretlint-rule-preset-recommend": "^9.3.0",
     "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/typescript-checker": "latest",
     "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
+    "secretlint": "^9.3.0",
     "typescript": "catalog:",
     "vite-plus": "^0.1.22",
     "vitest": "catalog:"

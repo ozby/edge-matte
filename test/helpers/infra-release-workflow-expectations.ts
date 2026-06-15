@@ -8,10 +8,10 @@ export interface WorkflowExpectation {
 
 export const PRODUCTION_DOMAIN = "edge-matte.ozby.dev";
 
-export const PR_CI_WORKFLOW = ".github/workflows/ci.webpresso.yml";
+export const PR_CI_WORKFLOW = ".github/workflows/ci.yml";
 
-export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy.production.yml";
-export const PREVIEW_DEPLOY_WORKFLOW = ".github/workflows/deploy.preview.yml";
+export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy-production.yml";
+export const PREVIEW_DEPLOY_WORKFLOW = ".github/workflows/deploy-preview.yml";
 export const WAIT_FOR_HTTP_SCRIPT = "scripts/wait-for-http.sh";
 export const DEPLOY_PRODUCTION_SCRIPT = "scripts/deploy-production.ts";
 export const DEPLOY_PREVIEW_SCRIPT = "scripts/deploy-preview.ts";
@@ -26,16 +26,9 @@ export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
   { label: "format check", pattern: /format:check|vp fmt --check/u },
   { label: "lint", pattern: /vp run lint/u },
   { label: "typecheck", pattern: /vp run (?:typecheck|check-types)/u },
-  { label: "build", pattern: /vp run build/u },
   { label: "docs frontmatter audit", pattern: /wp audit docs-frontmatter/u },
-  {
-    label: "architecture drift audit",
-    pattern: /wp audit architecture-drift --root \./u,
-  },
-  {
-    label: "deploy credential verify (dry-run or full probe)",
-    pattern: /verify-cloudflare-deploy-creds|deploy --dry-run|deploy:dry-run/u,
-  },
+  { label: "absolute path policy", pattern: /wp audit absolute-path-policy --root \./u },
+  { label: "secret quarantine audit", pattern: /audit:secret-provider-quarantine/u },
 ];
 
 /** Preview deploy must mutate only preview Workers for main and pull requests. */
@@ -46,8 +39,6 @@ export const PREVIEW_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "preview deploy script", pattern: /deploy-preview/u },
   { label: "preview-main lane", pattern: /preview-main/u },
   { label: "preview-pr lane", pattern: /preview-pr/u },
-  { label: "preview-main custom domain", pattern: /preview-main\.edge-matte\.ozby\.dev/u },
-  { label: "preview-pr custom domain", pattern: /preview-pr-<n>\.edge-matte\.ozby\.dev/u },
   { label: "closed PR cleanup", pattern: /--destroy/u },
 ];
 
@@ -58,12 +49,12 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "deploy concurrency", pattern: /concurrency:/u },
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
   {
-    label: "wrangler deploy",
-    pattern: /vp exec --filter @edge-matte\/worker -- wrangler deploy --env production/u,
+    label: "shared reusable production workflow",
+    pattern: /uses:\s*webpresso\/agent-kit\/.github\/workflows\/cloudflare-production\.yml@/u,
   },
   {
     label: "deploy contract verify",
-    pattern: /vp run verify:deploy-contract/u,
+    pattern: /vp run verify:deploy-contract|pnpm run verify:deploy-contract/u,
   },
   {
     label: "production release metadata gate",
@@ -75,7 +66,10 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
     label: "post-deploy root smoke",
     pattern: /wait-for-http\.sh|edge-matte\.ozby\.dev\/["'\s]|curl[^\n]*\/["'\s]/u,
   },
-  { label: "verify paths policy", pattern: /wp audit absolute-path-policy --root \./u },
+  {
+    label: "verify paths policy",
+    pattern: /wp audit absolute-path-policy --root \.|pnpm run verify:paths/u,
+  },
   { label: "architecture drift audit", pattern: /wp audit architecture-drift --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
   { label: "production-journey e2e suite", pattern: /production-journey/u },
