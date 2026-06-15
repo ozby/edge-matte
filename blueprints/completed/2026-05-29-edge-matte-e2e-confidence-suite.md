@@ -3,9 +3,9 @@ type: blueprint
 complexity: M
 owner: ozby
 title: "EdgeMatte: end-to-end confidence suite"
-status: in-progress
+status: completed
 created: 2026-05-29
-last_updated: 2026-06-05
+last_updated: 2026-06-14
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation

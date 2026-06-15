@@ -82,15 +82,13 @@ jobs:
       mode: deploy
       install_command: pnpm install --frozen-lockfile
       verify_command: |
-        pnpm exec vp run verify:secrets
-        pnpm exec wp audit absolute-path-policy --root .
-        pnpm exec wp audit no-first-party-mjs --root .
-        pnpm exec vp run audit:secret-provider-quarantine
-        pnpm exec vp run format:check
-        pnpm exec vp run lint
-        pnpm exec vp run check-types
-        pnpm exec vp run build
-      deploy_command: pnpm exec vp run deploy:preview -- --lane ${{ needs.resolve.outputs.dashed_lane }}
+        pnpm run verify:secrets
+        pnpm run verify:paths
+        pnpm run format:check
+        pnpm run lint
+        pnpm run check-types
+        pnpm run build
+      deploy_command: bun scripts/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
@@ -119,7 +117,7 @@ jobs:
       install_command: pnpm install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
-      destroy_command: pnpm exec vp run deploy:preview -- --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
+      destroy_command: bun scripts/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}

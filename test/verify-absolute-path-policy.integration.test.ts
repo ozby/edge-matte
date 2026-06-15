@@ -11,5 +11,5 @@ test("absolute path policy audit passes on the repo", () => {
     encoding: "utf8",
     env: { ...process.env, WP_SKIP_UPDATE_CHECK: "1" },
   });
-  assert.match(output, /absolute path policy: OK/u);
+  assert.match(output, /audit absolute-path-policy passed/u);
 });

@@ -44,34 +44,32 @@ jobs:
     needs: resolve-release
     uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@4ba75c74138e4bbfa2b72189e6f0a3dd05fef7a9
     with:
-      install_command: pnpm install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: |
-        pnpm exec vp run verify:secrets
-        pnpm exec wp audit absolute-path-policy --root .
-        pnpm exec wp audit no-first-party-mjs --root .
-        pnpm exec vp run audit:secret-provider-quarantine
-        pnpm exec vp run audit:blueprint-links
-        pnpm exec vp run format:check
-        pnpm exec vp run check-types
-        pnpm exec vp run lint
-        pnpm exec wp audit docs-frontmatter
-        pnpm exec wp audit blueprint-lifecycle
-        pnpm exec wp audit architecture-drift --root .
-        pnpm exec vp run verify:deploy-contract
-        pnpm exec vp run build
-        pnpm exec vp run test
-        pnpm exec vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
-        pnpm exec vp run e2e -- --suite upload-delete-contract
-        pnpm exec vp run e2e -- --suite smoke
-        pnpm exec vp run e2e -- --suite upload-delete
+        pnpm run verify:secrets
+        pnpm run verify:paths
+        pnpm run audit:blueprint-links
+        pnpm run format:check
+        pnpm run check-types
+        pnpm run lint
+        pnpm run docs:check
+        pnpm run blueprints:check
+        wp audit architecture-drift --root .
+        pnpm run verify:deploy-contract
+        pnpm run build
+        pnpm run test
+        pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
+        pnpm run e2e -- --suite upload-delete-contract
+        pnpm run e2e -- --suite smoke
+        pnpm run e2e -- --suite upload-delete
         bash scripts/verify-cloudflare-deploy-creds.sh
         if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; fi
-      deploy_command: pnpm exec wp deploy --lane prd
+      deploy_command: pnpm run deploy:production
       smoke_command: |
         bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/health" 24 5
         bash scripts/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
-        E2E_RUN_PRODUCTION=1 pnpm exec vp run e2e -- --suite production-smoke
-        E2E_RUN_PRODUCTION=1 pnpm exec vp run e2e -- --suite production-journey
+        E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
+        E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
       release_version: ${{ needs.resolve-release.outputs.release_version }}
       runner: ubuntu-latest
     secrets:

@@ -35,6 +35,14 @@ if (!VALID_LANE.test(lane)) {
 const repoRoot = findRepoRoot();
 const workerName = `${TOP_LEVEL_WORKER_NAME}-${lane}`;
 
+function buildChildEnv(root: string, env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const localBin = `${root}/node_modules/.bin`;
+  return {
+    ...env,
+    PATH: env.PATH ? `${localBin}:${env.PATH}` : localBin,
+  };
+}
+
 function deriveLaneFromGitHubEnv(): string {
   if (process.env.GITHUB_EVENT_NAME === "pull_request") {
     const prNumber = process.env.GITHUB_REF_NAME?.match(/^(\d+)\/merge$/u)?.[1];
@@ -49,7 +57,7 @@ function deriveLaneFromGitHubEnv(): string {
 function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = process.env) {
   const result = spawnSync(command, commandArgs, {
     stdio: "inherit",
-    env,
+    env: buildChildEnv(repoRoot, env),
     shell: false,
     cwd: repoRoot,
   });
@@ -65,6 +73,7 @@ function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = pr
 
 function hasCommand(command: string): boolean {
   const result = spawnSync("command", ["-v", command], {
+    env: buildChildEnv(repoRoot, process.env),
     shell: true,
     stdio: "ignore",
   });
@@ -72,6 +81,14 @@ function hasCommand(command: string): boolean {
 }
 
 function runWithSecrets(command: string, commandArgs: string[]) {
+  if (
+    process.env.CLOUDFLARE_ACCOUNT_ID &&
+    process.env.CLOUDFLARE_API_TOKEN &&
+    process.env.CLOUDFLARE_ZONE_ID
+  ) {
+    run(command, commandArgs);
+    return;
+  }
   if (hasCommand("with-secrets")) {
     run("with-secrets", ["--", command, ...commandArgs]);
     return;
