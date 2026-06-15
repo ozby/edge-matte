@@ -50,6 +50,18 @@ test("production workflow delegates to the shared reusable production shell whil
   );
   assert.match(
     workflow,
+    /bash scripts\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/health" 24 5/u,
+  );
+  assert.match(
+    workflow,
+    /bash scripts\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/" 12 5/u,
+  );
+  assert.match(
+    workflow,
+    /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke|E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke/u,
+  );
+  assert.match(
+    workflow,
     /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey|E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey/u,
   );
 });

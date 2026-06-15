@@ -1,0 +1,34 @@
+[[IgnoredVulns]]
+id = "GHSA-g7r4-m6w7-qqqr"
+ignoreUntil = 2026-09-15
+reason = "esbuild is a dev-only bundler dependency in CI/build tooling; tracked until the next toolchain bump lands 0.28.1+."
+
+[[IgnoredVulns]]
+id = "GHSA-gv7w-rqvm-qjhr"
+ignoreUntil = 2026-09-15
+reason = "esbuild is a dev-only bundler dependency in CI/build tooling; tracked until the next toolchain bump lands 0.28.1+."
+
+[[IgnoredVulns]]
+id = "GHSA-37j7-fg3j-429f"
+ignoreUntil = 2026-09-15
+reason = "happy-dom is only used in test tooling; this repo does not expose it in production."
+
+[[IgnoredVulns]]
+id = "GHSA-6q6h-j7hj-3r64"
+ignoreUntil = 2026-09-15
+reason = "happy-dom is only used in test tooling; this repo does not expose it in production."
+
+[[IgnoredVulns]]
+id = "GHSA-w4gp-fjgq-3q4g"
+ignoreUntil = 2026-09-15
+reason = "happy-dom is only used in test tooling; this repo does not expose it in production."
+
+[[IgnoredVulns]]
+id = "GHSA-q8mj-m7cp-5q26"
+ignoreUntil = 2026-09-15
+reason = "qs is only present through dev/test transitive tooling paths in this repo snapshot."
+
+[[IgnoredVulns]]
+id = "GHSA-ph9p-34f9-6g65"
+ignoreUntil = 2026-09-15
+reason = "tmp is only present through dev/test transitive tooling paths in this repo snapshot."

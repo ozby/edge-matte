@@ -64,7 +64,7 @@
     "@playwright/test": "^1.55.0",
     "@secretlint/secretlint-rule-preset-recommend": "^9.3.0",
     "@stryker-mutator/core": "catalog:",
-    "@stryker-mutator/typescript-checker": "latest",
+    "@stryker-mutator/typescript-checker": "catalog:",
     "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-kit": "catalog:",
