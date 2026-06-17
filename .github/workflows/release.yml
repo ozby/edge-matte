@@ -1,19 +1,25 @@
-name: Deploy production
+name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_version:
-        description: "Semver release version already committed in infra/release-metadata.production.json"
-        required: true
-        type: string
+  push:
+    branches: [main]
 
 concurrency:
-  group: edge-matte-production-deploy
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  release:
+    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@22f93ddf4f58ed253e29c81d3e0a1d3fcdc6f3e3
+    with:
+      install_command: pnpm install --frozen-lockfile
+      version_command: pnpm run version
+      publish_command: pnpm run release:publish
+      runner: ubuntu-latest
+
   deploy:
+    needs: release
+    if: ${{ needs.release.outputs.should_deploy == 'true' }}
     uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
     with:
       install_command: vp install --frozen-lockfile
@@ -42,7 +48,7 @@ jobs:
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
-      release_version: ${{ inputs.release_version }}
+      release_version: ${{ needs.release.outputs.release_version }}
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}

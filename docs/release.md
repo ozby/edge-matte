@@ -303,19 +303,17 @@ Implemented in [`.github/workflows/deploy-preview.yml`](../.github/workflows/dep
 
 ### Production release deploy
 
-Implemented in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
+Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.yml) with a manual fallback in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
 
-1. Trigger only from a `v*` tag or manual `workflow_dispatch` with an explicit
-   `release_version`; ordinary `main` pushes go to preview only.
-2. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
-3. Run `vp run verify:deploy-contract` so production release metadata is
-   present, contains a semver `releaseVersion`, and is valid before any deploy
-4. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
-5. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-6. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
-7. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
-   (`cancel-in-progress: false`)
-8. **Post-deploy production evidence** — after deploy succeeds:
+1. Feature branches merge a `.changeset/*.md` file to `main`; the shared Changesets release harness opens or updates the **Version Packages** PR automatically.
+2. When the Version Packages PR merges, CI runs `pnpm run version` and `pnpm run release:publish`, then forwards the resolved `release_version` into the shared production deploy harness.
+3. The production deploy path runs quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test).
+4. CI runs `pnpm run verify:deploy-contract` so production release metadata is present, contains a semver `releaseVersion`, and is valid before any deploy.
+5. CI runs the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`).
+6. Doppler injects `CLOUDFLARE_*` for the deploy job via `dopplerhq/secrets-fetch-action`.
+7. The worker deploy still uses `wrangler deploy --env production`, but release orchestration no longer depends on a manually pushed `v*` tag.
+8. **Serialize deploys** — concurrency group `edge-matte-production-deploy` (`cancel-in-progress: false`).
+9. **Post-deploy production evidence** — after deploy succeeds:
    - `GET https://edge-matte.ozby.dev/health`
    - `GET https://edge-matte.ozby.dev/`
    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
