@@ -1,149 +1,74 @@
 ---
 type: blueprint
+complexity: XS
+owner: ozby
+title: "EdgeMatte: framework docs cleanup"
 status: draft
-complexity: S
-created: "2026-06-17"
+created: 2026-06-17
 last_updated: "2026-06-17"
-progress: "0% (drafted)"
+review_target: public GitHub repository
 depends_on: []
-tags: []
+progress: "Docs + quarantine audit fix implemented on branch; blueprint records the minimal contract cleanup needed for architecture-drift compliance."
 ---
 
-# Framework docs cleanup
+# EdgeMatte: framework docs cleanup
 
-**Goal:** framework docs cleanup
+Update the remaining framework package reference in repo docs from the deprecated
+`@webpresso/webpresso` umbrella wording to `@webpresso/framework` and keep the
+existing EdgeMatte topology unchanged.
 
-## Planning Summary
+## Architecture governance
 
-- Goal input: `framework docs cleanup`
-- Complexity: `S`
-- Draft slug: `framework-docs-cleanup`
-- Output path: `blueprints/draft/framework-docs-cleanup.md`
-- Generated command: `wp blueprint new "framework docs cleanup" --complexity S`
-- Validation scope: parser compliance before write
+Architecture docs:
 
-## Architecture Overview
+- [Architecture](../../docs/architecture.md)
+- [Architecture Contract](../../docs/architecture.contract.json)
+
+This lane stays on the existing `wp` / `vp` quality surface and does not add any
+new runtime, deploy, or package boundaries.
+
+## Architecture before
 
 ```text
-[Diagram showing how components connect before/after]
+Docs/secrets guidance mentions the deprecated @webpresso/webpresso package name.
+The secret-provider quarantine audit also walks sibling _worktrees directories,
+which can produce false positives during multi-worktree maintenance.
 ```
 
-## Key Decisions
+## Architecture after
 
-| Decision | Choice | Rationale |
-| -------- | ------ | --------- |
-|          |        |           |
+```text
+Docs/secrets guidance points to @webpresso/framework.
+The secret-provider quarantine audit ignores sibling _worktrees clones, but the
+EdgeMatte app/client/workers/infra topology and deploy lanes stay exactly the same.
+```
 
-## Quick Reference (Execution Waves)
+## Objective
 
-| Wave              | Tasks | Dependencies | Parallelizable |
-| ----------------- | ----- | ------------ | -------------- |
-| **Wave 0**        | 1.1   | None         | 1 agent        |
-| **Critical path** | 1.1   | --           | 1 wave         |
+Record the docs-only framework package reference cleanup in a blueprint format
+that satisfies repo governance, while documenting the paired audit guardrail
+needed to keep CI green in a multi-worktree workspace.
 
-**Note:** Use t-shirt sizing (XS/S/M/L/XL) for individual task estimates, NOT day/week estimates.
+## Tasks
 
-**Lifecycle:** Blueprint frontmatter `status` is one of `draft`, `planned`, `parked`, `in-progress`, `completed`, `archived`. Use `parked` when the blueprint is intentionally paused but should remain distinct from active planning or abandoned work. There is no blueprint-level `blocked` status; when work waits on an external dependency, set the task **Status:** to `blocked` and add a non-empty **Blocked:** line with the reason.
+### 1.1 Docs and audit cleanup
 
-> [!NOTE]
-> This template reflects the current preferred blueprint structure. Repo-wide validity is determined by the live blueprint parser/audit rules, so older blueprints may still use a different-but-valid section mix.
+- [x] Replace the stale `@webpresso/webpresso` reference in `docs/secrets.md`
+      with `@webpresso/framework`.
+- [x] Update `scripts/audit-secret-provider-quarantine.ts` to ignore sibling
+      `_worktrees` directories so the audit evaluates the actual repo, not local
+      parallel worktree clones.
+- [x] Keep the audit messaging aligned with the public framework package name.
 
-### Phase 1: [Phase Name] [Complexity: S]
+## Verification
 
-#### Task 1.1: [Component Name]
-
-> **Task header (current accepted form):** Use `#### [lane] Task X.Y:` when the task has a clear lane (`[schema]`, `[backend]`, `[ui]`, `[infra]`, `[docs]`, `[qa]`). `#### Task X.Y:` is still valid, but lane-prefixed headers are preferred in new blueprints.
-
-**Status:** todo
-
-**Depends:** None
-
-[Self-contained description. An independent agent must be able to execute
-this task with ONLY this text + the codebase + repo-owned commands. Never
-reference "see above" or "as described in Task X.Y" — inline all context.]
-
-**Files:**
-
-- Create: `exact/path/to/file.ts`
-- Create: `exact/path/to/file.test.ts`
-- Modify: `exact/path/to/existing.ts`
-
-**Steps (TDD):**
-
-1. Write failing test for [specific behavior]
-2. Run the repo's scoped test recipe — verify FAIL
-3. Implement minimal code to pass
-4. Run the repo's scoped test recipe — verify PASS
-5. Refactor if needed (complexity <= 8)
-
-**Acceptance:**
-
-- [ ] Test file created with failing test
-- [ ] Implementation passes all tests
-- [ ] Scoped lint passes
-- [ ] Verification commands recorded in the task notes
-
-#### Task 1.2: [Component Name]
-
-**Status:** todo
-
-**Depends:** Task 1.1
-
-[Self-contained description.]
-
-**Files:**
-
-- Create: `exact/path/to/file.ts`
-
-**Steps (TDD):**
-
-1. Write failing test
-2. Run the repo's scoped test recipe — verify FAIL
-3. Implement
-4. Run the repo's scoped test recipe — verify PASS
-
-**Acceptance:**
-
-- [ ] Tests pass
-- [ ] Lint passes
-
----
-
-## Verification Gates
-
-| Gate        | Command                      | Success Criteria                                |
-| ----------- | ---------------------------- | ----------------------------------------------- |
-| Type safety | repo typecheck recipe        | Zero errors                                     |
-| Lint        | repo lint recipe (scoped)    | Zero violations                                 |
-| Tests       | repo test recipe (scoped)    | All pass                                        |
-| Full QA     | repo full-QA recipe          | All pass                                        |
-| Perf        | bundle / runtime measurement | No regression vs baseline (or N/A — delete row) |
-
-## Cross-Plan References
-
-| Type       | Blueprint | Relationship |
-| ---------- | --------- | ------------ |
-| Upstream   | None      |              |
-| Downstream | None      |              |
-
-## Edge Cases and Error Handling
-
-| Edge Case | Risk | Solution | Task |
-| --------- | ---- | -------- | ---- |
-|           |      |          |      |
+- [x] `pnpm check`
+- [x] `~/.vite-plus/bin/wp audit blueprint-lifecycle blueprints/draft/framework-docs-cleanup.md`
+- [x] `~/.vite-plus/bin/wp audit tph`
+- [ ] `~/.vite-plus/bin/wp audit architecture-drift --root .`
 
 ## Non-goals
 
-- [What this blueprint does NOT cover]
-
-## Risks
-
-| Risk | Impact | Mitigation |
-| ---- | ------ | ---------- |
-|      |        |            |
-
-## Technology Choices
-
-| Component | Technology | Version | Why |
-| --------- | ---------- | ------- | --- |
-|           |            |         |     |
+- No runtime, routing, Worker, or deploy contract changes.
+- No package version or release process changes.
+- No new dependencies or CI workflows.
