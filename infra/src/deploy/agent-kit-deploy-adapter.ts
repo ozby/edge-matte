@@ -1,6 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
+import { findRepoRoot } from "./deploy-runner.ts";
+
 type DeployRequest = {
   lane: string;
   dryRun: boolean;
@@ -58,8 +60,13 @@ type DeployAdapter = {
   createPlan(request: DeployRequest): DeployPlan;
 };
 
-const scriptsDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(scriptsDir, "..");
+const deployDir = dirname(fileURLToPath(import.meta.url));
+const repoRoot = findRepoRoot(deployDir);
+const PRODUCTION_URL = "https://edge-matte.ozby.dev";
+const ACCESS_HEADERS = {
+  "CF-Access-Client-Id": "${CF_ACCESS_CLIENT_ID}",
+  "CF-Access-Client-Secret": "${CF_ACCESS_CLIENT_SECRET}",
+};
 
 function toPreviewScriptLane(lane: string): string {
   if (lane === "preview_main") {
@@ -93,12 +100,13 @@ export const webpressoDeployAdapter: DeployAdapter = {
               label: `Validate edge-matte ${lane} preview deploy without publishing`,
               command: "bun",
               args: [
-                resolve(scriptsDir, "deploy-preview.ts"),
+                resolve(deployDir, "deploy-preview.ts"),
                 "--lane",
                 previewScriptLane,
                 "--dry-run",
               ],
               cwd: repoRoot,
+              runtimeProfile: "none",
             },
           ],
         };
@@ -111,12 +119,25 @@ export const webpressoDeployAdapter: DeployAdapter = {
         requiredCredentials: [],
         steps: [
           {
-            kind: "managed-tool",
+            kind: "command",
             id: "wrangler-dry-run",
             label: "Validate Cloudflare Worker deploy without publishing",
-            tool: "wrangler",
-            args: ["deploy", "--dry-run", "--env", "production"],
+            command: "vp",
+            args: [
+              "exec",
+              "--filter",
+              "@edge-matte/worker",
+              "--",
+              "wrangler",
+              "deploy",
+              "--dry-run",
+              "--config",
+              "wrangler.toml",
+              "--env",
+              "production",
+            ],
             cwd: repoRoot,
+            runtimeProfile: "none",
           },
         ],
       };
@@ -128,7 +149,7 @@ export const webpressoDeployAdapter: DeployAdapter = {
         schemaVersion: 1,
         lane,
         provider: "cloudflare",
-        requiredCredentials: ["CLOUDFLARE_API_TOKEN"],
+        requiredCredentials: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_ID"],
         steps: [
           {
             kind: "command",
@@ -139,7 +160,7 @@ export const webpressoDeployAdapter: DeployAdapter = {
                 : `Run edge-matte ${lane} deploy script`,
             command: "bun",
             args: [
-              resolve(scriptsDir, "deploy-preview.ts"),
+              resolve(deployDir, "deploy-preview.ts"),
               "--lane",
               previewScriptLane,
               ...(request.mode === "destroy" ? ["--destroy"] : []),
@@ -163,9 +184,57 @@ export const webpressoDeployAdapter: DeployAdapter = {
           id: "edge-matte-deploy",
           label: `Run edge-matte ${lane} deploy script`,
           command: "bun",
-          args: [resolve(scriptsDir, "deploy-production.ts"), "--skip-smoke"],
+          args: [resolve(deployDir, "deploy-production.ts"), "--skip-smoke"],
           cwd: repoRoot,
           runtimeProfile: "secrets-only",
+        },
+        {
+          kind: "http-check",
+          id: "production-health",
+          label: "Verify production /health",
+          stage: "health",
+          url: `${PRODUCTION_URL}/health`,
+          headers: ACCESS_HEADERS,
+          cwd: repoRoot,
+          runtimeProfile: "secrets-only",
+          retries: 24,
+          intervalMs: 5_000,
+          timeoutMs: 10_000,
+        },
+        {
+          kind: "http-check",
+          id: "production-homepage",
+          label: "Verify production homepage",
+          stage: "homepage",
+          url: `${PRODUCTION_URL}/`,
+          headers: ACCESS_HEADERS,
+          cwd: repoRoot,
+          runtimeProfile: "secrets-only",
+          retries: 12,
+          intervalMs: 5_000,
+          timeoutMs: 10_000,
+        },
+        {
+          kind: "command",
+          id: "production-smoke",
+          label: "Run production-smoke suite",
+          stage: "production_smoke",
+          command: "pnpm",
+          args: ["e2e", "--", "--suite", "production-smoke"],
+          cwd: repoRoot,
+          runtimeProfile: "secrets-only",
+          env: { E2E_RUN_PRODUCTION: "1" },
+        },
+        {
+          kind: "command",
+          id: "production-journey",
+          label: "Run production-journey suite",
+          stage: "production_journey",
+          command: "pnpm",
+          args: ["e2e", "--", "--suite", "production-journey"],
+          cwd: repoRoot,
+          runtimeProfile: "secrets-only",
+          env: { E2E_RUN_PRODUCTION: "1" },
         },
       ],
     };

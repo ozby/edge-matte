@@ -3,7 +3,7 @@ export const agentKitConfig = {
     hostAdapterModule: "./apps/e2e/src/agent-kit-host-adapter.ts",
   },
   deploy: {
-    adapterModule: "./scripts/agent-kit-deploy-adapter.ts",
+    adapterModule: "./infra/src/deploy/agent-kit-deploy-adapter.ts",
     cloudflare: {
       lanes: {
         dev: { wranglerEnvName: "dev" },
@@ -24,9 +24,7 @@ export const agentKitConfig = {
           topLevelWorkerName: "edge-matte",
           previewTransport: "custom_domain_env",
           routeSpec: { pattern: "preview-main.edge-matte.ozby.dev" },
-          vars: {
-            APP_ORIGIN: "https://preview-main.edge-matte.ozby.dev",
-          },
+          vars: {},
           requiredSecrets: [],
           storageMode: "isolated",
           destroyMode: "wrangler_delete_env",

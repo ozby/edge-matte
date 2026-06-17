@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getE2EBaseUrlOrThrow } from "../src/journeys/env";
+import { getE2EBaseUrlOrThrow } from "#journey-env";
 
 const baseUrl = getE2EBaseUrlOrThrow("apps/e2e/journeys/smoke.smoke.test.ts");
 

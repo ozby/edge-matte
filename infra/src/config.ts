@@ -2,7 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 
 const config = new pulumi.Config();
 
-/** Must match `test/infra/helpers.mjs` and `wrangler.toml` `bucket_name`. */
+/** Must match `test/infra/helpers.mjs` and `apps/workers/wrangler.toml` `bucket_name`. */
 export const R2_BUCKET_NAME = "edge-matte-images";
 
 const accountFromConfig = config.get("cloudflareAccountId");

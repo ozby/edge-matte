@@ -25,26 +25,26 @@
   },
   "type": "module",
   "imports": {
-    "#scripts/*": "./scripts/*"
+    "#scripts/*": "./scripts/*",
+    "#infra-deploy/*": "./infra/src/deploy/*.ts"
   },
   "scripts": {
     "setup:agent": "wp setup",
     "postinstall": "test -n \"$CI\" || wp setup",
-    "build": "vp run -r build",
+    "build": "vp run --filter @edge-matte/client build && vp run --filter @edge-matte/worker build",
     "catalog:check": "wp audit catalog-drift",
     "check": "vp check",
-    "check-types": "wp typecheck",
-    "typecheck": "wp typecheck",
+    "check-types": "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && pnpm exec tsc -p tsconfig.json --noEmit",
+    "typecheck": "pnpm run check-types",
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "lint": "wp lint",
-    "test": "node --test \"test/**/*.test.ts\"",
+    "test": "vp run --filter @edge-matte/client test && vp run --filter @edge-matte/e2e test && vp run --filter @edge-matte/worker test && vp run --filter @edge-matte/infra test && node --test \"test/**/*.test.ts\"",
     "e2e": "wp e2e",
     "act:ci:e2e": "with-secrets -- act -W .github/workflows/ci.yml -j e2e",
     "deploy:preview": "wp deploy --lane preview_main",
     "deploy:production": "wp deploy --lane prd",
-    "deploy:production:wrangler": "wp deploy --lane prd",
-    "verify:deploy-contract": "bun scripts/verify-deploy-contract.ts",
+    "verify:deploy-contract": "bun infra/src/deploy/verify-deploy-contract.ts",
     "pulumi:preview": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi preview",
     "pulumi:up": "with-secrets -- vp exec --filter @edge-matte/infra -- pulumi up",
     "setup:secrets": "bun scripts/sync-webpresso-config.ts --force",
@@ -57,7 +57,7 @@
     "prepare": "husky && bun scripts/sync-webpresso-config.ts",
     "mutation": "wp test --mutation",
     "test:mutation": "wp test --mutation",
-    "qa": "wp lint && wp typecheck && vp run test && wp test --mutation && wp e2e",
+    "qa": "wp lint && pnpm run typecheck && pnpm run test && wp test --mutation && wp e2e",
     "deploy:dry-run": "wp deploy --lane prd --dry-run"
   },
   "devDependencies": {
@@ -71,7 +71,7 @@
     "husky": "^9.0.0",
     "secretlint": "^9.3.0",
     "typescript": "catalog:",
-    "vite-plus": "^0.1.22",
+    "vite-plus": "^0.1.24",
     "vitest": "catalog:"
   },
   "engines": {

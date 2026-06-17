@@ -9,23 +9,17 @@
  * metadata for a versioned production release.
  *
  * Usage:
- *   bun scripts/deploy-production.ts [--skip-build] [--skip-smoke]
+ *   bun infra/src/deploy/deploy-production.ts [--skip-build] [--skip-smoke]
  */
 import { spawnSync } from "node:child_process";
 
 const PRODUCTION_URL = "https://edge-matte.ozby.dev";
-const repoRoot = process.cwd();
+import { buildChildEnv, findRepoRoot } from "./deploy-runner.ts";
+
+const repoRoot = findRepoRoot(process.cwd());
 const args = process.argv.slice(2);
 const skipBuild = args.includes("--skip-build");
 const skipSmoke = args.includes("--skip-smoke");
-
-function buildChildEnv(root: string, env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
-  const localBin = `${root}/node_modules/.bin`;
-  return {
-    ...env,
-    PATH: env.PATH ? `${localBin}:${env.PATH}` : localBin,
-  };
-}
 
 function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = process.env) {
   const result = spawnSync(command, commandArgs, {
@@ -94,8 +88,13 @@ if (skipSmoke) {
 }
 
 console.log("\n▶ Post-deploy smoke…\n");
-runWithSecrets("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/health`, "24", "5"]);
-runWithSecrets("bash", ["scripts/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
+runWithSecrets("bash", [
+  "infra/src/deploy/wait-for-http.sh",
+  `${PRODUCTION_URL}/health`,
+  "24",
+  "5",
+]);
+runWithSecrets("bash", ["infra/src/deploy/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
 
 console.log("\n▶ production-smoke e2e…\n");
 runWithSecrets("pnpm", ["e2e", "--", "--suite", "production-smoke"], {

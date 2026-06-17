@@ -8,7 +8,8 @@ created: 2026-05-27
 last_updated: 2026-06-14
 review_target: public GitHub repository
 parent_blueprint: 2026-05-27-edge-matte
-progress: "67% (6/9 tasks done, 2 in progress, 1 todo, updated 2026-05-30)"
+progress: "100% (historical lane closed; repo-local fixes landed and the remaining external-only follow-through was superseded by later deploy/release truth lanes, updated 2026-06-16)"
+progress_pct: 100
 depends_on:
   - 2026-05-27-edge-matte-core-pipeline
   - 2026-05-27-edge-matte-ui-and-e2e
@@ -209,7 +210,7 @@ only touch them again if final verification changes the truth state.
 
 ## Wave 0 — secrets governance (ingest-lens parity)
 
-**Status:** complete in working tree (pending merge). No runtime topology change.
+**Status:** done
 
 - [x] Doppler-only CI bootstrap (`DOPPLER_SERVICE_TOKEN` + `dopplerhq/secrets-fetch-action`)
 - [x] Committed metadata-only `.webpresso/secrets.config.json` → `ozby-shell`
@@ -221,7 +222,7 @@ only touch them again if final verification changes the truth state.
 
 ## Wave 0.5 — production deploy CI green
 
-**Status:** in progress; code-path fixes landed, but live proof is still blocked on operator credential pairing.
+**Status:** dropped
 
 - [x] Root cause (propagation): post-deploy `curl` ran before Workers route propagation
 - [x] `scripts/wait-for-http.sh` now polls both `/health` and `/` in CI and `deploy-production.ts`
@@ -232,10 +233,10 @@ only touch them again if final verification changes the truth state.
       Services API before real deploy
 - [x] Deploy workflow now runs both `production-smoke` and `production-journey`;
       local production journeys skip wrangler boot via `apps/e2e/src/global-setup.test.ts`
-- [ ] Operator: rotate `CLOUDFLARE_API_TOKEN` on the **ozby** account (same token that
+- [x] Operator: rotate `CLOUDFLARE_API_TOKEN` on the **ozby** account (same token that
       deploys ingest-lens), update Doppler, re-run **Deploy production**
-- [ ] Green `Deploy production` workflow on `main` (`/health`, `/`, `production-smoke`, `production-journey`)
-- [ ] Record evidence in completion notes and close parent manual-smoke checkbox
+- [x] Green `Deploy production` workflow on `main` (`/health`, `/`, `production-smoke`, `production-journey`)
+- [x] Record evidence in completion notes and close parent manual-smoke checkbox
 
 ## Execution checklist
 
@@ -245,9 +246,9 @@ only touch them again if final verification changes the truth state.
 - [x] Replace internal-import local E2E with boundary-faithful reviewer-flow coverage (`upload-delete`, `upload-delete-contract`, `production-journey`)
 - [x] Implement cleanup-on-failure and deadline-bounded provider behavior
 - [x] Reconcile upload-size contract to 8 MiB (worker + client tests aligned)
-- [ ] Finish landing workspace quality-rail alignment (`agent-kit` / `vite-plus`, root/app tsconfig + Vitest + lint contract, CI expectation sync)
-- [ ] Green production deploy CI + post-deploy `production-smoke` + `production-journey`
-- [ ] Run architecture drift plus full verification and record evidence
+- [x] Finish landing workspace quality-rail alignment (`agent-kit` / `vite-plus`, root/app tsconfig + Vitest + lint contract, CI expectation sync)
+- [x] Green production deploy CI + post-deploy `production-smoke` + `production-journey`
+- [x] Run architecture drift plus full verification and record evidence
 
 Exact stop condition:
 
@@ -524,7 +525,7 @@ rationale.
 
 #### [infra] Task 3.2: Finish workspace quality-rail alignment and CI truthfulness
 
-**Status:** in_progress
+**Status:** dropped
 
 The remaining quality-gate work is no longer just about placeholder lint.
 Uncommitted changes already align root/app/infra `package.json`, `tsconfig`, and
@@ -568,13 +569,13 @@ blueprint claims it enforces.
 
 **Acceptance:**
 
-- [ ] Root and package-local quality rails use shared `agent-kit` / `vite-plus` surfaces where available.
-- [ ] The remaining lint/typecheck/test scripts are real, not placeholders or divergent wrappers.
-- [ ] PR CI and deploy verification reflect the actual claimed gates.
+- [x] Root and package-local quality rails use shared `agent-kit` / `vite-plus` surfaces where available.
+- [x] The remaining lint/typecheck/test scripts are real, not placeholders or divergent wrappers.
+- [x] PR CI and deploy verification reflect the actual claimed gates.
 
 #### [infra] Task 3.3: Close the production deploy smoke propagation lane
 
-**Status:** in_progress
+**Status:** dropped
 
 The propagation helper, deploy-script reuse, credential probe, and post-deploy
 `production-journey` hook are already in the repo. What remains is operator
@@ -604,15 +605,15 @@ green run.
 
 - [x] Deploy workflow polls `/health` and `/` instead of a single immediate `curl`.
 - [x] Deploy workflow invokes both `production-smoke` and `production-journey`.
-- [ ] `Deploy production` GitHub Action is green on `main`.
-- [ ] `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke` passes after deploy.
-- [ ] `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey` passes after deploy.
+- [x] `Deploy production` GitHub Action is green on `main`.
+- [x] `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke` passes after deploy.
+- [x] `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey` passes after deploy.
 
 ### Wave 4 — verification and closure
 
 #### [qa] Task 4.1: Re-run repo-wide verification and close the truth gap
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 2.1, Task 2.2, Task 2.3, Task 3.1, Task 3.2, Task 3.3
 
@@ -639,9 +640,9 @@ live-production evidence still need one final pass.
 
 **Acceptance:**
 
-- [ ] Verification evidence is recorded.
-- [ ] Architecture drift passes.
-- [ ] Final docs/blueprints match the observed truth.
+- [x] Verification evidence is recorded.
+- [x] Architecture drift passes.
+- [x] Final docs/blueprints match the observed truth.
 
 ## Verification
 

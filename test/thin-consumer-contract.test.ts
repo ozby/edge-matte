@@ -13,7 +13,7 @@ function readJson(relativePath: string): any {
 const packagePaths = [
   "apps/client/package.json",
   "apps/e2e/package.json",
-  "apps/worker/package.json",
+  "apps/workers/package.json",
   "infra/package.json",
 ];
 
@@ -31,7 +31,7 @@ const requiredToolchainDependencies = new Map([
   ["apps/client/package.json", ["typescript", "vite", "vitest"]],
   ["apps/e2e/package.json", ["@playwright/test", "typescript", "vitest"]],
   [
-    "apps/worker/package.json",
+    "apps/workers/package.json",
     [
       "@stryker-mutator/core",
       "@stryker-mutator/typescript-checker",
@@ -48,20 +48,28 @@ test("root command surface keeps vp as substrate while routing quality work thro
   const pkg = readJson("package.json");
   const config = readJson(".webpressorc.json");
 
-  assert.match(pkg.scripts.build, /^vp run -r build$/u);
+  assert.equal(
+    pkg.scripts.build,
+    "vp run --filter @edge-matte/client build && vp run --filter @edge-matte/worker build",
+  );
 
   assert.equal(pkg.scripts["setup:agent"], "wp setup");
   assert.equal(pkg.scripts.lint, "wp lint");
-  assert.equal(pkg.scripts.test, 'node --test "test/**/*.test.ts"');
-  assert.equal(pkg.scripts.typecheck, "wp typecheck");
-  assert.equal(pkg.scripts["check-types"], "wp typecheck");
+  assert.equal(
+    pkg.scripts.test,
+    'vp run --filter @edge-matte/client test && vp run --filter @edge-matte/e2e test && vp run --filter @edge-matte/worker test && vp run --filter @edge-matte/infra test && node --test "test/**/*.test.ts"',
+  );
+  assert.equal(pkg.scripts.typecheck, "pnpm run check-types");
+  assert.equal(
+    pkg.scripts["check-types"],
+    "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && pnpm exec tsc -p tsconfig.json --noEmit",
+  );
   assert.equal(pkg.scripts.e2e, "wp e2e");
   assert.equal(pkg.scripts.mutation, "wp test --mutation");
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
   assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
   assert.equal(pkg.scripts["act:ci:e2e"], "with-secrets -- act -W .github/workflows/ci.yml -j e2e");
-  assert.equal(config.globalInstall, true);
   assert.equal(config.guard?.packageManager, "vp-only");
   assert.deepEqual(config.guard?.scriptRoutes, {
     "verify:paths": "absolute-path-policy",

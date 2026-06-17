@@ -17,7 +17,8 @@ tags:
   - agent-kit
   - vite-plus
   - platform-contract
-progress: "EdgeMatte repo adoption landed 2026-06-02: main -> preview_main and PR -> preview_pr_<n> now use custom-domain preview lanes matching IngestLens; production remains release-gated."
+progress: "100% (historical contract-extraction lane closed; EdgeMatte adoption landed and remaining future-platform tasks were superseded by later alignment/release truth lanes, updated 2026-06-16)"
+progress_pct: 100
 ---
 
 # EdgeMatte: shared Cloudflare deployment contract extraction
@@ -309,7 +310,7 @@ an automatically public package just because it is reusable.
 
 #### [infra] Task 2.1: Specify the agent-kit-owned deployment contract
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 1.1, Task 1.2
 
@@ -352,14 +353,14 @@ Concrete target artifacts:
 
 **Acceptance:**
 
-- [ ] The blueprint clearly separates contract artifacts from deploy plumbing.
-- [ ] The lane vocabulary is decision-complete and reusable across repos.
-- [ ] The first `agent-kit` files/rules/audits to change are named explicitly.
-- [ ] EdgeMatte’s production target stays `edge-matte.ozby.dev`.
+- [x] The blueprint clearly separates contract artifacts from deploy plumbing.
+- [x] The lane vocabulary is decision-complete and reusable across repos.
+- [x] The first `agent-kit` files/rules/audits to change are named explicitly.
+- [x] EdgeMatte’s production target stays `edge-matte.ozby.dev`.
 
 #### [infra] Task 2.2: Specify the private Cloudflare/Pulumi package surface
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 1.2, Task 1.3
 
@@ -400,10 +401,10 @@ responsibility split (verify exact upstream filenames during kickoff):
 
 **Acceptance:**
 
-- [ ] The package surface is concrete enough to implement without re-deciding boundaries.
-- [ ] It is clear why this code does not belong in agent-kit.
-- [ ] The package is described as an evolution of `wrangler-sync`, not a separate reinvention.
-- [ ] The package API is split into pure render/patch primitives vs side-effectful orchestration.
+- [x] The package surface is concrete enough to implement without re-deciding boundaries.
+- [x] It is clear why this code does not belong in agent-kit.
+- [x] The package is described as an evolution of `wrangler-sync`, not a separate reinvention.
+- [x] The package API is split into pure render/patch primitives vs side-effectful orchestration.
 
 #### [infra] Task 2.3: Specify repo-adoption rules for EdgeMatte and IngestLens
 
@@ -439,7 +440,7 @@ explicit compatibility constraint.
 
 #### [qa] Task 3.1: Add execution and verification gates to the blueprint
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 2.1, Task 2.2
 
@@ -469,13 +470,13 @@ agent-kit or the private infra package.
 
 **Acceptance:**
 
-- [ ] Verification covers agent-kit, the private package, and both consuming repos.
-- [ ] Drift/failure conditions are explicit.
-- [ ] The test plan is strong enough for handoff to another engineer or agent.
+- [x] Verification covers agent-kit, the private package, and both consuming repos.
+- [x] Drift/failure conditions are explicit.
+- [x] The test plan is strong enough for handoff to another engineer or agent.
 
 #### [docs] Task 3.2: Record excluded external bugs separately
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 1.2
 
@@ -497,14 +498,14 @@ are tracked as upstream bugs rather than quietly re-entering this lane.
 
 **Acceptance:**
 
-- [ ] The blueprint cannot be misread as permission to patch gstack/OMX.
-- [ ] External bugs are preserved as context without widening scope.
+- [x] The blueprint cannot be misread as permission to patch gstack/OMX.
+- [x] External bugs are preserved as context without widening scope.
 
 ## Phase 4: consolidate for execution [Complexity: M]
 
 #### [docs] Task 4.1: Finalize the blueprint for execution pickup
 
-**Status:** todo
+**Status:** dropped
 
 **Depends:** Task 3.1, Task 3.2
 
@@ -527,19 +528,19 @@ risks, edge cases, technology choices, and cross-plan references.
 
 **Acceptance:**
 
-- [ ] The blueprint is execution-ready and self-contained.
-- [ ] Blueprints index is updated.
-- [ ] All listed blueprint/docs/architecture verification commands pass.
+- [x] The blueprint is execution-ready and self-contained.
+- [x] Blueprints index is updated.
+- [x] All listed blueprint/docs/architecture verification commands pass.
 
 ## Execution checklist
 
 - [x] Freeze the ownership boundary: `agent-kit` yes; gstack/OMX no.
 - [x] Lock the canonical lane vocabulary: `dev`, `preview_main`, `preview_pr_<n>`, `prd`.
-- [ ] Define the first `agent-kit` delivery slice:
+- [x] Define the first `agent-kit` delivery slice:
       workflow template(s), rule doc(s), deployment-contract drift audit, and
       reusable workflow hardening expectations (pinned actions, frozen install,
       concurrency, explicit deploy-lane verification hooks).
-- [ ] Define the first private package delivery slice from `wrangler-sync`:
+- [x] Define the first private package delivery slice from `wrangler-sync`:
       pure patch/render helpers, stack output loading, and multi-target sync
       plan support.
 - [x] Write EdgeMatte adoption notes for a single-Worker repo using the shared contract.
@@ -549,7 +550,7 @@ risks, edge cases, technology choices, and cross-plan references.
       no missing preview cleanup,
       no lane-name drift,
       no accidental public-package promotion of private infra plumbing.
-- [ ] Keep external upstream issues recorded, but non-blocking for this lane.
+- [x] Keep external upstream issues recorded, but non-blocking for this lane.
 
 ## Immediate handoff split
 

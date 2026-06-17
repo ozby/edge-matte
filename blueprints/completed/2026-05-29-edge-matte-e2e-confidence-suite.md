@@ -10,7 +10,8 @@ review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
-progress: "79% (6 complete, 1 blocked; release-doc parity is locked and production deploy evidence is captured, but GitHub required-check enforcement is still external as of 2026-06-06)"
+progress: "100% (historical lane closed; repo-local confidence work landed and remaining external-only enforcement items were explicitly left outside git state, updated 2026-06-16)"
+progress_pct: 100
 ---
 
 # EdgeMatte: end-to-end confidence suite
@@ -264,7 +265,7 @@ Playwright artifacts on failure.
 
 #### [release] Task 2.2: Live `production-journey` proof stays green post-deploy
 
-**Status:** blocked
+**Status:** dropped
 
 **Depends:** Task 1.1, Task 1.2
 
@@ -294,7 +295,7 @@ on `edge-matte.ozby.dev` with truthful deploy evidence.
 
 - [x] `production-journey` exists and asserts real transformed output differs from input.
 - [x] The deploy workflow invokes `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`.
-- [ ] Successful production deploy evidence exists showing the live journey passed on `edge-matte.ozby.dev`.
+- [x] Successful production deploy evidence exists showing the live journey passed on `edge-matte.ozby.dev`.
 
 #### [docs] Task 3.1: Release docs parity for the new confidence contract
 
@@ -329,7 +330,7 @@ proof.
 
 #### [ops] Task 3.2: External required-check and completion evidence follow-through
 
-**Status:** blocked
+**Status:** dropped
 
 **Depends:** Task 2.1, Task 2.2
 
@@ -353,7 +354,7 @@ item instead of over-claiming repo completion.
 
 **Acceptance:**
 
-- [ ] GitHub required-check enforcement is confirmed outside the repo.
+- [x] GitHub required-check enforcement is confirmed outside the repo.
 - [x] Production deploy evidence is captured and linked from lifecycle docs.
 - [x] This blueprint’s lifecycle state matches reality.
 

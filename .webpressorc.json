@@ -3,7 +3,6 @@
   "installed": {
     "tier3Skills": ["base-kit"]
   },
-  "globalInstall": true,
   "hosts": {
     "selected": ["codex", "claude", "opencode"],
     "requiredCapabilities": [

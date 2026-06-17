@@ -7,7 +7,10 @@
     "#repo-root": "./src/repo-root.ts",
     "#fixtures": "./src/fixtures.ts",
     "#agent-kit-host-adapter": "./src/agent-kit-host-adapter.ts",
-    "#ensure-client-dist": "./src/ensure-client-dist.ts"
+    "#ensure-client-dist": "./src/ensure-client-dist.ts",
+    "#journey-access": "./src/journeys/access.ts",
+    "#journey-env": "./src/journeys/env.ts",
+    "#e2e-suite-manifest": "./src/e2e-suite-manifest.ts"
   },
   "scripts": {
     "pretest": "vp run --filter @edge-matte/client build",

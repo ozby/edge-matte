@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { R2_BUCKET_NAME, readText, root } from "./helpers.ts";
 
-const wrangler = readText("wrangler.toml");
+const wrangler = readText("apps/workers/wrangler.toml");
 
 test("Pulumi project exists for durable R2 infrastructure (IR-4)", () => {
   assert.ok(

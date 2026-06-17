@@ -27,7 +27,7 @@ test("preview workflow delegates to the shared reusable preview shell while pres
   assert.match(workflow, /deploy-verify:/u);
   assert.match(
     workflow,
-    /deploy:preview -- --lane .* --destroy|scripts\/deploy-preview\.ts.*--destroy/u,
+    /deploy:preview -- --lane .* --destroy|infra\/src\/deploy\/deploy-preview\.ts.*--destroy/u,
   );
 });
 
@@ -50,11 +50,11 @@ test("production workflow delegates to the shared reusable production shell whil
   );
   assert.match(
     workflow,
-    /bash scripts\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/health" 24 5/u,
+    /bash infra\/src\/deploy\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/health" 24 5/u,
   );
   assert.match(
     workflow,
-    /bash scripts\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/" 12 5/u,
+    /bash infra\/src\/deploy\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/" 12 5/u,
   );
   assert.match(
     workflow,

@@ -21,7 +21,7 @@
     "vite.config.ts",
     "vitest.config.ts",
     "webpresso.config.ts",
-    "worker-configuration.d.ts",
+    "apps/workers/worker-configuration.d.ts",
     "scripts/**/*.ts",
     "test/**/*.ts"
   ],

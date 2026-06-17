@@ -7,12 +7,15 @@
       "#repo-root": ["./src/repo-root.ts"],
       "#fixtures": ["./src/fixtures.ts"],
       "#agent-kit-host-adapter": ["./src/agent-kit-host-adapter.ts"],
-      "#ensure-client-dist": ["./src/ensure-client-dist.ts"]
+      "#ensure-client-dist": ["./src/ensure-client-dist.ts"],
+      "#journey-access": ["./src/journeys/access.ts"],
+      "#journey-env": ["./src/journeys/env.ts"],
+      "#e2e-suite-manifest": ["./src/e2e-suite-manifest.ts"]
     }
   },
   "include": [
-    "../../worker-configuration.d.ts",
-    "../worker/node_modules/@cloudflare/workers-types/index.d.ts",
+    "../workers/worker-configuration.d.ts",
+    "../../node_modules/@cloudflare/workers-types/index.d.ts",
     "src/e2e-suite-manifest.ts",
     "src/e2e-suite-manifest.test.ts",
     "src/agent-kit-host-adapter.ts",

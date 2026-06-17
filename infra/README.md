@@ -1,7 +1,7 @@
 # EdgeMatte infrastructure (Pulumi)
 
 Pulumi owns **durable** Cloudflare resources for EdgeMatte. Wrangler owns the Worker,
-routes, bindings, and deploy — see [`wrangler.toml`](../wrangler.toml) and
+routes, bindings, and deploy — see [`apps/workers/wrangler.toml`](../apps/workers/wrangler.toml) and
 [`docs/release.md`](../docs/release.md).
 
 See also:
@@ -39,7 +39,7 @@ deploys the Worker-facing runtime that consumes it.
 | R2 bucket    | `edge-matte-images` (bound as `IMAGES_BUCKET` in Wrangler)                          |
 | R2 lifecycle | Delete `jobs/*` and `images/*` objects older than `artifactMaxAgeDays` (default 30) |
 
-Object key layout matches the Worker (`apps/worker/src/core/object-keys.ts`):
+Object key layout matches the Worker (`apps/workers/src/core/object-keys.ts`):
 
 - `jobs/{id}.json` — job metadata
 - `images/{id}/original` — upload

@@ -28,10 +28,10 @@ Production target: `https://edge-matte.ozby.dev`
 ## Lane families
 
 - `scaffold/root` → root config files, bootstrap docs, shared config
-- `worker/core` → `apps/worker/**`
+- `worker/core` → `apps/workers/**`
 - `client/ui` → `apps/client/**`
 - `e2e` → `apps/e2e/**`, `agent-kit.config.ts`
-- `infra/release` → `infra/**`, `.github/workflows/**`, `wrangler.toml`, release docs
+- `infra/release` → `infra/**`, `.github/workflows/**`, `apps/workers/wrangler.toml`, release docs
 
 Rule: no two agents write to the same lane family in the same wave.
 

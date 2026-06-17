@@ -88,7 +88,7 @@ jobs:
         pnpm run lint
         pnpm run check-types
         pnpm run build
-      deploy_command: bun scripts/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
+      deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
@@ -117,7 +117,7 @@ jobs:
       install_command: pnpm install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
-      destroy_command: bun scripts/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
+      destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
