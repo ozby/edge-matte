@@ -1,9 +1,11 @@
 packages:
+  - "."
   - "apps/*"
   - "infra"
 
 catalog:
-  "@webpresso/agent-kit": ^1.1.0
+  "@webpresso/agent-config": ^0.1.4
+  "@webpresso/agent-kit": ^2.0.0
   vite-plus: 0.1.24
   "@stryker-mutator/core": ^9.6.1
   "@stryker-mutator/typescript-checker": ^9.6.1
