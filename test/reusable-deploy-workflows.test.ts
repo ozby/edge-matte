@@ -81,9 +81,28 @@ test("production workflow stays manual-only while release.yml delegates Changese
       "u",
     ),
   );
+  // GitHub Actions cannot pass reusable-workflow outputs directly into a second
+  // reusable-workflow call's `with:` / `if:`. The `gate` job bridges the two.
+  assert.match(releaseWorkflow, /\bgate:/u);
   assert.match(
     releaseWorkflow,
-    /release_version: \$\{\{ needs\.release\.outputs\.release_version \}\}/u,
+    /should_deploy: \$\{\{ needs\.release\.outputs\.should_deploy \}\}/u,
+  );
+  assert.match(
+    releaseWorkflow,
+    /release_version: \$\{\{ needs\.gate\.outputs\.release_version \}\}/u,
+  );
+  assert.match(
+    releaseWorkflow,
+    /permissions:/u,
+    "release.yml must declare top-level permissions so the changesets reusable workflow receives contents:write and pull-requests:write (repo default is read-only)",
+  );
+  assert.match(releaseWorkflow, /contents:\s*write/u);
+  assert.match(releaseWorkflow, /pull-requests:\s*write/u);
+  assert.match(
+    releaseWorkflow,
+    /packages:\s*read/u,
+    "release.yml must grant packages:read so cloudflare-production.yml job (which sets packages:read) does not exceed the caller's explicit permissions block",
   );
 });
 
