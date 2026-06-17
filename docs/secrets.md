@@ -181,7 +181,7 @@ Minimum token permissions on the **ozby** account:
 ## Local bootstrap
 
 1. Install global Webpresso CLIs: `wp`, `vp`, and ensure `with-secrets` is on
-   `PATH` (ships with `@webpresso/webpresso`).
+   `PATH` (ships with `@webpresso/framework`).
 2. Install dependencies (auto-syncs wp secrets config from
    `.webpresso/secrets.config.json`):
 
