@@ -20,7 +20,7 @@ last_updated: 2026-05-30
 
 - [ ] Cloudflare dashboard access (Zero Trust, Security Events, WAF/rate
       limiting, Workers)
-- [ ] Doppler `ozby-shell` access for credential rotation
+- [ ] access to the shared secret-provider selection for credential rotation
 - [ ] Production verification path ready (`/health`, `/`, `production-smoke`,
       `production-journey`)
 - [ ] Incident channel and timeline doc identified
@@ -98,7 +98,7 @@ exposed, or an operator cannot prove the token stayed scoped.
 
 1. Rotate the Cloudflare Access service token in Zero Trust.
 2. Keep `CF_ACCESS_CLIENT_ID` aligned with the active token and replace
-   `CF_ACCESS_CLIENT_SECRET` in Doppler `ozby-shell`.
+   `CF_ACCESS_CLIENT_SECRET` in the shared secret-provider selection.
 3. Re-run `/health`, `/`, `production-smoke`, and `production-journey` with the
    new headers.
 

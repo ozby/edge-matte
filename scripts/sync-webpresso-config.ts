@@ -2,7 +2,7 @@
 /**
  * Apply committed `.webpresso/secrets.config.json` via `wp config secrets set`.
  * When wp is unavailable (CI), writes metadata to `.git/webpresso/secrets.json`.
- * Secret values stay in Doppler/Cloudflare; committed config is metadata only.
+ * Secret values stay in the configured secret provider/Cloudflare; committed config is metadata only.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";

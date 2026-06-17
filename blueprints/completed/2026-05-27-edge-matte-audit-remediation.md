@@ -212,11 +212,11 @@ only touch them again if final verification changes the truth state.
 
 **Status:** done
 
-- [x] Doppler-only CI bootstrap (`DOPPLER_SERVICE_TOKEN` + `dopplerhq/secrets-fetch-action`)
+- [x] secret-provider-bridge CI bootstrap (`CI_SECRET_PROVIDER_TOKEN` + `the CI secret-provider bridge`)
 - [x] Committed metadata-only `.webpresso/secrets.config.json` → `ozby-shell`
 - [x] `scripts/verify-secrets-policy.ts` (disk + git carriers + token patterns)
 - [x] `scripts/sync-webpresso-config.ts` via `wp config secrets set`
-- [x] `scripts/audit-secret-provider-quarantine.ts` (no dotenv / direct provider bypass)
+- [x] `wp audit secret-provider-quarantine` (no dotenv / direct provider bypass)
 - [x] `docs/secrets.md`, `docs/release.md`, `README.md`, `AGENTS.md` aligned
 - [x] Pre-commit matches `verify:secrets` + shared path-policy audit + quarantine
 
@@ -234,14 +234,14 @@ only touch them again if final verification changes the truth state.
 - [x] Deploy workflow now runs both `production-smoke` and `production-journey`;
       local production journeys skip wrangler boot via `apps/e2e/src/global-setup.test.ts`
 - [x] Operator: rotate `CLOUDFLARE_API_TOKEN` on the **ozby** account (same token that
-      deploys ingest-lens), update Doppler, re-run **Deploy production**
+      deploys ingest-lens), update the configured secret provider, re-run **Deploy production**
 - [x] Green `Deploy production` workflow on `main` (`/health`, `/`, `production-smoke`, `production-journey`)
 - [x] Record evidence in completion notes and close parent manual-smoke checkbox
 
 ## Execution checklist
 
 - [x] Add explicit superseding/remediation notes to implicated completed blueprints
-- [x] Tighten README / release / secrets doc truthfulness (Doppler-only, implemented workflows; Photoroom remnants removed)
+- [x] Tighten README / release / secrets doc truthfulness (secret-provider-bridge, implemented workflows; Photoroom remnants removed)
 - [x] Make production-sensitive adapter config fail loudly (`adapter-semantics.test.ts`)
 - [x] Replace internal-import local E2E with boundary-faithful reviewer-flow coverage (`upload-delete`, `upload-delete-contract`, `production-journey`)
 - [x] Implement cleanup-on-failure and deadline-bounded provider behavior
@@ -374,7 +374,7 @@ Only reopen this task if final verification materially changes the truth state.
 **Steps (TDD):**
 
 1. Identify statements that outran the available evidence.
-2. Rewrite them to match current reality (Doppler-only secret flow, deploy truth, honest E2E naming).
+2. Rewrite them to match current reality (secret-provider-bridge secret flow, deploy truth, honest E2E naming).
 3. Add superseding notes instead of rewriting historical claims out of existence.
 
 **Acceptance:**
@@ -598,7 +598,7 @@ green run.
 
 1. Keep the post-deploy health polling helper shared between CI and local deploy.
 2. Keep workflow expectations/tests asserting `/health`, `/`, `production-smoke`, and `production-journey`.
-3. Rotate the ozby-account `CLOUDFLARE_API_TOKEN`, update Doppler, and re-run **Deploy production** on `main`.
+3. Rotate the ozby-account `CLOUDFLARE_API_TOKEN`, update the configured secret provider, and re-run **Deploy production** on `main`.
 4. Record the green run as evidence before closing the parent manual-smoke checkbox.
 
 **Acceptance:**

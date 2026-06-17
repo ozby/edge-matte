@@ -73,10 +73,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "architecture drift audit", pattern: /wp audit architecture-drift --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
   { label: "production-journey e2e suite", pattern: /production-journey/u },
-  {
-    label: "doppler deploy credential injection",
-    pattern: /dopplerhq\/secrets-fetch-action|DOPPLER_SERVICE_TOKEN|DOPPLER_TOKEN/u,
-  },
+  { label: "generic ci secret-provider injection", pattern: /ci_secret_provider_token/u },
   {
     label: "pre-deploy credential verify",
     pattern: /verify-cloudflare-deploy-creds/u,

@@ -51,4 +51,4 @@ jobs:
       release_version: ${{ needs.release.outputs.release_version }}
       runner: ubicloud-standard-2
     secrets:
-      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

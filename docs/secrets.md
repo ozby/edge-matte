@@ -10,8 +10,9 @@ last_updated: 2026-05-30
 
 EdgeMatte never stores provider or deploy credential **values** in the repository.
 Secret names, bootstrap paths, and ownership are documented here; values live in
-Cloudflare or Doppler. GitHub Actions stores only the Doppler **bootstrap token**
-(`DOPPLER_SERVICE_TOKEN`), not deploy or provider secret values.
+Cloudflare or the configured secret provider. GitHub Actions stores only the CI
+secret-provider **bootstrap token** (`CI_SECRET_PROVIDER_TOKEN`), not deploy or
+provider secret values.
 
 Release context: [`docs/release.md`](./release.md).
 
@@ -44,13 +45,13 @@ Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-
 
 ## Two-project model (mirrors ingest-lens)
 
-| Doppler project | Holds                                                                       |
-| --------------- | --------------------------------------------------------------------------- |
-| `edge-matte`    | App-local secrets when populated                                            |
-| `ozby-shell`    | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
+| Secret-provider project | Holds                                                                       |
+| ----------------------- | --------------------------------------------------------------------------- |
+| App-local selection     | App-local secrets when populated                                            |
+| Shared infra selection  | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
 **Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points
-at `ozby-shell` (committed **metadata only**). On `vp install`, the repo
+at the repo-selected shared infra secret selection (committed **metadata only**). On `vp install`, the repo
 applies that default through the canonical **`wp config secrets set`** surface
 (seed-only — it does not overwrite an existing local selection). Command
 execution still goes through **`with-secrets -- <cmd>`**, which reads the
@@ -59,24 +60,24 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 ### Security rules for the committed config
 
 - Allowed keys: `manager`, `projectId`, `projectLabel` only — **no secret values**.
-- Forbidden in git: tokens, passwords, API keys, or any Doppler secret values.
+- Forbidden in git: tokens, passwords, API keys, or any secret-provider-managed secret values.
 - Runtime wp selection (manager/project only, no values) lives under
   `.git/webpresso/secrets.json` (untracked, written by `wp`, never committed).
 - CI validates metadata via `vp run verify:secrets`.
 
 ## Where each credential lives
 
-| Secret / credential       | Where the value lives                           | Who sets it                     | Used by                                                                                        |
-| ------------------------- | ----------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`    | **Doppler `ozby-shell`** (local + CI preferred) | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                                      |
-| `CLOUDFLARE_ACCOUNT_ID`   | **Doppler `ozby-shell`** or **Pulumi config**   | Operator                        | Pulumi preview/up, `wrangler deploy`                                                           |
-| `CF_ACCESS_CLIENT_ID`     | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Id` for Access-protected `/health`, `/`, API, and image verification |
-| `CF_ACCESS_CLIENT_SECRET` | **Doppler `ozby-shell`**                        | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows                         |
+| Secret / credential       | Where the value lives                                         | Who sets it                     | Used by                                                                                        |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | **Configured secret-provider selection**                      | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                                      |
+| `CLOUDFLARE_ACCOUNT_ID`   | **Configured secret-provider selection** or **Pulumi config** | Operator                        | Pulumi preview/up, `wrangler deploy`                                                           |
+| `CF_ACCESS_CLIENT_ID`     | **Configured secret-provider selection**                      | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Id` for Access-protected `/health`, `/`, API, and image verification |
+| `CF_ACCESS_CLIENT_SECRET` | **Configured secret-provider selection**                      | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows                         |
 
 ### Rules
 
-1. **Deploy capability comes from `ozby-shell`.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only Doppler project.
-2. **Access automation also comes from `ozby-shell`.** Store
+1. **Deploy capability comes from the shared secret-provider selection.** Infra credentials are shared across repos; EdgeMatte does not fork CF tokens into an app-only provider namespace.
+2. **Access automation also comes from the shared secret-provider selection.** Store
    `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` beside the deploy
    credentials, then inject them into local deploy smoke, GitHub Actions, and
    production-only E2E as headers — never as cookies or checked-in files.
@@ -101,10 +102,10 @@ These values are for the Cloudflare Access **service token** that authenticates
 non-browser verification against `edge-matte.ozby.dev` during private beta.
 They are not Worker bindings and must never be committed.
 
-| Name                      | Owner                       | Where the value lives | Consumed by                                                                                            |
-| ------------------------- | --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
-| `CF_ACCESS_CLIENT_ID`     | Cloudflare Zero Trust owner | Doppler `ozby-shell`  | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
-| `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Doppler `ozby-shell`  | Same flows; sent only as `CF-Access-Client-Secret` at runtime                                          |
+| Name                      | Owner                       | Where the value lives                | Consumed by                                                                                            |
+| ------------------------- | --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `CF_ACCESS_CLIENT_ID`     | Cloudflare Zero Trust owner | Configured secret-provider selection | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
+| `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Configured secret-provider selection | Same flows; sent only as `CF-Access-Client-Secret` at runtime                                          |
 
 Rules:
 
@@ -130,15 +131,13 @@ No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudf
 
 ## GitHub Actions bootstrap
 
-Deploy and dry-run CI inject credentials **only from Doppler** — secret values
+Deploy and dry-run CI inject credentials through the **configured CI secret-provider bridge** — secret values
 never land in repo files. GitHub stores a single bootstrap token:
 
-1. In Doppler, create a **service token** scoped to **`ozby-shell`** (config
-   `prd` with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`).
-2. Add it as a GitHub repository secret: `DOPPLER_SERVICE_TOKEN` (or
-   `DOPPLER_TOKEN`).
+1. Create a **service/bootstrap token** for the configured CI secret-provider bridge.
+2. Add it as a GitHub repository secret: `CI_SECRET_PROVIDER_TOKEN`.
 
-Workflows run `dopplerhq/secrets-fetch-action`, inject env vars for the job
+Workflows run the repo’s CI secret-provider bridge, inject env vars for the job
 only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` as a GitHub repository secret.
 
 The workflow files that consume this action are intentionally pinned to full
@@ -157,7 +156,7 @@ injection:
 
 ### Required `CLOUDFLARE_API_TOKEN` permissions
 
-`CLOUDFLARE_ACCOUNT_ID` in Doppler must be the **ozby** Cloudflare account
+`CLOUDFLARE_ACCOUNT_ID` in the configured secret provider must be the **ozby** Cloudflare account
 (`e93986039ea9bd9729fa534a29e9e88f`, same as ingest-lens). The API token must
 be created **on that same account**, not on a different account (e.g. a
 Webpresso org token paired with the ozby account id will pass `whoami` and
@@ -173,7 +172,7 @@ Minimum token permissions on the **ozby** account:
 
 1. Cloudflare dashboard → **ozby** account → API Tokens → create token with the
    permissions above (or use the same token that already deploys ingest-lens).
-2. `doppler secrets set CLOUDFLARE_API_TOKEN --project ozby-shell --config prd`
+2. Update `CLOUDFLARE_API_TOKEN` in the configured secret-provider selection
 3. Confirm `CLOUDFLARE_ACCOUNT_ID` stays `e93986039ea9bd9729fa534a29e9e88f`.
 4. Locally: `with-secrets -- bash infra/src/deploy/verify-cloudflare-deploy-creds.sh`
 5. Re-run **Deploy production** (`workflow_dispatch` on `main` is fine).
@@ -198,7 +197,7 @@ Minimum token permissions on the **ozby** account:
    vp run audit:secret-provider-quarantine
    ```
 
-4. **Pulumi (R2 bucket)** — account ID can live in stack config instead of Doppler:
+4. **Pulumi (R2 bucket)** — account ID can live in stack config instead of relying on the secret-provider env:
 
    ```bash
    cd infra
@@ -226,14 +225,14 @@ See [README.md](../README.md) for the full local verification surface and
 
 ## Rotation
 
-| Secret                    | Rotation path                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`    | Rotate in Cloudflare dashboard, update `ozby-shell`, re-run deploy            |
-| `CF_ACCESS_CLIENT_SECRET` | Rotate the Cloudflare Access service token, update `ozby-shell`, re-run smoke |
-| Doppler service token     | Rotate in Doppler dashboard, update `DOPPLER_SERVICE_TOKEN` in GitHub         |
+| Secret                    | Rotation path                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | Rotate in Cloudflare dashboard, update the shared secret-provider selection, re-run deploy            |
+| `CF_ACCESS_CLIENT_SECRET` | Rotate the Cloudflare Access service token, update the shared secret-provider selection, re-run smoke |
+| CI secret-provider token  | Rotate in the configured provider, update `CI_SECRET_PROVIDER_TOKEN` in GitHub                        |
 
 ## Related
 
 - [`docs/release.md`](./release.md) — deploy path and one-time platform setup
 - [`docs/architecture.md`](./architecture.md) — deployment ownership boundary
-- ingest-lens reference: `docs/secrets/doppler.md`, `docs/runbooks/dev-deploy.md`
+- ingest-lens reference: `docs/secrets/` guidance and `docs/runbooks/dev-deploy.md`

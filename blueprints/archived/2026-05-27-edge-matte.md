@@ -210,14 +210,7 @@ Full charts: [`docs/architecture.md`](../../docs/architecture.md). Drift contrac
 ## Domain model
 
 ```ts
-type ImageJobStatus =
-  | "validating"
-  | "uploading"
-  | "removing_background"
-  | "flipping"
-  | "ready"
-  | "deleted"
-  | "failed";
+type ImageJobStatus = "validating" | "uploading" | "removing_background" | "flipping" | "ready" | "deleted" | "failed";
 
 type ImageJob = {
   id: string;
@@ -264,11 +257,7 @@ interface JobRepository {
 
 interface ImageObjectStore {
   putOriginal(job: ImageJob, file: File): Promise<void>;
-  putProcessed(
-    job: ImageJob,
-    body: ReadableStream | ArrayBuffer,
-    contentType: string,
-  ): Promise<void>;
+  putProcessed(job: ImageJob, body: ReadableStream | ArrayBuffer, contentType: string): Promise<void>;
   getProcessed(id: string): Promise<Response | null>;
   deleteAll(job: ImageJob): Promise<void>;
 }
@@ -762,7 +751,7 @@ CI gates
 
 Secrets:
 
-> **Superseded:** CI now uses Doppler-only bootstrap (`DOPPLER_SERVICE_TOKEN`). See
+> **Superseded:** CI now uses secret-provider-bridge bootstrap (`CI_SECRET_PROVIDER_TOKEN`). See
 > [`docs/secrets.md`](../../docs/secrets.md).
 
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (historical blueprint text).

@@ -74,7 +74,7 @@ Enforced checks:
 
 - Pre-commit runs `verify-secrets-policy.ts`, `wp audit absolute-path-policy --root .`,
   `sync-webpresso-config.ts --check-only`, and
-  `audit-secret-provider-quarantine.ts` via `.husky/pre-commit`.
+  `wp audit secret-provider-quarantine` via `.husky/pre-commit`.
 - `vp run verify:secrets` runs the policy verifier and committed secrets metadata validation.
 - Agents should prefer the shared `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` surface.
 - `verify:paths` remains a package-script wrapper, but agents should prefer `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` directly.
