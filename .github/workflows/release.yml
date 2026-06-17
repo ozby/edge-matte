@@ -10,12 +10,12 @@ concurrency:
 
 jobs:
   release:
-    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@22f93ddf4f58ed253e29c81d3e0a1d3fcdc6f3e3
+    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@3f0136f88a488bc0894ab81ab3c8544b2e8dabf2
     with:
       install_command: pnpm install --frozen-lockfile
       version_command: pnpm run version
       publish_command: pnpm run release:publish
-      runner: ubuntu-latest
+      runner: ubicloud-standard-2
 
   deploy:
     needs: release
@@ -49,6 +49,6 @@ jobs:
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
       release_version: ${{ needs.release.outputs.release_version }}
-      runner: ubuntu-latest
+      runner: ubicloud-standard-2
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}

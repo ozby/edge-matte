@@ -7,7 +7,7 @@ on:
 
 jobs:
   architecture-drift:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6

@@ -313,11 +313,12 @@ Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.ym
 6. Doppler injects `CLOUDFLARE_*` for the deploy job via `dopplerhq/secrets-fetch-action`.
 7. The worker deploy still uses `wrangler deploy --env production`, but release orchestration no longer depends on a manually pushed `v*` tag.
 8. **Serialize deploys** — concurrency group `edge-matte-production-deploy` (`cancel-in-progress: false`).
-9. **Post-deploy production evidence** — after deploy succeeds:
-   - `GET https://edge-matte.ozby.dev/health`
-   - `GET https://edge-matte.ozby.dev/`
-   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
-   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
+9. Non-provenance CI and deploy orchestration runs on the `ubicloud-standard-2` runner; only provenance-bound publish paths should stay on GitHub-hosted runners.
+10. **Post-deploy production evidence** — after deploy succeeds:
+    - `GET https://edge-matte.ozby.dev/health`
+    - `GET https://edge-matte.ozby.dev/`
+    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
+    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
 
 Today those probes are bare requests. Once Cloudflare Access is enabled for
 private beta, the same checks must send `CF-Access-Client-Id` /
