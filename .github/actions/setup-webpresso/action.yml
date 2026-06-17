@@ -1,13 +1,13 @@
 name: Set up Webpresso tooling
 description: >
-  Install vite-plus and @webpresso/agent-kit globally.
-  Reads versions from the pnpm-workspace.yaml catalog — no hardcoded pins.
+  Install shared Webpresso CLIs needed by the base-kit workflow surface.
+  Resolves catalog-aware pins from repo-owned metadata without brittle inline shell parsing.
 runs:
   using: composite
   steps:
-    - name: Install from catalog
+    - name: Install shared Webpresso CLIs
       shell: bash
       run: |
-        VITE_PLUS_VERSION=$(node -e "const fs=require('fs'); const pkg=require('./package.json'); const workspace=fs.existsSync('pnpm-workspace.yaml') ? fs.readFileSync('pnpm-workspace.yaml','utf8') : ''; const m=workspace.match(/^\s*vite-plus:\s*(.+)$/m); const raw=pkg.devDependencies?.['vite-plus']||pkg.dependencies?.['vite-plus']||''; console.log(m ? m[1].trim() : raw);")
-        AGENT_KIT_VERSION=$(grep '"@webpresso/agent-kit":' pnpm-workspace.yaml | sed 's/.*: *//')
+        set -euo pipefail
+        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
         npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
