@@ -73,7 +73,7 @@ function hasCommand(command: string): boolean {
 }
 
 function runWithSecrets(command: string, commandArgs: string[]) {
-  if (hasCommand("with-secrets")) {
+  if (!process.env.CLOUDFLARE_API_TOKEN && hasCommand("with-secrets")) {
     run("with-secrets", ["--", command, ...commandArgs]);
     return;
   }
