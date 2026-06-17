@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   resolve:
-    runs-on: ubicloud-standard-2
+    runs-on: ubuntu-latest
     outputs:
       dashed_lane: ${{ steps.resolve.outputs.dashed_lane }}
       canonical_lane: ${{ steps.resolve.outputs.canonical_lane }}
@@ -89,7 +89,7 @@ jobs:
         pnpm run check-types
         pnpm run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
-      runner: ubicloud-standard-2
+      runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
 
@@ -98,7 +98,7 @@ jobs:
     needs:
       - resolve
       - preview-call
-    runs-on: ubicloud-standard-2
+    runs-on: ubuntu-latest
     steps:
       - run: echo "deploy-preview passed via shared reusable preview caller"
 
@@ -107,7 +107,7 @@ jobs:
     needs:
       - resolve
       - preview-call
-    runs-on: ubicloud-standard-2
+    runs-on: ubuntu-latest
     steps:
       - run: echo "deploy verification passed via shared reusable preview caller"
 
@@ -122,6 +122,6 @@ jobs:
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
-      runner: ubicloud-standard-2
+      runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}

@@ -15,7 +15,7 @@ jobs:
       install_command: pnpm install --frozen-lockfile
       version_command: pnpm run version
       publish_command: pnpm run release:publish
-      runner: ubicloud-standard-2
+      runner: ubuntu-latest
 
   deploy:
     needs: release
@@ -49,6 +49,6 @@ jobs:
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
       release_version: ${{ needs.release.outputs.release_version }}
-      runner: ubicloud-standard-2
+      runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
