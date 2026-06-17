@@ -72,8 +72,8 @@ test("production workflow stays manual-only while release.yml delegates Changese
       "u",
     ),
   );
-  assert.match(releaseWorkflow, /version_command: pnpm run version/u);
-  assert.match(releaseWorkflow, /publish_command: pnpm run release:publish/u);
+  assert.match(releaseWorkflow, /version_command: vp run version/u);
+  assert.match(releaseWorkflow, /publish_command: vp run release:publish/u);
   assert.match(
     releaseWorkflow,
     new RegExp(
