@@ -22,7 +22,10 @@ export const FULL_SHA_ACTION_REFERENCE_PATTERN = /^[^@\s]+@[0-9a-f]{40}$/u;
 
 /** PR CI must prove deployability without mutating production (IR-1 / blueprint task 5). */
 export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
-  { label: "frozen install", pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u },
+  {
+    label: "frozen install",
+    pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u,
+  },
   { label: "format check", pattern: /format:check|vp fmt --check/u },
   { label: "lint", pattern: /vp run lint/u },
   { label: "typecheck", pattern: /vp run (?:typecheck|check-types)/u },
@@ -47,7 +50,10 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "manual release dispatch", pattern: /workflow_dispatch:/u },
   { label: "manual release version input", pattern: /release_version/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
-  { label: "frozen install", pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u },
+  {
+    label: "frozen install",
+    pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u,
+  },
   {
     label: "shared reusable production workflow",
     pattern: /uses:\s*webpresso\/github-actions\/.github\/workflows\/cloudflare-production\.yml@/u,
