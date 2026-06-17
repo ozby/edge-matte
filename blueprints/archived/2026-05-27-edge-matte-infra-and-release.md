@@ -77,7 +77,7 @@ codified. This blueprint closes the production-readiness gap.
 4. Bind Cloudflare Images in Wrangler as the Worker-side transform surface (`IMAGES`).
 5. Add PR CI: install, format, lint, typecheck, test, build, docs/blueprints check, dry-run deploy.
 6. Add `main` deploy workflow using `cloudflare/wrangler-action@v3`.
-   (Superseded: production deploy uses inline `wrangler deploy` + Doppler injection —
+   (Superseded: production deploy uses inline `wrangler deploy` + secret-provider injection —
    see `.github/workflows/deploy-production.yml` and `docs/release.md`.)
 7. Add post-deploy smoke checks for `/health`, `/`, and `production-smoke` E2E.
 8. Document GitHub-vs-Cloudflare secret ownership and setup.

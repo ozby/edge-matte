@@ -762,7 +762,7 @@ CI gates
 
 Secrets:
 
-> **Superseded:** CI now uses Doppler-only bootstrap (`DOPPLER_SERVICE_TOKEN`). See
+> **Superseded:** CI now uses secret-provider-bridge bootstrap (`CI_SECRET_PROVIDER_TOKEN`). See
 > [`docs/secrets.md`](../../docs/secrets.md).
 
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (historical blueprint text).
