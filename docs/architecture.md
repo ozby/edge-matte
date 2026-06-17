@@ -315,7 +315,7 @@ flowchart LR
     CHECKS --> PREVIEW[deploy-preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
     PREVIEW --> PREVIEWDOMAINS[custom-domain preview Workers<br/>preview-main.edge-matte.ozby.dev<br/>preview-pr-&lt;n&gt;.edge-matte.ozby.dev]
     DRY --> RELEASE[release metadata gate<br/>version_pr releaseVersion]
-    RELEASE --> DEPLOY[Doppler-injected credentials<br/>wrangler deploy --env production]
+    RELEASE --> DEPLOY[secret-provider-injected credentials<br/>wrangler deploy --env production]
     DEPLOY --> URL[edge-matte.ozby.dev]
     URL --> SMOKE[post-deploy smoke<br/>GET /health + GET /]
 

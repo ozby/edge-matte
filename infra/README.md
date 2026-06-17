@@ -67,11 +67,11 @@ vp run pulumi:up
 ```
 
 Or run Pulumi commands from `infra/` with `with-secrets --` so
-`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` load from Doppler
-`ozby-shell` (configure: `wp config secrets set doppler ozby-shell`).
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` load from the configured
+secret-provider selection.
 
 Account ID can also be set once in Pulumi stack config instead of relying on
-Doppler env vars (ingest-lens pattern).
+secret-provider env vars (ingest-lens pattern).
 
 Then deploy the Worker with Wrangler (bucket must exist before production traffic).
 

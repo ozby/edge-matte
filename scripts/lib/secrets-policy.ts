@@ -123,7 +123,7 @@ export function parseSecretsConfigMetadata(
     throw new Error(`${sourceLabel}: "projectId" must be a non-empty string`);
   }
   if (!PROJECT_ID_PATTERN.test(obj.projectId)) {
-    throw new Error(`${sourceLabel}: "projectId" must be a Doppler project slug`);
+    throw new Error(`${sourceLabel}: "projectId" must be a valid secret-provider project slug`);
   }
 
   const config: SecretsConfigMetadata = { manager: obj.manager, projectId: obj.projectId };

@@ -117,6 +117,6 @@ test("CI workflow exposes wp-check as the branch-protection-facing quality gate"
 test("CI mutation lane uses the supported repo-owned mutation script", () => {
   const workflow = readRepoFile(".github/workflows/ci.yml");
 
-  assert.match(workflow, /pnpm run mutation/u);
+  assert.match(workflow, /wp test --mutation/u);
   assert.doesNotMatch(workflow, /wp test --affected/u);
 });

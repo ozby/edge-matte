@@ -55,7 +55,7 @@ needed to keep CI green in a multi-worktree workspace.
 
 - [x] Replace the stale `@webpresso/webpresso` reference in `docs/secrets.md`
       with `@webpresso/framework`.
-- [x] Update `scripts/audit-secret-provider-quarantine.ts` to ignore sibling
+- [x] Update `wp audit secret-provider-quarantine` to ignore sibling
       `_worktrees` directories so the audit evaluates the actual repo, not local
       parallel worktree clones.
 - [x] Keep the audit messaging aligned with the public framework package name.

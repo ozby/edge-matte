@@ -76,7 +76,7 @@ jobs:
   preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
@@ -91,7 +91,7 @@ jobs:
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       runner: ubuntu-latest
     secrets:
-      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
 
   deploy-preview:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
@@ -114,7 +114,7 @@ jobs:
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
@@ -124,4 +124,4 @@ jobs:
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
       runner: ubuntu-latest
     secrets:
-      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
