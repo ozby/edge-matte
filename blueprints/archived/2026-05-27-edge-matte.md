@@ -210,7 +210,14 @@ Full charts: [`docs/architecture.md`](../../docs/architecture.md). Drift contrac
 ## Domain model
 
 ```ts
-type ImageJobStatus = "validating" | "uploading" | "removing_background" | "flipping" | "ready" | "deleted" | "failed";
+type ImageJobStatus =
+  | "validating"
+  | "uploading"
+  | "removing_background"
+  | "flipping"
+  | "ready"
+  | "deleted"
+  | "failed";
 
 type ImageJob = {
   id: string;
@@ -257,7 +264,11 @@ interface JobRepository {
 
 interface ImageObjectStore {
   putOriginal(job: ImageJob, file: File): Promise<void>;
-  putProcessed(job: ImageJob, body: ReadableStream | ArrayBuffer, contentType: string): Promise<void>;
+  putProcessed(
+    job: ImageJob,
+    body: ReadableStream | ArrayBuffer,
+    contentType: string,
+  ): Promise<void>;
   getProcessed(id: string): Promise<Response | null>;
   deleteAll(job: ImageJob): Promise<void>;
 }

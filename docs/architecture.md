@@ -126,7 +126,9 @@ remote-URL-only assumption. The port returns a `Blob`; the adapter resolves the
 CF Images response to bytes internally:
 
 ```ts
-const result = await env.IMAGES.input(cutoutStream).transform({ flip: "h" }).output({ format: "image/png" });
+const result = await env.IMAGES.input(cutoutStream)
+  .transform({ flip: "h" })
+  .output({ format: "image/png" });
 return (await result.response()).blob();
 ```
 

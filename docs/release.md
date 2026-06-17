@@ -313,7 +313,7 @@ Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.ym
 6. The CI secret-provider bridge injects `CLOUDFLARE_*` for the deploy job.
 7. The worker deploy still uses `wrangler deploy --env production`, but release orchestration no longer depends on a manually pushed `v*` tag.
 8. **Serialize deploys** — concurrency group `edge-matte-production-deploy` (`cancel-in-progress: false`).
-9. Non-provenance CI and deploy orchestration runs on the `ubicloud-standard-2` runner; only provenance-bound publish paths should stay on GitHub-hosted runners.
+9. Public CI and deploy orchestration runs on `ubuntu-latest`.
 10. **Post-deploy production evidence** — after deploy succeeds:
     - `GET https://edge-matte.ozby.dev/health`
     - `GET https://edge-matte.ozby.dev/`
