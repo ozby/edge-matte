@@ -58,9 +58,14 @@
     "mutation": "wp test --mutation",
     "test:mutation": "wp test --mutation",
     "qa": "wp lint && pnpm run typecheck && pnpm run test && wp test --mutation && wp e2e",
-    "deploy:dry-run": "wp deploy --lane prd --dry-run"
+    "deploy:dry-run": "wp deploy --lane prd --dry-run",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version": "changeset version && bun scripts/sync-release-metadata-version.ts",
+    "release:publish": "bun scripts/release-publish.ts"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.5",
     "@playwright/test": "^1.55.0",
     "@secretlint/secretlint-rule-preset-recommend": "^9.3.0",
     "@stryker-mutator/core": "catalog:",
