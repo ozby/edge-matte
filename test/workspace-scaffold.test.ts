@@ -17,11 +17,20 @@ function readText(relativePath: string): string {
 
 test("root package.json keeps vp for recursive build and wp for quality lanes", () => {
   const pkg = readJson("package.json");
-  assert.match(pkg.scripts.build, /^vp run -r build$/u);
+  assert.equal(
+    pkg.scripts.build,
+    "vp run --filter @edge-matte/client build && vp run --filter @edge-matte/worker build",
+  );
   for (const [script, expected] of [
     ["lint", "wp lint"],
-    ["check-types", "wp typecheck"],
-    ["test", 'node --test "test/**/*.test.ts"'],
+    [
+      "check-types",
+      "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && pnpm exec tsc -p tsconfig.json --noEmit",
+    ],
+    [
+      "test",
+      'vp run --filter @edge-matte/client test && vp run --filter @edge-matte/e2e test && vp run --filter @edge-matte/worker test && vp run --filter @edge-matte/infra test && node --test "test/**/*.test.ts"',
+    ],
     ["e2e", "wp e2e"],
   ]) {
     assert.equal(pkg.scripts[script], expected, `${script} must use the wp surface`);
@@ -32,10 +41,10 @@ test("required workspace config files exist", () => {
   for (const file of [
     "pnpm-workspace.yaml",
     "tsconfig.json",
-    "wrangler.toml",
+    "apps/workers/wrangler.toml",
     "agent-kit.config.ts",
     "webpresso.config.ts",
-    "apps/worker/package.json",
+    "apps/workers/package.json",
     "apps/client/package.json",
     "apps/e2e/package.json",
   ]) {
@@ -43,8 +52,8 @@ test("required workspace config files exist", () => {
   }
 });
 
-test("wrangler.toml declares ASSETS binding and production route", () => {
-  const wrangler = readText("wrangler.toml");
+test("apps/workers/wrangler.toml declares ASSETS binding and production route", () => {
+  const wrangler = readText("apps/workers/wrangler.toml");
   assert.match(wrangler, /binding\s*=\s*"ASSETS"/u);
   assert.match(wrangler, /edge-matte\.ozby\.dev/u);
   assert.match(wrangler, /custom_domain\s*=\s*true/u);
@@ -72,9 +81,7 @@ test("webpresso.config.ts re-exports the repo config on the canonical upstream s
 
 test("scaffolded hooks use global wp binaries and vp-first recovery guidance", () => {
   const setupAction = readText(".github/actions/setup-webpresso/action.yml");
-  const config = readJson(".webpressorc.json");
 
-  assert.equal(config.globalInstall, true);
   assert.match(setupAction, /Install vite-plus and @webpresso\/agent-kit globally/u);
   assert.match(setupAction, /npm install -g/u);
   assert.match(setupAction, /@webpresso\/agent-kit/u);

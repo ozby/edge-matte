@@ -80,7 +80,7 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
    `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` beside the deploy
    credentials, then inject them into local deploy smoke, GitHub Actions, and
    production-only E2E as headers — never as cookies or checked-in files.
-3. **Wrangler declares names; Cloudflare holds values.** `wrangler.toml` and
+3. **Wrangler declares names; Cloudflare holds values.** `apps/workers/wrangler.toml` and
    TypeScript `Env` types reference binding names and non-secret vars. Secret
    values are not part of the current runtime contract.
 4. **Local bootstrap uses committed defaults through wp.** Edit
@@ -126,7 +126,7 @@ Production Worker runtime expects (names stable; values out-of-band):
 | `IMAGES`        | Images binding | Background removal (`segment: "foreground"`) + flip |
 | `ASSETS`        | Assets binding | SPA static shell                                    |
 
-No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudflare-native BiRefNet). Non-secret vars (e.g. `APP_ORIGIN`) live in `wrangler.toml` `[vars]` / `[env.production.vars]`.
+No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudflare-native BiRefNet). Non-secret vars (e.g. `APP_ORIGIN`) live in `apps/workers/wrangler.toml` `[vars]` / `[env.production.vars]`.
 
 ## GitHub Actions bootstrap
 
@@ -147,7 +147,7 @@ The workflow files that consume this action are intentionally pinned to full
 mandatory, maintainers must enable GitHub branch protection or rulesets with
 **Require review from Code Owners**.
 
-The deploy workflow runs `scripts/verify-cloudflare-deploy-creds.sh` after
+The deploy workflow runs `infra/src/deploy/verify-cloudflare-deploy-creds.sh` after
 injection:
 
 1. `wrangler whoami` — shows which account(s) the token can access
@@ -175,7 +175,7 @@ Minimum token permissions on the **ozby** account:
    permissions above (or use the same token that already deploys ingest-lens).
 2. `doppler secrets set CLOUDFLARE_API_TOKEN --project ozby-shell --config prd`
 3. Confirm `CLOUDFLARE_ACCOUNT_ID` stays `e93986039ea9bd9729fa534a29e9e88f`.
-4. Locally: `with-secrets -- bash scripts/verify-cloudflare-deploy-creds.sh`
+4. Locally: `with-secrets -- bash infra/src/deploy/verify-cloudflare-deploy-creds.sh`
 5. Re-run **Deploy production** (`workflow_dispatch` on `main` is fine).
 
 ## Local bootstrap
@@ -214,8 +214,6 @@ Minimum token permissions on the **ozby** account:
 
    ```bash
    vp run deploy:production
-   # or wrangler only:
-   vp run deploy:production:wrangler
    ```
 
    When Cloudflare Access private-beta protection is enabled for

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { readSamplePng } from "#fixtures";
-import { fetchWithProductionAccess } from "../src/journeys/access";
+import { fetchWithProductionAccess } from "#journey-access";
 import {
   getProductionBaseUrl,
   readProductionTurnstileToken,
   shouldRunProductionSmoke,
-} from "../src/journeys/env";
+} from "#journey-env";
 
 // Real end-to-end journey against live production (no mock pipeline). This is the
 // only layer that proves background removal + horizontal flip actually transform

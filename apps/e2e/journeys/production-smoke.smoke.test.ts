@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fetchWithProductionAccess } from "../src/journeys/access";
-import { getProductionBaseUrl, shouldRunProductionSmoke } from "../src/journeys/env";
+import { fetchWithProductionAccess } from "#journey-access";
+import { getProductionBaseUrl, shouldRunProductionSmoke } from "#journey-env";
 
 const describeProduction = shouldRunProductionSmoke() ? describe : describe.skip;
 

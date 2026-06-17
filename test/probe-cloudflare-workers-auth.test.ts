@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { probeWorkersServiceAuth } from "../scripts/lib/probe-cloudflare-workers-auth.ts";
+import { probeWorkersServiceAuth } from "../infra/src/deploy/probe-cloudflare-workers-auth.ts";
 
 test("probe rejects Cloudflare auth error (code 10000)", async () => {
   const result = await probeWorkersServiceAuth({

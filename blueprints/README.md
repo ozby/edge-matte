@@ -29,45 +29,31 @@ Each subdirectory represents a lifecycle state:
 
 Move files with `git mv` so history follows the spec through its lifecycle.
 
-## Active work (2026-06-08)
+## Current state (2026-06-16)
 
-| Blueprint            | Path                                                                                                                                                 | Purpose                                                                                                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Audit remediation    | [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)                                 | Truthful CI/E2E/runtime verification; remaining live work is quality-rail alignment, a green production deploy, and final truth-state capture                                                           |
-| Deploy contract      | [`in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md`](./in-progress/2026-05-29-edge-matte-shared-cloudflare-deploy-contract.md) | Extract a reusable Cloudflare deploy contract: EdgeMatte now uses the same custom-domain preview lane shape as IngestLens while `agent-kit` policy is in scope and private infra plumbing stays private |
-| Security hardening   | [`parked/2026-05-28-edge-matte-security-hardening.md`](./parked/2026-05-28-edge-matte-security-hardening.md)                                         | Parked after repo-local closure; remaining work is external Cloudflare rollout/evidence for Access, Turnstile, public security config, and WAF/rate limiting                                            |
-| E2E confidence suite | [`in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md`](./in-progress/2026-05-29-edge-matte-e2e-confidence-suite.md)                           | Partially landed follow-through lane: hermetic PR `e2e` gate is shipped; remaining work is release/docs parity, live `production-smoke` + `production-journey` evidence, and required-check proof       |
+No EdgeMatte blueprint is actively in progress. The repo's current truth is:
 
-Wave 0 (secrets governance) is complete in the working tree. The three active
-blueprints plus the one parked follow-up were refreshed against the current repo
-state on **2026-06-08**; use each blueprint’s lane-boundary notes before
-parallel edits.
+- the consumer standard (`apps/client` + `apps/workers` + `infra`) is completed,
+- deploy helpers are infra-owned under `infra/src/deploy/**`,
+- the June 16 standardization closeout is now recorded as completed, and
+- `2026-05-28-edge-matte-security-hardening.md` remains intentionally parked.
 
-For the deploy-contract lane specifically, treat **agent-kit** as the only
-shared-policy upstream in scope; do not expand that blueprint into gstack or
-OMX work just because adjacent external bugs exist.
-The reusable Cloudflare/Pulumi helper package for that lane is
-**private/internal by default**. If it is ever proposed as a public package,
-that promotion must happen in a separate package-surface blueprint with
-`catalog/agent/rules/public-package-safety.md` review plus tarball and
-denied-content auditing; reusability alone is not permission to publish.
+Use completed blueprints as historical implementation records and the parked
+security lane only when that external rollout work is explicitly re-opened.
 
 ## Historical EdgeMatte blueprints
 
-| Blueprint                                 | Status    | Path                                                                                                                                                             | Notes                                                                                                                                          |
-| ----------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Parent roadmap                            | archived  | [`archived/2026-05-27-edge-matte.md`](./archived/2026-05-27-edge-matte.md)                                                                                       | Archived as the historical parent record; remaining deploy-truth follow-through lives in audit remediation.                                    |
-| Workspace scaffold                        | archived  | [`archived/2026-05-27-edge-matte-workspace-scaffold.md`](./archived/2026-05-27-edge-matte-workspace-scaffold.md)                                                 | Historical milestone record.                                                                                                                   |
-| Core pipeline                             | archived  | [`archived/2026-05-27-edge-matte-core-pipeline.md`](./archived/2026-05-27-edge-matte-core-pipeline.md)                                                           | Historical milestone record.                                                                                                                   |
-| UI + E2E                                  | archived  | [`archived/2026-05-27-edge-matte-ui-and-e2e.md`](./archived/2026-05-27-edge-matte-ui-and-e2e.md)                                                                 | Historical milestone record.                                                                                                                   |
-| Infra + release                           | archived  | [`archived/2026-05-27-edge-matte-infra-and-release.md`](./archived/2026-05-27-edge-matte-infra-and-release.md)                                                   | Historical milestone record referenced by the deploy-contract lane.                                                                            |
-| Result page URL                           | completed | [`completed/2026-06-02-edge-matte-result-page-url.md`](./completed/2026-06-02-edge-matte-result-page-url.md)                                                     | Completed and verified.                                                                                                                        |
-| `wp` deploy adapter + toolchain isolation | completed | [`completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md`](./completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md)         | Closed with preview-lane mapping fix, fresh dry-run proof for `prd` / `preview_main` / `preview_pr_123`, and green `wp` quality + audit gates. |
-| Shared deploy workflow alignment cleanup  | completed | [`completed/2026-06-09-edge-matte-shared-reusable-deploy-workflow-alignment.md`](./completed/2026-06-09-edge-matte-shared-reusable-deploy-workflow-alignment.md) | Completed truth-state cleanup after the reusable workflow callers landed; active deploy/e2e proof remains in the in-progress lanes.            |
-
-The parent roadmap retains one open acceptance item (manual production smoke)
-until [`in-progress/2026-05-27-edge-matte-audit-remediation.md`](./in-progress/2026-05-27-edge-matte-audit-remediation.md)
-closes the deploy CI lane.
+| Blueprint                                     | Status    | Path                                                                                                                                                                 | Notes                                                                                                                                          |
+| --------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parent roadmap                                | archived  | [`archived/2026-05-27-edge-matte.md`](./archived/2026-05-27-edge-matte.md)                                                                                           | Archived as the historical parent record; remaining deploy-truth follow-through lives in audit remediation.                                    |
+| Workspace scaffold                            | archived  | [`archived/2026-05-27-edge-matte-workspace-scaffold.md`](./archived/2026-05-27-edge-matte-workspace-scaffold.md)                                                     | Historical milestone record.                                                                                                                   |
+| Core pipeline                                 | archived  | [`archived/2026-05-27-edge-matte-core-pipeline.md`](./archived/2026-05-27-edge-matte-core-pipeline.md)                                                               | Historical milestone record.                                                                                                                   |
+| UI + E2E                                      | archived  | [`archived/2026-05-27-edge-matte-ui-and-e2e.md`](./archived/2026-05-27-edge-matte-ui-and-e2e.md)                                                                     | Historical milestone record.                                                                                                                   |
+| Infra + release                               | archived  | [`archived/2026-05-27-edge-matte-infra-and-release.md`](./archived/2026-05-27-edge-matte-infra-and-release.md)                                                       | Historical milestone record referenced by the deploy-contract lane.                                                                            |
+| Result page URL                               | completed | [`completed/2026-06-02-edge-matte-result-page-url.md`](./completed/2026-06-02-edge-matte-result-page-url.md)                                                         | Completed and verified.                                                                                                                        |
+| `wp` deploy adapter + toolchain isolation     | completed | [`completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md`](./completed/2026-06-02-edge-matte-wp-deploy-adapter-toolchain-isolation.md)             | Closed with preview-lane mapping fix, fresh dry-run proof for `prd` / `preview_main` / `preview_pr_123`, and green `wp` quality + audit gates. |
+| Shared deploy workflow alignment cleanup      | completed | [`completed/2026-06-09-edge-matte-shared-reusable-deploy-workflow-alignment.md`](./completed/2026-06-09-edge-matte-shared-reusable-deploy-workflow-alignment.md)     | Completed truth-state cleanup after the reusable workflow callers landed.                                                                      |
+| Consumer apps/workers + infra standardization | completed | [`completed/2026-06-16-edge-matte-consumer-apps-workers-infra-standardization.md`](./completed/2026-06-16-edge-matte-consumer-apps-workers-infra-standardization.md) | Closed the final bookkeeping lane after confirming the standardized repo shape was already present on branch.                                  |
 
 ## Governance
 

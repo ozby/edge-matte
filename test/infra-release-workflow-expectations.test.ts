@@ -168,6 +168,10 @@ test("preview deploy script renders preview-main and preview-pr workers without 
   const missing = findMissingExpectations(script.contents, [
     { label: "preview-main lane", pattern: /preview-main/u },
     { label: "preview-pr lane", pattern: /preview-pr/u },
+    {
+      label: "skip with-secrets when CI already injected Cloudflare creds",
+      pattern: /!process\.env\.CLOUDFLARE_API_TOKEN && hasCommand\("with-secrets"\)/u,
+    },
     { label: "temporary wrangler config", pattern: /mkdtemp|tmpdir/u },
     { label: "workers.dev disabled", pattern: /workers_dev\s*=\s*false/u },
     {

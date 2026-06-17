@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Poll an HTTP URL until it returns success or attempts are exhausted.
-# Usage: ./scripts/wait-for-http.sh <url> [max_attempts] [sleep_seconds]
+# Usage: ./infra/src/deploy/wait-for-http.sh <url> [max_attempts] [sleep_seconds]
 set -euo pipefail
 
 URL="${1:?url required}"

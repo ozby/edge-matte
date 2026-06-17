@@ -7,17 +7,18 @@
     "#*": "./src/*"
   },
   "scripts": {
+    "prebuild": "vp run --filter @edge-matte/client build",
     "dev": "wp exec wrangler dev",
     "dev:mock": "wp exec wrangler dev --var E2E_MOCK_PIPELINE:1",
     "build": "wp exec wrangler deploy --dry-run",
-    "cf-typegen": "wp exec wrangler types ../../worker-configuration.d.ts",
+    "cf-typegen": "wp exec wrangler types ./worker-configuration.d.ts",
     "test": "wp test --file vitest.config.ts",
     "mutation": "wp test --mutation",
     "check-types": "wp typecheck",
     "lint": "wp lint"
   },
   "dependencies": {
-    "hono": "^4.12.23"
+    "hono": "^4.12.25"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.10",

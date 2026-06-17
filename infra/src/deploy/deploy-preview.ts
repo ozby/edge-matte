@@ -3,22 +3,18 @@
  * Deploy or destroy preview Workers without touching env.production.
  *
  * Usage:
- *   bun scripts/deploy-preview.ts --lane preview-main
- *   bun scripts/deploy-preview.ts --lane preview-pr-123
- *   bun scripts/deploy-preview.ts --lane preview-pr-123 --destroy
+ *   bun infra/src/deploy/deploy-preview.ts --lane preview-main
+ *   bun infra/src/deploy/deploy-preview.ts --lane preview-pr-123
+ *   bun infra/src/deploy/deploy-preview.ts --lane preview-pr-123 --destroy
  */
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { findRepoRoot } from "./lib/find-repo-root.ts";
+import { buildChildEnv, findRepoRoot } from "./deploy-runner.ts";
 
 const TOP_LEVEL_WORKER_NAME = "edge-matte";
 const DEPLOY_DOMAIN = "edge-matte.ozby.dev";
-const ACCOUNT_ID = "e93986039ea9bd9729fa534a29e9e88f";
-const R2_BUCKET_NAME = "edge-matte-images";
-const COMPATIBILITY_DATE = "2025-12-10";
-const COMPATIBILITY_FLAGS = ["nodejs_compat"];
 const VALID_LANE = /^preview-(?:main|pr-\d+)$/u;
 
 const args = process.argv.slice(2);
@@ -34,14 +30,10 @@ if (!VALID_LANE.test(lane)) {
 
 const repoRoot = findRepoRoot();
 const workerName = `${TOP_LEVEL_WORKER_NAME}-${lane}`;
-
-function buildChildEnv(root: string, env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
-  const localBin = `${root}/node_modules/.bin`;
-  return {
-    ...env,
-    PATH: env.PATH ? `${localBin}:${env.PATH}` : localBin,
-  };
-}
+const canonicalWranglerConfig = readFileSync(
+  join(repoRoot, "apps", "workers", "wrangler.toml"),
+  "utf8",
+);
 
 function deriveLaneFromGitHubEnv(): string {
   if (process.env.GITHUB_EVENT_NAME === "pull_request") {
@@ -81,15 +73,7 @@ function hasCommand(command: string): boolean {
 }
 
 function runWithSecrets(command: string, commandArgs: string[]) {
-  if (
-    process.env.CLOUDFLARE_ACCOUNT_ID &&
-    process.env.CLOUDFLARE_API_TOKEN &&
-    process.env.CLOUDFLARE_ZONE_ID
-  ) {
-    run(command, commandArgs);
-    return;
-  }
-  if (hasCommand("with-secrets")) {
+  if (!process.env.CLOUDFLARE_API_TOKEN && hasCommand("with-secrets")) {
     run("with-secrets", ["--", command, ...commandArgs]);
     return;
   }
@@ -111,29 +95,92 @@ function previewOrigin(): string {
   return `https://${previewHost()}`;
 }
 
+function matchTomlValue(pattern: RegExp, label: string): string {
+  const match = canonicalWranglerConfig.match(pattern);
+  if (!match?.[1]) {
+    throw new Error(`Missing ${label} in apps/workers/wrangler.toml`);
+  }
+  return match[1];
+}
+
+function canonicalAccountId(): string {
+  return matchTomlValue(/^account_id\s*=\s*"([^"]+)"/mu, "account_id");
+}
+
+function canonicalCompatibilityDate(): string {
+  return matchTomlValue(/^compatibility_date\s*=\s*"([^"]+)"/mu, "compatibility_date");
+}
+
+function canonicalCompatibilityFlags(): string[] {
+  const raw = matchTomlValue(/^compatibility_flags\s*=\s*\[([^\]]+)\]/mu, "compatibility_flags");
+  return raw
+    .split(",")
+    .map((part) => part.trim().replace(/^"|"$/gu, ""))
+    .filter(Boolean);
+}
+
+function canonicalAssetsDirectory(): string {
+  return matchTomlValue(/^\[assets\][\s\S]*?^directory\s*=\s*"([^"]+)"/mu, "assets.directory");
+}
+
+function canonicalAssetsBinding(): string {
+  return matchTomlValue(/^\[assets\][\s\S]*?^binding\s*=\s*"([^"]+)"/mu, "assets.binding");
+}
+
+function canonicalNotFoundHandling(): string {
+  return matchTomlValue(
+    /^\[assets\][\s\S]*?^not_found_handling\s*=\s*"([^"]+)"/mu,
+    "assets.not_found_handling",
+  );
+}
+
+function canonicalRunWorkerFirst(): boolean {
+  return /run_worker_first\s*=\s*true/u.test(canonicalWranglerConfig);
+}
+
+function canonicalImagesBinding(): string {
+  return matchTomlValue(/^\[images\][\s\S]*?^binding\s*=\s*"([^"]+)"/mu, "images.binding");
+}
+
+function canonicalR2Binding(): string {
+  return matchTomlValue(
+    /^\[\[r2_buckets\]\][\s\S]*?^binding\s*=\s*"([^"]+)"/mu,
+    "r2_buckets.binding",
+  );
+}
+
+function canonicalR2BucketName(): string {
+  return matchTomlValue(
+    /^\[\[r2_buckets\]\][\s\S]*?^bucket_name\s*=\s*"([^"]+)"/mu,
+    "r2_buckets.bucket_name",
+  );
+}
+
 function renderPreviewWranglerConfig(): string {
-  const flags = COMPATIBILITY_FLAGS.map((flag) => `"${flag}"`).join(", ");
+  const flags = canonicalCompatibilityFlags()
+    .map((flag) => `"${flag}"`)
+    .join(", ");
   return [
     `name = "${workerName}"`,
-    `account_id = "${ACCOUNT_ID}"`,
-    `main = "${join(repoRoot, "apps", "worker", "src", "index.ts")}"`,
-    `compatibility_date = "${COMPATIBILITY_DATE}"`,
+    `account_id = "${canonicalAccountId()}"`,
+    `main = "${join(repoRoot, "apps", "workers", "src", "index.ts")}"`,
+    `compatibility_date = "${canonicalCompatibilityDate()}"`,
     `compatibility_flags = [${flags}]`,
     "workers_dev = false",
     `routes = [{ pattern = "${previewHost()}", custom_domain = true }]`,
     "",
     "[assets]",
-    `directory = "${join(repoRoot, "apps", "client", "dist")}"`,
-    'binding = "ASSETS"',
-    'not_found_handling = "single-page-application"',
-    "run_worker_first = true",
+    `directory = "${join(repoRoot, "apps", "workers", canonicalAssetsDirectory())}"`,
+    `binding = "${canonicalAssetsBinding()}"`,
+    `not_found_handling = "${canonicalNotFoundHandling()}"`,
+    `run_worker_first = ${canonicalRunWorkerFirst() ? "true" : "false"}`,
     "",
     "[images]",
-    'binding = "IMAGES"',
+    `binding = "${canonicalImagesBinding()}"`,
     "",
     "[[r2_buckets]]",
-    'binding = "IMAGES_BUCKET"',
-    `bucket_name = "${R2_BUCKET_NAME}"`,
+    `binding = "${canonicalR2Binding()}"`,
+    `bucket_name = "${canonicalR2BucketName()}"`,
     "",
     "[vars]",
     `APP_ORIGIN = "${previewOrigin()}"`,

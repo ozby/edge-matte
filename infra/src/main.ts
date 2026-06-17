@@ -1,7 +1,7 @@
 /**
  * Pulumi entry — durable Cloudflare resources only.
  *
- * Worker routes, bindings, and deploy are owned by Wrangler (`wrangler.toml`).
+ * Worker routes, bindings, and deploy are owned by Wrangler (`apps/workers/wrangler.toml`).
  */
 import "./resources/storage.js";
 import "./resources/lifecycle.js";

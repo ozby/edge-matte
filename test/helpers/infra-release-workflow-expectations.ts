@@ -12,9 +12,9 @@ export const PR_CI_WORKFLOW = ".github/workflows/ci.yml";
 
 export const PRODUCTION_DEPLOY_WORKFLOW = ".github/workflows/deploy-production.yml";
 export const PREVIEW_DEPLOY_WORKFLOW = ".github/workflows/deploy-preview.yml";
-export const WAIT_FOR_HTTP_SCRIPT = "scripts/wait-for-http.sh";
-export const DEPLOY_PRODUCTION_SCRIPT = "scripts/deploy-production.ts";
-export const DEPLOY_PREVIEW_SCRIPT = "scripts/deploy-preview.ts";
+export const WAIT_FOR_HTTP_SCRIPT = "infra/src/deploy/wait-for-http.sh";
+export const DEPLOY_PRODUCTION_SCRIPT = "infra/src/deploy/deploy-production.ts";
+export const DEPLOY_PREVIEW_SCRIPT = "infra/src/deploy/deploy-preview.ts";
 
 export const CODEOWNERS_WORKFLOW_GOVERNANCE_PATH = ".github/CODEOWNERS";
 
@@ -50,7 +50,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
   {
     label: "shared reusable production workflow",
-    pattern: /uses:\s*webpresso\/agent-kit\/.github\/workflows\/cloudflare-production\.yml@/u,
+    pattern: /uses:\s*webpresso\/github-actions\/.github\/workflows\/cloudflare-production\.yml@/u,
   },
   {
     label: "deploy contract verify",
@@ -114,7 +114,7 @@ export const LOCAL_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   },
   {
     label: "with-secrets smoke probes",
-    pattern: /runWithSecrets\("bash".*scripts\/wait-for-http\.sh.*PRODUCTION_URL/su,
+    pattern: /runWithSecrets\("bash".*infra\/src\/deploy\/wait-for-http\.sh.*PRODUCTION_URL/su,
   },
   {
     label: "production-smoke suite",

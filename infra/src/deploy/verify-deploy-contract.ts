@@ -1,10 +1,11 @@
 #!/usr/bin/env bun
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { findRepoRoot } from "./deploy-runner.ts";
 
-const ROOT = process.cwd();
+const ROOT = findRepoRoot(process.cwd());
 const METADATA_PATH = path.join(ROOT, "infra", "release-metadata.production.json");
-const WRANGLER_PATH = path.join(ROOT, "wrangler.toml");
+const WRANGLER_PATH = path.join(ROOT, "apps", "workers", "wrangler.toml");
 
 type ReleaseMetadata = {
   releaseKind: "version_pr" | "manual_hotfix";
@@ -25,7 +26,7 @@ function readJson<T>(filePath: string): T {
 function findSection(source: string, header: string): string {
   const start = source.indexOf(header);
   if (start === -1) {
-    fail(`wrangler.toml must keep ${header}`);
+    fail(`apps/workers/wrangler.toml must keep ${header}`);
   }
   const nextHeader = source.indexOf("\n[", start + header.length);
   return source.slice(start, nextHeader === -1 ? undefined : nextHeader);
@@ -54,11 +55,11 @@ function main() {
   const productionSection = findSection(wrangler, "[env.production]");
   if (!/name\s*=\s*"edge-matte"/u.test(productionSection)) {
     fail(
-      'wrangler.toml [env.production] must preserve the stable production Worker name "edge-matte"',
+      'apps/workers/wrangler.toml [env.production] must preserve the stable production Worker name "edge-matte"',
     );
   }
   if (!/\[\[env\.production\.routes\]\]/u.test(wrangler)) {
-    fail("wrangler.toml must keep [[env.production.routes]]");
+    fail("apps/workers/wrangler.toml must keep [[env.production.routes]]");
   }
 
   console.log(

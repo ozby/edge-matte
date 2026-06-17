@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { webpressoDeployAdapter } from "../scripts/agent-kit-deploy-adapter.ts";
+import { webpressoDeployAdapter } from "#infra-deploy/agent-kit-deploy-adapter";
 
 test("production dry-run uses wrangler without credentials", () => {
   const plan = webpressoDeployAdapter.createPlan({ lane: "prd", dryRun: true });
@@ -9,19 +9,32 @@ test("production dry-run uses wrangler without credentials", () => {
   assert.deepEqual(plan.requiredCredentials, []);
   assert.equal(plan.steps.length, 1);
   assert.deepEqual(plan.steps[0], {
-    kind: "managed-tool",
+    kind: "command",
     id: "wrangler-dry-run",
     label: "Validate Cloudflare Worker deploy without publishing",
-    tool: "wrangler",
-    args: ["deploy", "--dry-run", "--env", "production"],
+    command: "vp",
+    args: [
+      "exec",
+      "--filter",
+      "@edge-matte/worker",
+      "--",
+      "wrangler",
+      "deploy",
+      "--dry-run",
+      "--config",
+      "wrangler.toml",
+      "--env",
+      "production",
+    ],
     cwd: plan.steps[0]?.cwd,
+    runtimeProfile: "none",
   });
 });
 
 test("preview_main deploy maps the internal lane id to the preview script lane", () => {
   const plan = webpressoDeployAdapter.createPlan({ lane: "preview_main", dryRun: false });
 
-  assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN"]);
+  assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_ID"]);
   assert.equal(plan.steps.length, 1);
   const step = plan.steps[0];
   assert.equal(step?.kind, "command");
@@ -34,7 +47,7 @@ test("preview_main deploy maps the internal lane id to the preview script lane",
 test("preview_pr_<n> deploy preserves the PR number in the preview script lane", () => {
   const plan = webpressoDeployAdapter.createPlan({ lane: "preview_pr_123", dryRun: false });
 
-  assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN"]);
+  assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ZONE_ID"]);
   assert.equal(plan.steps.length, 1);
   const step = plan.steps[0];
   assert.equal(step?.kind, "command");
@@ -51,6 +64,7 @@ test("preview dry-runs validate the generated preview config without publishing"
   const step = plan.steps[0];
   assert.equal(step?.kind, "command");
   if (!step || step.kind !== "command") throw new Error("expected command step");
+  assert.equal(step.runtimeProfile, "none");
   assert.deepEqual(step.args.slice(-3), ["--lane", "preview-pr-42", "--dry-run"]);
 });
 
@@ -63,7 +77,7 @@ test("production deploy delegates exact smoke stages to the shared deploy plan",
 
   assert.deepEqual(plan.requiredCredentials, ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]);
   assert.equal(plan.releaseVersion, "1.2.3");
-  assert.equal(plan.steps.length, 1);
+  assert.equal(plan.steps.length, 5);
   const deployStep = plan.steps[0];
   assert.equal(deployStep?.kind, "command");
   if (!deployStep || deployStep.kind !== "command") throw new Error("expected command step");
@@ -76,6 +90,14 @@ test("production deploy delegates exact smoke stages to the shared deploy plan",
     cwd: deployStep.cwd,
     runtimeProfile: "secrets-only",
   });
+
+  const stageIds = plan.steps.slice(1).map((step) => step.id);
+  assert.deepEqual(stageIds, [
+    "production-health",
+    "production-homepage",
+    "production-smoke",
+    "production-journey",
+  ]);
 });
 
 test("unsupported lanes fail fast", () => {

@@ -1,11 +1,11 @@
 name = "edge-matte"
 account_id = "e93986039ea9bd9729fa534a29e9e88f" # ozby account — public identifier; matches ingest-lens
-main = "apps/worker/src/index.ts"
+main = "src/index.ts"
 compatibility_date = "2025-12-10"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
-directory = "apps/client/dist"
+directory = "../client/dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 # Force every request through the Worker so the security-headers middleware
@@ -34,7 +34,7 @@ custom_domain = true
 APP_ORIGIN = "https://edge-matte.ozby.dev"
 
 [env.production.assets]
-directory = "apps/client/dist"
+directory = "../client/dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = true

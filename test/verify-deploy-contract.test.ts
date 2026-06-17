@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { findRepoRoot } from "#scripts/lib/find-repo-root.ts";
 
 const REPO_ROOT = findRepoRoot(import.meta.dirname);
-const SCRIPT = join(REPO_ROOT, "scripts/verify-deploy-contract.ts");
+const SCRIPT = join(REPO_ROOT, "infra/src/deploy/verify-deploy-contract.ts");
 
 interface ReleaseMetadata {
   releaseKind: string;
@@ -19,6 +19,10 @@ interface ReleaseMetadata {
 
 function writeBaseRepo(dir: string, wranglerToml: string) {
   mkdirSync(join(dir, "infra"), { recursive: true });
+  mkdirSync(join(dir, "apps", "workers"), { recursive: true });
+  writeFileSync(join(dir, "package.json"), '{"name":"fixture","private":true}\n');
+  writeFileSync(join(dir, "pnpm-workspace.yaml"), 'packages:\n  - "apps/*"\n  - "infra"\n');
+  writeFileSync(join(dir, "AGENTS.md"), "# fixture\n");
   writeReleaseMetadata(dir, {
     releaseKind: "version_pr",
     releaseVersion: "0.1.0",
@@ -26,7 +30,7 @@ function writeBaseRepo(dir: string, wranglerToml: string) {
     rolloutMode: "direct",
     requiredChecks: ["production-smoke", "production-journey"],
   });
-  writeFileSync(join(dir, "wrangler.toml"), wranglerToml);
+  writeFileSync(join(dir, "apps", "workers", "wrangler.toml"), wranglerToml);
 }
 
 function writeReleaseMetadata(dir: string, metadata: ReleaseMetadata) {
@@ -87,6 +91,31 @@ test("verify-deploy-contract passes when env.production keeps the stable worker 
   );
 
   const result = runVerifier(dir);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /deploy contract verified/u);
+
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("verify-deploy-contract also passes when invoked from the infra directory", () => {
+  const dir = mkdtempSync(join(tmpdir(), "edge-matte-deploy-contract-"));
+  writeBaseRepo(
+    dir,
+    [
+      'name = "edge-matte"',
+      "",
+      "[env.production]",
+      'name = "edge-matte"',
+      "workers_dev = false",
+      "",
+      "[[env.production.routes]]",
+      'pattern = "edge-matte.ozby.dev"',
+      "custom_domain = true",
+      "",
+    ].join("\n"),
+  );
+
+  const result = runVerifier(join(dir, "infra"));
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /deploy contract verified/u);
 

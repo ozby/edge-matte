@@ -5,6 +5,7 @@
   "scripts": {
     "preview": "pulumi preview",
     "up": "pulumi up",
+    "test": "wp test --file vitest.config.ts",
     "check-types": "wp typecheck"
   },
   "dependencies": {

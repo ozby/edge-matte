@@ -4,11 +4,11 @@ import {
   normalizeE2EPath,
   resolveE2ESuiteForFile,
   resolveE2ESuiteId,
-} from "./e2e-suite-manifest";
+} from "#e2e-suite-manifest";
 
 describe("e2e-suite-manifest", () => {
   it("registers honest smoke, browser, contract, production-smoke, and production-journey suites", () => {
-    expect(listE2ESuites().map((suite) => suite.id)).toEqual([
+    expect(listE2ESuites().map((suite: { id: string }) => suite.id)).toEqual([
       "smoke",
       "upload-delete",
       "upload-delete-contract",

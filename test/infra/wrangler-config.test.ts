@@ -10,15 +10,15 @@ import {
   sectionLines,
 } from "./helpers.ts";
 
-const wrangler = readText("wrangler.toml");
+const wrangler = readText("apps/workers/wrangler.toml");
 
 test("wrangler.toml targets the worker entry and static asset directory", () => {
   assert.match(wrangler, /^name\s*=\s*"edge-matte"/mu);
-  assert.match(wrangler, /main\s*=\s*"apps\/worker\/src\/index\.ts"/u);
+  assert.match(wrangler, /main\s*=\s*"src\/index\.ts"/u);
   const assets = sectionLines(wrangler, "[assets]");
   assert.ok(assets, "missing [assets] table");
   assert.ok(
-    assets.some((line) => /directory\s*=\s*"apps\/client\/dist"/u.test(line)),
+    assets.some((line) => /directory\s*=\s*"\.\.\/client\/dist"/u.test(line)),
     "ASSETS must serve the built client bundle",
   );
   assert.ok(
