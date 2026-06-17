@@ -72,6 +72,7 @@
     "@stryker-mutator/typescript-checker": "catalog:",
     "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
+    "@webpresso/agent-config": "catalog:",
     "@webpresso/agent-kit": "catalog:",
     "husky": "^9.0.0",
     "secretlint": "^9.3.0",
