@@ -2,8 +2,8 @@
 type: blueprint
 status: draft
 complexity: S
-created: '2026-06-17'
-last_updated: '2026-06-17'
+created: "2026-06-17"
+last_updated: "2026-06-17"
 progress: "0% (drafted)"
 depends_on: []
 tags: []
