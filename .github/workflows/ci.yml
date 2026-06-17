@@ -15,7 +15,7 @@ env:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     # Baseline CI keeps only stable shared quality gates here; blueprint-lifecycle
     # drift and mutation coverage remain lane-owned follow-up work outside this PR gate.
     steps:
@@ -65,7 +65,7 @@ jobs:
     # wrangler dev server runs with E2E_MOCK_PIPELINE:1 (deterministic mock
     # provider/transformer), so the full upload -> host -> delete journey,
     # API contract, and browser UI are proven on every PR.
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
@@ -111,7 +111,7 @@ jobs:
 
   mutation:
     if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:

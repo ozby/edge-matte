@@ -43,6 +43,6 @@ jobs:
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
       release_version: ${{ inputs.release_version }}
-      runner: ubuntu-latest
+      runner: ubicloud-standard-2
     secrets:
       ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
