@@ -76,7 +76,7 @@ jobs:
   preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@4ba75c74138e4bbfa2b72189e6f0a3dd05fef7a9
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
@@ -110,7 +110,7 @@ jobs:
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@4ba75c74138e4bbfa2b72189e6f0a3dd05fef7a9
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy

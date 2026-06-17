@@ -50,7 +50,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
   {
     label: "shared reusable production workflow",
-    pattern: /uses:\s*webpresso\/agent-kit\/.github\/workflows\/cloudflare-production\.yml@/u,
+    pattern: /uses:\s*webpresso\/github-actions\/.github\/workflows\/cloudflare-production\.yml@/u,
   },
   {
     label: "deploy contract verify",

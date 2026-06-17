@@ -14,7 +14,7 @@ test("preview workflow delegates to the shared reusable preview shell while pres
   assert.match(
     workflow,
     new RegExp(
-      String.raw`uses: webpresso/agent-kit/.github/workflows/cloudflare-preview.yml@[0-9a-f]{40}`,
+      String.raw`uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@[0-9a-f]{40}`,
       "u",
     ),
   );
@@ -37,7 +37,7 @@ test("production workflow delegates to the shared reusable production shell whil
   assert.match(
     workflow,
     new RegExp(
-      String.raw`uses: webpresso/agent-kit/.github/workflows/cloudflare-production.yml@[0-9a-f]{40}`,
+      String.raw`uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@[0-9a-f]{40}`,
       "u",
     ),
   );
