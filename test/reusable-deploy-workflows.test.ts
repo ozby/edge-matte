@@ -85,6 +85,13 @@ test("production workflow stays manual-only while release.yml delegates Changese
     releaseWorkflow,
     /release_version: \$\{\{ needs\.release\.outputs\.release_version \}\}/u,
   );
+  assert.match(
+    releaseWorkflow,
+    /permissions:/u,
+    "release.yml must declare top-level permissions so the changesets reusable workflow receives contents:write and pull-requests:write (repo default is read-only)",
+  );
+  assert.match(releaseWorkflow, /contents:\s*write/u);
+  assert.match(releaseWorkflow, /pull-requests:\s*write/u);
 });
 
 test("CI workflow exposes wp-check as the branch-protection-facing quality gate", () => {
