@@ -35,7 +35,7 @@ Architecture docs:
   [api.ts](../../apps/client/src/api.ts),
   [app.ts](../../apps/client/src/app.ts)
 - The static SPA has no Worker-served public security-config surface for a
-  Turnstile site key; current production builds happen before Doppler injection:
+  Turnstile site key; current production builds happen before secret-provider injection:
   [deploy-production.yml](../../.github/workflows/deploy-production.yml),
   [app.ts](../../apps/client/src/app.ts)
 - Production deploy smoke, local deploy smoke, and both production E2E suites
@@ -60,7 +60,7 @@ Architecture docs:
   hardening.
 - The Worker exposes a minimal non-secret public security-config contract for
   the SPA (for example, the Turnstile site key and expected action name); the
-  Turnstile secret key remains only in Cloudflare/Doppler-managed secret stores.
+  Turnstile secret key remains only in Cloudflare/secret-provider-managed secret stores.
 - `POST /api/jobs` requires Turnstile Siteverify with hostname/action checks
   before processing.
 - WAF/rate-limit controls and abuse-response runbooks sit in front of the
@@ -101,7 +101,7 @@ Refined on **2026-05-30** against the current repo state:
 | --- | -------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | F1  | HIGH     | Access can be enabled without changing verification paths | Current deploy workflow, local deploy smoke, `production-smoke`, and `production-journey` all hit protected routes without auth headers | Add a shared Access machine-auth contract across workflow, local deploy smoke, and production E2E before enforcing Access          |
 | F2  | HIGH     | Turnstile validation is only a Worker concern             | Current SPA only uploads a file; it never renders a challenge or sends a token, and the Worker never verifies one                       | Add both client challenge/token plumbing and server-side Siteverify enforcement                                                    |
-| F3  | HIGH     | The SPA can get a site key “later” from secrets injection | Client assets are built before Doppler injection in deploy CI and the repo forbids `.env*` secret files                                 | Add a Worker-owned public config surface (non-secret only) instead of relying on late build-time secret injection                  |
+| F3  | HIGH     | The SPA can get a site key “later” from secrets injection | Client assets are built before secret-provider injection in deploy CI and the repo forbids `.env*` secret files                         | Add a Worker-owned public config surface (non-secret only) instead of relying on late build-time secret injection                  |
 | F4  | MEDIUM   | Security env contract belongs in `wrangler.toml`          | Repo policy keeps secret values only in platform stores; docs currently state “No Worker secrets required”                              | Document new security secret names/ownership in docs and runtime checks; limit `wrangler.toml` changes to non-secret vars/bindings |
 | F5  | MEDIUM   | `/health` and `/` policy can stay implicit under Access   | Release docs, shell smoke, and manual verification currently assume bare curls to both paths                                            | Define an explicit health/shell policy matrix and test it in docs, smoke scripts, and production suites                            |
 | F6  | LOW      | Generic verification steps are good enough                | Repo already has pinned-workflow policy, direct architecture-drift audit usage, and production-journey coverage                         | Preserve those exact rails in task steps and final verification commands instead of reverting to stale generic checks              |
@@ -111,7 +111,7 @@ Refined on **2026-05-30** against the current repo state:
 | ID  | Decision                                                                                                     | Why                                                                                                                                          |
 | --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | D1  | Use Cloudflare Access service tokens for automation via `CF-Access-Client-Id` / `CF-Access-Client-Secret`    | Matches Cloudflare’s documented machine-auth path and fits both CI and local smoke verification                                              |
-| D2  | Expose the Turnstile site key through a Worker-owned public config contract, not build-time secret injection | The SPA is static, builds before Doppler injection, and the repo forbids secret-on-disk workflows                                            |
+| D2  | Expose the Turnstile site key through a Worker-owned public config contract, not build-time secret injection | The SPA is static, builds before secret-provider injection, and the repo forbids secret-on-disk workflows                                    |
 | D3  | Keep one Worker + static assets topology                                                                     | Current architecture already applies security headers and `run_worker_first`; security should harden this surface, not add a second app tier |
 | D4  | Preserve production-only real-transform verification                                                         | `production-journey` is the only suite that proves live background removal + flip; Access must authenticate it, not remove or localize it    |
 

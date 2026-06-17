@@ -52,7 +52,7 @@ Treat these as lane boundaries if multiple agents work in parallel:
 | Workspace tooling churn | `package.json`, `tsconfig.json`, `oxlint.config.ts`, `pnpm-lock.yaml`, `apps/*/{package.json,tsconfig.json,vitest.config.ts}`, `infra/{package.json,tsconfig.json}` | Current uncommitted toolchain alignment work; do not bake stale pre-change assumptions into repo adoption |
 | Agent-kit contract      | `@webpresso/agent-kit` templates / audits / workflow docs (external upstream)                                                                                       | Allowed ownership surface                                                                                 |
 | Cloudflare infra pkg    | `wrangler-sync` seed repo or successor private package (external upstream)                                                                                          | Private provider-specific plumbing; **not** part of agent-kit                                             |
-| IngestLens alignment    | `ingest-lens` deploy plumbing, preview lifecycle, Doppler config hierarchy (external upstream)                                                                      | Reference repo; do not assume same app topology as EdgeMatte                                              |
+| IngestLens alignment    | `ingest-lens` deploy plumbing, preview lifecycle, secret-provider config hierarchy (external upstream)                                                              | Reference repo; do not assume same app topology as EdgeMatte                                              |
 | Excluded external code  | gstack / OMX / Claude skill repos                                                                                                                                   | Out of scope even if adjacent bugs are discovered                                                         |
 
 ## Architecture governance
@@ -607,11 +607,11 @@ on top of packaged hook infrastructure
   preflight
 - `scripts/wait-for-http.sh` — small generic helper, but not clearly owned by
   `agent-kit`
-- `scripts/check-no-dev-vars.ts` — narrow repo-policy helper
+- `wp audit no-dev-vars` — narrow repo-policy helper
 
 ### Best next extraction candidates
 
-- `scripts/audit-secret-provider-quarantine.ts`
+- `wp audit secret-provider-quarantine`
 - `scripts/verify-secrets-policy.ts`
 - `scripts/sync-webpresso-config.ts`
 
@@ -691,13 +691,13 @@ dead code by this blueprint.
 
 ## Technology Choices
 
-| Component                 | Technology                                                                      | Version                                                                | Why                                                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Shared contract           | `@webpresso/agent-kit`                                                          | workspace catalog pin; CI currently installs `0.21.3`                  | Already owns repo contracts, templates, rules, and audits                                                |
-| Shared quality rail       | `vite-plus` / `vp`                                                              | workspace dependency; CI currently installs `0.1.22`                   | Current repo release/test/format/check workflow already delegates through this lane                      |
-| Shared deploy plumbing    | `wrangler-sync` expansion into a private Cloudflare/Pulumi package              | external upstream seed; exact successor version not repo-verified here | Existing reusable sync/render primitive is the right abstraction boundary for provider-specific plumbing |
-| Preview/prod deploy model | Cloudflare Workers Wrangler environments + custom domains                       | current official docs                                                  | Exact cross-repo mechanism that works with Durable Object consumers                                      |
-| Secret hierarchy          | Doppler config inheritance (`preview`, `preview_main`, `preview_pr_<n>`, `prd`) | repo docs + stronger existing multi-repo reference                     | Matches the stronger preview-model reference without forcing identical topology                          |
+| Component                 | Technology                                                                                             | Version                                                                | Why                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Shared contract           | `@webpresso/agent-kit`                                                                                 | workspace catalog pin; CI currently installs `0.21.3`                  | Already owns repo contracts, templates, rules, and audits                                                |
+| Shared quality rail       | `vite-plus` / `vp`                                                                                     | workspace dependency; CI currently installs `0.1.22`                   | Current repo release/test/format/check workflow already delegates through this lane                      |
+| Shared deploy plumbing    | `wrangler-sync` expansion into a private Cloudflare/Pulumi package                                     | external upstream seed; exact successor version not repo-verified here | Existing reusable sync/render primitive is the right abstraction boundary for provider-specific plumbing |
+| Preview/prod deploy model | Cloudflare Workers Wrangler environments + custom domains                                              | current official docs                                                  | Exact cross-repo mechanism that works with Durable Object consumers                                      |
+| Secret hierarchy          | the configured secret provider config inheritance (`preview`, `preview_main`, `preview_pr_<n>`, `prd`) | repo docs + stronger existing multi-repo reference                     | Matches the stronger preview-model reference without forcing identical topology                          |
 
 ## Refinement Summary
 

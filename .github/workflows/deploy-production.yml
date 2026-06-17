@@ -14,9 +14,9 @@ concurrency:
 
 jobs:
   deploy:
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
     with:
-      install_command: vp install --frozen-lockfile
+      install_command: pnpm install --frozen-lockfile
       verify_command: |
         pnpm run verify:secrets
         pnpm run verify:paths

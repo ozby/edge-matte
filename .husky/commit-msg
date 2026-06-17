@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 set -eu
 # Global wp (agent-kit CLI) — no repo-local @webpresso/agent-kit dependency.
-wp audit commit-message --message-file "$1"
+wp audit commit-message --require-lore --message-file "$1"
