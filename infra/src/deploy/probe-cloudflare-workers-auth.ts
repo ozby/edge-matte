@@ -62,7 +62,7 @@ export async function probeWorkersServiceAuth(input: {
         `Token cannot access account ${accountId} (HTTP ${response.status}: ${message}).`,
         "CLOUDFLARE_API_TOKEN must be created for the same Cloudflare account as CLOUDFLARE_ACCOUNT_ID.",
         "ozby-shell/prd currently pairs ozby account id e93986039… with a token scoped to a different account when misconfigured.",
-        "Create an Account API token on the ozby account with Workers Scripts Edit + Workers Routes Edit, update Doppler, re-run deploy.",
+        "Create an Account API token on the ozby account with Workers Scripts Edit + Workers Routes Edit, update the configured secret provider, re-run deploy.",
       ].join(" "),
     };
   }

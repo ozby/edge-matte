@@ -11,10 +11,10 @@ env:
   # surfaced by actions/checkout@v4, actions/setup-node@v4, and
   # pnpm/action-setup@v4 internally running on Node 20).
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
 
 jobs:
-  check:
+  wp-check:
+    name: wp-check
     runs-on: ubuntu-latest
     # Baseline CI keeps only stable shared quality gates here; blueprint-lifecycle
     # drift and mutation coverage remain lane-owned follow-up work outside this PR gate.
@@ -127,6 +127,4 @@ jobs:
         with:
           bun-version: latest
       - run: vp install --frozen-lockfile
-      - run: wp test --affected
-        env:
-          GITHUB_BASE_REF: main
+      - run: wp test --mutation

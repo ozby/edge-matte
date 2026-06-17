@@ -31,8 +31,28 @@ test("preview workflow delegates to the shared reusable preview shell while pres
   );
 });
 
-test("production workflow delegates to the shared reusable production shell while preserving release gating and post-deploy checks", () => {
+test("package scripts and changeset config expose the shared release surface", () => {
+  const pkg = JSON.parse(readRepoFile("package.json")) as {
+    version: string;
+    scripts: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
+
+  assert.equal(pkg.version, "0.1.1");
+  assert.equal(pkg.scripts["changeset"], "changeset");
+  assert.equal(pkg.scripts["changeset:status"], "changeset status");
+  assert.equal(
+    pkg.scripts["version"],
+    "changeset version && bun scripts/sync-release-metadata-version.ts",
+  );
+  assert.equal(pkg.scripts["release:publish"], "bun scripts/release-publish.ts");
+  assert.ok(pkg.devDependencies?.["@changesets/cli"]);
+  assert.match(readRepoFile(".changeset/config.json"), /"privatePackages"/u);
+});
+
+test("production workflow stays manual-only while release.yml delegates Changesets and deploy finalization through the shared reusable shells", () => {
   const workflow = readRepoFile(".github/workflows/deploy-production.yml");
+  const releaseWorkflow = readRepoFile(".github/workflows/release.yml");
 
   assert.match(
     workflow,
@@ -41,27 +61,62 @@ test("production workflow delegates to the shared reusable production shell whil
       "u",
     ),
   );
-  assert.match(workflow, /tags:\s*\["v\*"\]/u);
+  assert.doesNotMatch(workflow, /tags:\s*\["v\*"\]/u);
+  assert.match(workflow, /workflow_dispatch:/u);
   assert.match(workflow, /release_version:/u);
-  assert.match(workflow, /vp run verify:deploy-contract|pnpm run verify:deploy-contract/u);
+
   assert.match(
-    workflow,
-    /vp run e2e -- --suite upload-delete-contract|pnpm run e2e -- --suite upload-delete-contract/u,
+    releaseWorkflow,
+    new RegExp(
+      String.raw`uses: webpresso/github-actions/.github/workflows/changesets-release.yml@[0-9a-f]{40}`,
+      "u",
+    ),
+  );
+  assert.match(releaseWorkflow, /version_command: pnpm run version/u);
+  assert.match(releaseWorkflow, /publish_command: pnpm run release:publish/u);
+  assert.match(
+    releaseWorkflow,
+    new RegExp(
+      String.raw`uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@[0-9a-f]{40}`,
+      "u",
+    ),
+  );
+  // GitHub Actions cannot pass reusable-workflow outputs directly into a second
+  // reusable-workflow call's `with:` / `if:`. The `gate` job bridges the two.
+  assert.match(releaseWorkflow, /\bgate:/u);
+  assert.match(
+    releaseWorkflow,
+    /should_deploy: \$\{\{ needs\.release\.outputs\.should_deploy \}\}/u,
   );
   assert.match(
-    workflow,
-    /bash infra\/src\/deploy\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/health" 24 5/u,
+    releaseWorkflow,
+    /release_version: \$\{\{ needs\.gate\.outputs\.release_version \}\}/u,
   );
   assert.match(
-    workflow,
-    /bash infra\/src\/deploy\/wait-for-http\.sh "https:\/\/edge-matte\.ozby\.dev\/" 12 5/u,
+    releaseWorkflow,
+    /permissions:/u,
+    "release.yml must declare top-level permissions so the changesets reusable workflow receives contents:write and pull-requests:write (repo default is read-only)",
   );
+  assert.match(releaseWorkflow, /contents:\s*write/u);
+  assert.match(releaseWorkflow, /pull-requests:\s*write/u);
   assert.match(
-    workflow,
-    /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke|E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke/u,
+    releaseWorkflow,
+    /packages:\s*read/u,
+    "release.yml must grant packages:read so cloudflare-production.yml job (which sets packages:read) does not exceed the caller's explicit permissions block",
   );
-  assert.match(
-    workflow,
-    /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey|E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey/u,
-  );
+});
+
+test("CI workflow exposes wp-check as the branch-protection-facing quality gate", () => {
+  const workflow = readRepoFile(".github/workflows/ci.yml");
+
+  assert.match(workflow, /\n  wp-check:\n/u);
+  assert.match(workflow, /name:\s*wp-check/u);
+  assert.doesNotMatch(workflow, /\n  check:\n/u);
+});
+
+test("CI mutation lane uses the supported repo-owned mutation script", () => {
+  const workflow = readRepoFile(".github/workflows/ci.yml");
+
+  assert.match(workflow, /wp test --mutation/u);
+  assert.doesNotMatch(workflow, /wp test --affected/u);
 });

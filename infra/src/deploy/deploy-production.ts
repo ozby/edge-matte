@@ -3,7 +3,7 @@
  * Operator-local production deploy (ingest-lens pattern).
  *
  * Loads Cloudflare deploy credentials from the repo-selected secret manager
- * (configure once: `wp config secrets set doppler ozby-shell`) via `with-secrets`,
+ * via `with-secrets`,
  * then runs `wrangler deploy --env production`. This intentionally fails before
  * deploying unless infra/release-metadata.production.json carries release
  * metadata for a versioned production release.
@@ -48,7 +48,7 @@ function requireCommand(name: string) {
     console.error(
       "Run `vp install` (or your repo install command) so the repo-local `with-secrets` binary is available.",
     );
-    console.error("Configure infra credentials: wp config secrets set doppler ozby-shell");
+    console.error("Configure infra credentials through the canonical `wp config secrets` surface.");
     process.exit(1);
   }
 }
@@ -71,7 +71,7 @@ if (!skipBuild) {
 console.log("\n▶ Verifying shared deploy contract…\n");
 run("pnpm", ["run", "verify:deploy-contract"]);
 
-console.log("\n▶ Deploying Worker to production via with-secrets (ozby-shell)…\n");
+console.log("\n▶ Deploying Worker to production via the configured secret-provider wrapper…\n");
 runWithSecrets("pnpm", [
   "--filter",
   "@edge-matte/worker",

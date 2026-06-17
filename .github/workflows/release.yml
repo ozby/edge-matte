@@ -1,19 +1,43 @@
-name: Deploy production
+name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_version:
-        description: "Semver release version already committed in infra/release-metadata.production.json"
-        required: true
-        type: string
+  push:
+    branches: [main]
 
 concurrency:
-  group: edge-matte-production-deploy
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
 
 jobs:
+  release:
+    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
+    with:
+      install_command: pnpm install --frozen-lockfile
+      version_command: pnpm run version
+      publish_command: pnpm run release:publish
+      runner: ubuntu-latest
+
+  # GitHub Actions does not support referencing a reusable-workflow job's
+  # outputs directly in a second reusable-workflow job's `with:` or `if:`.
+  # This thin bridge job passes the outputs through a regular job so the
+  # deploy call below can consume them without triggering a startup_failure.
+  gate:
+    needs: release
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ needs.release.outputs.should_deploy }}
+      release_version: ${{ needs.release.outputs.release_version }}
+    steps:
+      - run: "true"
+
   deploy:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_deploy == 'true' }}
     uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
     with:
       install_command: pnpm install --frozen-lockfile
@@ -42,7 +66,7 @@ jobs:
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
-      release_version: ${{ inputs.release_version }}
+      release_version: ${{ needs.gate.outputs.release_version }}
       runner: ubuntu-latest
     secrets:
-      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

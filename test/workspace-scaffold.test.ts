@@ -82,10 +82,14 @@ test("webpresso.config.ts re-exports the repo config on the canonical upstream s
 test("scaffolded hooks use global wp binaries and vp-first recovery guidance", () => {
   const setupAction = readText(".github/actions/setup-webpresso/action.yml");
 
-  assert.match(setupAction, /Install vite-plus and @webpresso\/agent-kit globally/u);
+  assert.match(
+    setupAction,
+    /Install shared Webpresso CLIs needed by the base-kit workflow surface/u,
+  );
   assert.match(setupAction, /npm install -g/u);
   assert.match(setupAction, /@webpresso\/agent-kit/u);
   assert.match(setupAction, /vite-plus/u);
+  assert.match(setupAction, /resolve-webpresso-cli-versions\.js/u);
 });
 
 test("apps/e2e exposes smoke suite manifest wiring", () => {

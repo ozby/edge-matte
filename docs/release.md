@@ -23,15 +23,15 @@ Infrastructure deployment Mermaid chart:
 EdgeMatte follows the IngestLens boundary: **Pulumi owns durable Cloudflare
 resources; Wrangler owns Worker-scoped deployment.**
 
-| Surface                       | Owner                                                  | What it manages                                                       |
-| ----------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                                | Bucket creation, lifecycle cleanup rules, optional CORS               |
-| Worker runtime                | **Wrangler** (`apps/workers/wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars      |
-| Static SPA shell              | **Wrangler** (`apps/workers/wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                        |
-| R2 runtime binding            | **Wrangler**                                           | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)       |
-| Images transform binding      | **Wrangler**                                           | `IMAGES` binding for horizontal flip via Cloudflare Images            |
-| Deploy credentials            | **Doppler `ozby-shell`**                               | CI via `DOPPLER_SERVICE_TOKEN`; local via `with-secrets`              |
-| Local/dev secret injection    | **Doppler (or selected manager)**                      | `wp config secrets set doppler ozby-shell`; never `.dev.vars` on disk |
+| Surface                       | Owner                                                  | What it manages                                                  |
+| ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
+| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                                | Bucket creation, lifecycle cleanup rules, optional CORS          |
+| Worker runtime                | **Wrangler** (`apps/workers/wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars |
+| Static SPA shell              | **Wrangler** (`apps/workers/wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                   |
+| R2 runtime binding            | **Wrangler**                                           | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)  |
+| Images transform binding      | **Wrangler**                                           | `IMAGES` binding for horizontal flip via Cloudflare Images       |
+| Deploy credentials            | **Configured Webpresso secret provider**               | CI via `CI_SECRET_PROVIDER_TOKEN`; local via `with-secrets`      |
+| Local/dev secret injection    | **Webpresso secret-provider contract**                 | `wp config secrets ...`; never `.dev.vars` on disk               |
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
@@ -108,7 +108,7 @@ smoke, local operator checks, and production-only E2E do not regress.
   then send them as `CF-Access-Client-Id` / `CF-Access-Client-Secret`
   headers.
 - **Secret storage**: Access service-token values follow the repo secret
-  policy — values live in Doppler/Cloudflare only, never in `.env*`,
+  policy — values live in the configured secret provider/Cloudflare only, never in `.env*`,
   `.dev.vars*`, or repo-tracked files.
 - **Current workflow reality**: until the Access rollout is actually enabled,
   the existing bare `/health` smoke remains valid. At cutover, update the
@@ -185,7 +185,7 @@ vp install --frozen-lockfile
 
 # Agent surfaces + policy (no secrets written to disk)
 wp setup
-wp config secrets show   # should report ozby-shell after vp install
+wp config secrets show   # should report the shared secret-provider selection after vp install
 
 # Quality gates (same surface CI uses)
 vp run verify:secrets
@@ -211,7 +211,7 @@ One-time platform setup (before first production deploy):
 
 1. **Pulumi** — provision R2 bucket and lifecycle rules ([`infra/README.md`](../infra/README.md);
    blueprint `2026-05-27-edge-matte-infra-and-release`).
-2. **GitHub Actions** — add `DOPPLER_SERVICE_TOKEN` scoped to `ozby-shell`
+2. **GitHub Actions** — add `CI_SECRET_PROVIDER_TOKEN`
    (see [secrets](./secrets.md#github-actions-bootstrap)). Do not add raw
    `CLOUDFLARE_API_TOKEN` as GitHub repository secrets.
 3. **Images binding** — ensure `IMAGES` is bound in production Wrangler config
@@ -235,14 +235,14 @@ separate preview Worker name with `workers_dev = false`, attach the matching
 custom-domain route (`preview-main.edge-matte.ozby.dev` or
 `preview-pr-<n>.edge-matte.ozby.dev`), and never deploy `env.production`.
 
-Operator-local production deploy (mirrors ingest-lens `deploy.ts` + Doppler):
+Operator-local production deploy (mirrors the shared secret-provider deploy contract):
 
 ```bash
 vp run deploy:production
 ```
 
 This builds the workspace, runs `with-secrets -- wrangler deploy --env production`
-(loading `CLOUDFLARE_*` from `ozby-shell`), then verifies `/health` and runs
+(loading `CLOUDFLARE_*` from the configured secret-provider selection), then verifies `/health` and runs
 both post-deploy production suites: `production-smoke` and
 `production-journey`.
 Before deploy, it also runs `vp run verify:deploy-contract`, which verifies the
@@ -303,23 +303,22 @@ Implemented in [`.github/workflows/deploy-preview.yml`](../.github/workflows/dep
 
 ### Production release deploy
 
-Implemented in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
+Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.yml) with a manual fallback in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
 
-1. Trigger only from a `v*` tag or manual `workflow_dispatch` with an explicit
-   `release_version`; ordinary `main` pushes go to preview only.
-2. Run quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test)
-3. Run `vp run verify:deploy-contract` so production release metadata is
-   present, contains a semver `releaseVersion`, and is valid before any deploy
-4. Run the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`)
-5. Inject `CLOUDFLARE_*` from Doppler via `dopplerhq/secrets-fetch-action`
-6. Deploy with `vp exec --filter @edge-matte/worker -- wrangler deploy --env production`
-7. **Serialize deploys** — concurrency group `edge-matte-production-deploy`
-   (`cancel-in-progress: false`)
-8. **Post-deploy production evidence** — after deploy succeeds:
-   - `GET https://edge-matte.ozby.dev/health`
-   - `GET https://edge-matte.ozby.dev/`
-   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
-   - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
+1. Feature branches merge a `.changeset/*.md` file to `main`; the shared Changesets release harness opens or updates the **Version Packages** PR automatically.
+2. When the Version Packages PR merges, CI runs `pnpm run version` and `pnpm run release:publish`, then forwards the resolved `release_version` into the shared production deploy harness.
+3. The production deploy path runs quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test).
+4. CI runs `pnpm run verify:deploy-contract` so production release metadata is present, contains a semver `releaseVersion`, and is valid before any deploy.
+5. CI runs the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`).
+6. The CI secret-provider bridge injects `CLOUDFLARE_*` for the deploy job.
+7. The worker deploy still uses `wrangler deploy --env production`, but release orchestration no longer depends on a manually pushed `v*` tag.
+8. **Serialize deploys** — concurrency group `edge-matte-production-deploy` (`cancel-in-progress: false`).
+9. Public CI and deploy orchestration runs on `ubuntu-latest`.
+10. **Post-deploy production evidence** — after deploy succeeds:
+    - `GET https://edge-matte.ozby.dev/health`
+    - `GET https://edge-matte.ozby.dev/`
+    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
+    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
 
 Today those probes are bare requests. Once Cloudflare Access is enabled for
 private beta, the same checks must send `CF-Access-Client-Id` /
@@ -370,7 +369,7 @@ Use before merging infra/release changes or after cutover:
 - [ ] PR CI includes dry-run deploy
 - [ ] PR CI includes hermetic e2e gate (`upload-delete-contract`, `smoke`, `upload-delete`)
 - [ ] Cloudflare Access policy matrix is defined before private-beta cutover
-- [ ] `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` are available to automation via Doppler, not repo files
+- [ ] `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` are available to automation via the configured secret provider, not repo files
 - [ ] `/api/jobs` abuse-control posture and `docs/runbooks/abuse-response.md` are current before private-beta cutover
 - [ ] `main` deploy uses concurrency serialization
 - [ ] Workflow `uses:` references stay pinned to full SHAs
