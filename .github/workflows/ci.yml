@@ -14,7 +14,8 @@ env:
   HAS_DOPPLER_TOKEN: ${{ (secrets.DOPPLER_SERVICE_TOKEN != '' || secrets.DOPPLER_TOKEN != '') && '1' || '' }}
 
 jobs:
-  check:
+  wp-check:
+    name: wp-check
     runs-on: ubicloud-standard-2
     # Baseline CI keeps only stable shared quality gates here; blueprint-lifecycle
     # drift and mutation coverage remain lane-owned follow-up work outside this PR gate.

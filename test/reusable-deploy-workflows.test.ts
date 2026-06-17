@@ -86,3 +86,11 @@ test("production workflow stays manual-only while release.yml delegates Changese
     /release_version: \$\{\{ needs\.release\.outputs\.release_version \}\}/u,
   );
 });
+
+test("CI workflow exposes wp-check as the branch-protection-facing quality gate", () => {
+  const workflow = readRepoFile(".github/workflows/ci.yml");
+
+  assert.match(workflow, /\n  wp-check:\n/u);
+  assert.match(workflow, /name:\s*wp-check/u);
+  assert.doesNotMatch(workflow, /\n  check:\n/u);
+});
