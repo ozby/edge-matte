@@ -44,7 +44,7 @@ export const PREVIEW_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
 
 /** Production deploy must serialize releases and verify smoke (IR-1 / blueprint tasks 6–7). */
 export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
-  { label: "release tag trigger", pattern: /tags:\s*\[[^\]]*v\*/u },
+  { label: "manual release dispatch", pattern: /workflow_dispatch:/u },
   { label: "manual release version input", pattern: /release_version/u },
   { label: "deploy concurrency", pattern: /concurrency:/u },
   { label: "frozen install", pattern: /vp install --frozen-lockfile/u },
