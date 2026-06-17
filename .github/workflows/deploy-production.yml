@@ -16,32 +16,35 @@ jobs:
   deploy:
     uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
     with:
-      install_command: pnpm install --frozen-lockfile
+      install_command: |
+        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
+        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        vp install --frozen-lockfile
       verify_command: |
-        pnpm run verify:secrets
-        pnpm run verify:paths
-        pnpm run audit:blueprint-links
-        pnpm run format:check
-        pnpm run check-types
-        pnpm run lint
-        pnpm run docs:check
-        pnpm run blueprints:check
-        pnpm exec wp audit architecture-drift --root .
-        pnpm run verify:deploy-contract
-        pnpm run build
-        pnpm run test
-        pnpm --filter @edge-matte/e2e exec playwright install --with-deps chromium
-        pnpm run e2e -- --suite upload-delete-contract
-        pnpm run e2e -- --suite smoke
-        pnpm run e2e -- --suite upload-delete
+        vp run verify:secrets
+        vp run verify:paths
+        vp run audit:blueprint-links
+        vp run format:check
+        vp run check-types
+        wp lint
+        wp audit docs-frontmatter
+        wp audit blueprint-lifecycle
+        wp audit architecture-drift --root .
+        vp run verify:deploy-contract
+        vp run build
+        vp run test
+        vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
+        vp run e2e -- --suite upload-delete-contract
+        vp run e2e -- --suite smoke
+        vp run e2e -- --suite upload-delete
         bash infra/src/deploy/verify-cloudflare-deploy-creds.sh
         if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; fi
       deploy_command: bun infra/src/deploy/deploy-production.ts --skip-smoke
       smoke_command: |
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/health" 24 5
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
-        E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-smoke
-        E2E_RUN_PRODUCTION=1 pnpm run e2e -- --suite production-journey
+        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ inputs.release_version }}
       runner: ubuntu-latest
     secrets:

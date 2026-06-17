@@ -25,7 +25,7 @@ test("root package.json keeps vp for recursive build and wp for quality lanes", 
     ["lint", "wp lint"],
     [
       "check-types",
-      "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && pnpm exec tsc -p tsconfig.json --noEmit",
+      "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && vp exec tsc -p tsconfig.json --noEmit",
     ],
     [
       "test",

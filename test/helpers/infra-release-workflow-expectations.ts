@@ -24,7 +24,7 @@ export const FULL_SHA_ACTION_REFERENCE_PATTERN = /^[^@\s]+@[0-9a-f]{40}$/u;
 export const PR_CI_REQUIRED_RUNS: WorkflowExpectation[] = [
   {
     label: "frozen install",
-    pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u,
+    pattern: /vp install --frozen-lockfile/u,
   },
   { label: "format check", pattern: /format:check|vp fmt --check/u },
   { label: "lint", pattern: /vp run lint/u },
@@ -52,7 +52,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "deploy concurrency", pattern: /concurrency:/u },
   {
     label: "frozen install",
-    pattern: /pnpm install --frozen-lockfile|vp install --frozen-lockfile/u,
+    pattern: /vp install --frozen-lockfile/u,
   },
   {
     label: "shared reusable production workflow",
@@ -60,7 +60,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   },
   {
     label: "deploy contract verify",
-    pattern: /vp run verify:deploy-contract|pnpm run verify:deploy-contract/u,
+    pattern: /vp run verify:deploy-contract|wp audit cloudflare-deploy-contract/u,
   },
   {
     label: "production release metadata gate",
@@ -74,7 +74,7 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   },
   {
     label: "verify paths policy",
-    pattern: /wp audit absolute-path-policy --root \.|pnpm run verify:paths/u,
+    pattern: /wp audit absolute-path-policy --root \.|vp run verify:paths/u,
   },
   { label: "architecture drift audit", pattern: /wp audit architecture-drift --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },

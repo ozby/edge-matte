@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 
 import packageJson from "../package.json" with { type: "json" };
 
+const FALLBACK_AGENT_KIT_VERSION = "^2.0.2";
+
 function readWorkspaceCatalogVersion(key) {
   const workspace = existsSync("pnpm-workspace.yaml")
     ? readFileSync("pnpm-workspace.yaml", "utf8")
@@ -23,12 +25,12 @@ function resolveCatalogAwareVersion(name) {
   return raw;
 }
 
-const agentKitVersion = resolveCatalogAwareVersion("@webpresso/agent-kit");
+const agentKitVersion =
+  readWorkspaceCatalogVersion("@webpresso/agent-kit") ||
+  resolveCatalogAwareVersion("@webpresso/agent-kit") ||
+  process.env.WP_SETUP_AGENT_KIT_VERSION ||
+  FALLBACK_AGENT_KIT_VERSION;
 const vitePlusVersion = resolveCatalogAwareVersion("vite-plus");
-
-if (!agentKitVersion) {
-  throw new Error("Unable to resolve @webpresso/agent-kit version for setup-webpresso.");
-}
 
 console.log(`AGENT_KIT_VERSION=${JSON.stringify(agentKitVersion)}`);
 console.log(`VITE_PLUS_VERSION=${JSON.stringify(vitePlusVersion)}`);

@@ -1,7 +1,7 @@
 name: Set up Webpresso tooling
 description: >
   Install shared Webpresso CLIs needed by the base-kit workflow surface.
-  Resolves catalog-aware pins from repo-owned metadata without brittle inline shell parsing.
+  Resolves the global wp CLI version from repo-owned catalog metadata without brittle inline shell parsing.
 runs:
   using: composite
   steps:

@@ -80,14 +80,17 @@ jobs:
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
-      install_command: pnpm install --frozen-lockfile
+      install_command: |
+        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
+        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        vp install --frozen-lockfile
       verify_command: |
-        pnpm run verify:secrets
-        pnpm run verify:paths
-        pnpm run format:check
-        pnpm run lint
-        pnpm run check-types
-        pnpm run build
+        vp run verify:secrets
+        vp run verify:paths
+        vp run format:check
+        vp run lint
+        vp run check-types
+        vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       runner: ubuntu-latest
     secrets:
@@ -118,7 +121,10 @@ jobs:
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
-      install_command: pnpm install --frozen-lockfile
+      install_command: |
+        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
+        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        vp install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy

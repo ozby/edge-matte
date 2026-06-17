@@ -59,10 +59,10 @@ test("root command surface keeps vp as substrate while routing quality work thro
     pkg.scripts.test,
     'vp run --filter @edge-matte/client test && vp run --filter @edge-matte/e2e test && vp run --filter @edge-matte/worker test && vp run --filter @edge-matte/infra test && node --test "test/**/*.test.ts"',
   );
-  assert.equal(pkg.scripts.typecheck, "pnpm run check-types");
+  assert.equal(pkg.scripts.typecheck, "vp run check-types");
   assert.equal(
     pkg.scripts["check-types"],
-    "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && pnpm exec tsc -p tsconfig.json --noEmit",
+    "vp run --filter @edge-matte/client check-types && vp run --filter @edge-matte/e2e check-types && vp run --filter @edge-matte/worker check-types && vp run --filter @edge-matte/infra check-types && vp exec tsc -p tsconfig.json --noEmit",
   );
   assert.equal(pkg.scripts.e2e, "wp e2e");
   assert.equal(pkg.scripts.mutation, "wp test --mutation");
@@ -78,9 +78,10 @@ test("root command surface keeps vp as substrate while routing quality work thro
   });
 });
 
-test("root package intentionally keeps @webpresso/agent-kit as the shared config dependency", () => {
+test("root package keeps agent-config only and does not install agent-kit directly", () => {
   const pkg = readJson("package.json");
-  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], "catalog:");
+  assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
+  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], undefined);
 });
 
 test("package-local quality scripts route through wp surfaces", () => {
