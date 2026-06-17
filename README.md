@@ -24,7 +24,9 @@ Live demo: **[edge-matte.ozby.dev](https://edge-matte.ozby.dev)** (private-beta 
 
 ## Quick start
 
-Requires Node `>=24` with `vp` (vite-plus). The repo's pinned `@webpresso/agent-kit` dependency provides `wp` after install, so bootstrap through the workspace itself:
+Requires Node `>=24` with global `wp` plus `vp` (vite-plus) on `PATH`. The
+workspace installs `@webpresso/agent-config` only; `wp` stays a shared global
+CLI surface:
 
 ```bash
 # Install workspace deps from the frozen lockfile

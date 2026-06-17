@@ -78,9 +78,10 @@ test("root command surface keeps vp as substrate while routing quality work thro
   });
 });
 
-test("root package intentionally keeps @webpresso/agent-kit as the shared config dependency", () => {
+test("root package keeps agent-config only and does not install agent-kit directly", () => {
   const pkg = readJson("package.json");
-  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], "catalog:");
+  assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
+  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], undefined);
 });
 
 test("package-local quality scripts route through wp surfaces", () => {
