@@ -53,33 +53,13 @@ function requireCommand(name: string) {
   }
 }
 
-function hasCommand(name: string) {
-  const result = spawnSync("command", ["-v", name], {
-    encoding: "utf8",
-    env: buildChildEnv(repoRoot, process.env),
-    shell: true,
-  });
-  return result.status === 0;
-}
-
-function hasInjectedDeployEnv(env: NodeJS.ProcessEnv = process.env) {
-  return Boolean(
-    env.CI && env.CLOUDFLARE_API_TOKEN && env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_ZONE_ID,
-  );
-}
+requireCommand("with-secrets");
 
 function runWithSecrets(
   command: string,
   commandArgs: string[],
   env: NodeJS.ProcessEnv = process.env,
 ) {
-  if (hasInjectedDeployEnv(env)) {
-    run(command, commandArgs, env);
-    return;
-  }
-  if (!hasCommand("with-secrets")) {
-    requireCommand("with-secrets");
-  }
   run("with-secrets", ["--", command, ...commandArgs], env);
 }
 
