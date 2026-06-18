@@ -98,11 +98,11 @@ jobs:
       # Explicit suites only — never the bare default, which would select
       # production-* because CI === "true".
       - name: Contract (HTTP) suite
-        run: vp run e2e -- --suite upload-delete-contract
+        run: pnpm --dir apps/e2e run e2e:run -- --suite upload-delete-contract
       - name: Smoke (HTTP) suite
-        run: vp run e2e -- --suite smoke
+        run: pnpm --dir apps/e2e run e2e:run -- --suite smoke
       - name: Browser (Playwright) journey
-        run: vp run e2e -- --suite upload-delete
+        run: pnpm --dir apps/e2e run e2e:run -- --suite upload-delete
 
       - name: Upload Playwright artifacts on failure
         if: failure()

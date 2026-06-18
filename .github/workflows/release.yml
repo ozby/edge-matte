@@ -61,9 +61,9 @@ jobs:
         vp run build
         vp run test
         vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
-        vp run e2e -- --suite upload-delete-contract
-        vp run e2e -- --suite smoke
-        vp run e2e -- --suite upload-delete
+        pnpm --dir apps/e2e run e2e:run -- --suite upload-delete-contract
+        pnpm --dir apps/e2e run e2e:run -- --suite smoke
+        pnpm --dir apps/e2e run e2e:run -- --suite upload-delete
         bash infra/src/deploy/verify-cloudflare-deploy-creds.sh
         if [[ -n "${CF_ACCESS_CLIENT_ID:-}" || -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; then [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; fi
       deploy_command: bun infra/src/deploy/deploy-production.ts --skip-smoke

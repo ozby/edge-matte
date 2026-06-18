@@ -97,13 +97,13 @@ runWithSecrets("bash", [
 runWithSecrets("bash", ["infra/src/deploy/wait-for-http.sh", `${PRODUCTION_URL}/`, "12", "5"]);
 
 console.log("\n▶ production-smoke e2e…\n");
-runWithSecrets("pnpm", ["e2e", "--", "--suite", "production-smoke"], {
+runWithSecrets("pnpm", ["--dir", "apps/e2e", "run", "e2e:run", "--", "--suite", "production-smoke"], {
   ...process.env,
   E2E_RUN_PRODUCTION: "1",
 });
 
 console.log("\n▶ production-journey e2e…\n");
-runWithSecrets("pnpm", ["e2e", "--", "--suite", "production-journey"], {
+runWithSecrets("pnpm", ["--dir", "apps/e2e", "run", "e2e:run", "--", "--suite", "production-journey"], {
   ...process.env,
   E2E_RUN_PRODUCTION: "1",
 });
