@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   release:
-    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
+    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@3f0136f88a488bc0894ab81ab3c8544b2e8dabf2
     with:
       install_command: |
         eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
@@ -41,7 +41,7 @@ jobs:
   deploy:
     needs: gate
     if: ${{ needs.gate.outputs.should_deploy == 'true' }}
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@5bbbe43e6f152b802bcce655a8dadeb661f908b5
     with:
       install_command: |
         eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
