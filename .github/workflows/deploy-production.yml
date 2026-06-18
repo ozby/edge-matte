@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy:
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@d4fbb7b4449ff74d349aec7506eac8d84d3fea25
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@11e2b313823763e5f8ced862d4a798d8070e3628
     with:
       install_command: |
         eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
