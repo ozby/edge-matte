@@ -70,8 +70,8 @@ jobs:
       smoke_command: |
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/health" 24 5
         bash infra/src/deploy/wait-for-http.sh "https://edge-matte.ozby.dev/" 12 5
-        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
-        E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+        E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+        E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ needs.gate.outputs.release_version }}
       runner: ubuntu-latest
     secrets:
