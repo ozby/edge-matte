@@ -1,6 +1,6 @@
 {
   "name": "edge-matte",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Cloudflare-native image matting reference app for upload, background removal, edge flip, R2 hosting, and capability-token deletion.",
   "keywords": [
