@@ -108,7 +108,11 @@ export const WAIT_FOR_HTTP_REQUIREMENTS: WorkflowExpectation[] = [
 
 export const LOCAL_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   {
-    label: "with-secrets deploy",
+    label: "skip with-secrets when CI already injected Cloudflare creds",
+    pattern: /env\.CI && env\.CLOUDFLARE_API_TOKEN && env\.CLOUDFLARE_ACCOUNT_ID && env\.CLOUDFLARE_ZONE_ID/u,
+  },
+  {
+    label: "with-secrets deploy fallback",
     pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/su,
   },
   {
