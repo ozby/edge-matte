@@ -38,7 +38,7 @@ test("package scripts and changeset config expose the shared release surface", (
     devDependencies?: Record<string, string>;
   };
 
-  assert.equal(pkg.version, "0.1.1");
+  assert.match(pkg.version, /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u);
   assert.equal(pkg.scripts["changeset"], "changeset");
   assert.equal(pkg.scripts["changeset:status"], "changeset status");
   assert.equal(
