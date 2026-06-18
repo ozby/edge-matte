@@ -120,4 +120,25 @@ test("CI mutation lane uses the supported repo-owned mutation script", () => {
 
   assert.match(workflow, /wp test --mutation/u);
   assert.doesNotMatch(workflow, /wp test --affected/u);
+  assert.match(workflow, /!startsWith\(github\.event\.head_commit\.message, 'Version Packages'\)/u);
+});
+
+test("version automation skips heavy preview, browser, and security lanes", () => {
+  const ciWorkflow = readRepoFile(".github/workflows/ci.yml");
+  const previewWorkflow = readRepoFile(".github/workflows/deploy-preview.yml");
+  const securityWorkflow = readRepoFile(".github/workflows/security-scan.yml");
+
+  assert.match(ciWorkflow, /github\.event\.pull_request\.head\.ref != 'changeset-release\/main'/u);
+  assert.match(
+    ciWorkflow,
+    /!startsWith\(github\.event\.head_commit\.message, 'Version Packages'\)/u,
+  );
+  assert.match(
+    previewWorkflow,
+    /github\.event\.pull_request\.head\.ref != 'changeset-release\/main'/u,
+  );
+  assert.match(
+    securityWorkflow,
+    /github\.event_name != 'pull_request' \|\| github\.event\.pull_request\.head\.ref != 'changeset-release\/main'/u,
+  );
 });
