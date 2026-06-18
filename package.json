@@ -75,6 +75,7 @@
     "@webpresso/agent-config": "catalog:",
     "husky": "^9.0.0",
     "secretlint": "^9.3.0",
+    "tsx": "^4.22.4",
     "typescript": "catalog:",
     "vite-plus": "^0.1.24",
     "vitest": "catalog:"
