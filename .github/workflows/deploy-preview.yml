@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
   workflow_dispatch:
     inputs:
       lane:
@@ -48,14 +48,10 @@ jobs:
             dashed_lane="preview-main"
             canonical_lane="preview_main"
             mode="deploy"
-          elif [[ "${EVENT_NAME}" == "pull_request" ]]; then
+          elif [[ "${EVENT_NAME}" == "pull_request" && "${EVENT_ACTION}" == "closed" ]]; then
             dashed_lane="preview-pr-${PR_NUMBER}"
             canonical_lane="preview_pr_${PR_NUMBER}"
-            if [[ "${EVENT_ACTION}" == "closed" ]]; then
-              mode="destroy"
-            else
-              mode="deploy"
-            fi
+            mode="destroy"
           else
             dashed_lane="${MANUAL_LANE}"
             mode="${MANUAL_MODE}"
@@ -77,13 +73,11 @@ jobs:
   preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
-      install_command: |
-        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
-        vp install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: |
         vp run verify:secrets
         vp run verify:paths
@@ -92,43 +86,21 @@ jobs:
         vp run check-types
         vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
-      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
 
-  deploy-preview:
-    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
-    needs:
-      - resolve
-      - preview-call
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "deploy-preview passed via shared reusable preview caller"
-
-  deploy-verify:
-    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
-    needs:
-      - resolve
-      - preview-call
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "deploy verification passed via shared reusable preview caller"
-
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
-      install_command: |
-        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
-        vp install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
-      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
