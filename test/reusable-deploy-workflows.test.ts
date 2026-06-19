@@ -102,8 +102,8 @@ test("production workflow stays manual-only while release.yml delegates Changese
   assert.match(releaseWorkflow, /pull-requests:\s*write/u);
   assert.match(
     releaseWorkflow,
-    /packages:\s*read/u,
-    "release.yml must grant packages:read so cloudflare-production.yml job (which sets packages:read) does not exceed the caller's explicit permissions block",
+    /packages:\s*write/u,
+    "release.yml must grant packages:write so the shared changesets release workflow can publish packages and the downstream deploy call inherits a sufficient caller permission ceiling",
   );
 });
 

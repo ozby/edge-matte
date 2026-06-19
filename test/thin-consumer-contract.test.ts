@@ -69,7 +69,10 @@ test("root command surface keeps vp as substrate while routing quality work thro
   assert.equal(pkg.scripts["docs:check"], "wp audit docs-frontmatter");
   assert.equal(pkg.scripts["blueprints:check"], "wp audit blueprint-lifecycle");
   assert.equal(pkg.scripts["verify:paths"], "wp audit absolute-path-policy --root .");
-  assert.equal(pkg.scripts["act:ci:e2e"], "with-secrets -- act -W .github/workflows/ci.yml -j e2e");
+  assert.equal(
+    pkg.scripts["act:ci:e2e"],
+    "wp ci act --workflow-path .github/workflows/ci.yml --job e2e --execute",
+  );
   assert.equal(config.guard?.packageManager, "vp-only");
   assert.deepEqual(config.guard?.scriptRoutes, {
     "verify:paths": "absolute-path-policy",
@@ -82,6 +85,10 @@ test("root package keeps agent-config only and does not install agent-kit direct
   const pkg = readJson("package.json");
   assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
   assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], undefined);
+  assert.doesNotMatch(
+    readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8"),
+    /"@webpresso\/agent-kit"/u,
+  );
 });
 
 test("package-local quality scripts route through wp surfaces", () => {

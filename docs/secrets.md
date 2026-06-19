@@ -10,9 +10,7 @@ last_updated: 2026-05-30
 
 EdgeMatte never stores provider or deploy credential **values** in the repository.
 Secret names, bootstrap paths, and ownership are documented here; values live in
-Cloudflare or the configured secret provider. GitHub Actions stores only the CI
-secret-provider **bootstrap token** (`CI_SECRET_PROVIDER_TOKEN`), not deploy or
-provider secret values.
+Cloudflare or the configured secret provider. GitHub Actions stores only the shared reusable-workflow token mappings plus repo-owned secret profiles, not deploy or provider secret values.
 
 Release context: [`docs/release.md`](./release.md).
 
@@ -50,8 +48,7 @@ Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-
 | App-local selection     | App-local secrets when populated                                            |
 | Shared infra selection  | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
-**Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points
-at the repo-selected shared infra secret selection (committed **metadata only**). On `vp install`, the repo
+**Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points at the per-app `edge-matte` project inside the separate ozby Doppler workplace (committed **metadata only**). On `vp install`, the repo
 applies that default through the canonical **`wp config secrets set`** surface
 (seed-only — it does not overwrite an existing local selection). Command
 execution still goes through **`with-secrets -- <cmd>`**, which reads the
@@ -131,14 +128,14 @@ No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudf
 
 ## GitHub Actions bootstrap
 
-Deploy and dry-run CI inject credentials through the **configured CI secret-provider bridge** — secret values
-never land in repo files. GitHub stores a single bootstrap token:
+Deploy and dry-run CI use the shared reusable workflow contract from
+`webpresso/github-actions` — secret values never land in repo files. Callers pass:
 
-1. Create a **service/bootstrap token** for the configured CI secret-provider bridge.
-2. Add it as a GitHub repository secret: `CI_SECRET_PROVIDER_TOKEN`.
+1. callers map `ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}` and pass the repo-owned `secret_profile` (`preview` or `deploy`)
 
-Workflows run the repo’s CI secret-provider bridge, inject env vars for the job
-only, then `wrangler deploy`. Do **not** add raw `CLOUDFLARE_API_TOKEN` as a GitHub repository secret.
+The shared workflow validates the committed profile name and uses the mapped
+Doppler config token to inject runtime secrets. Do **not** inline raw token
+exports or `DOPPLER_SERVICE_TOKEN` environment wiring inside workflow steps.
 
 The workflow files that consume this action are intentionally pinned to full
 40-character commit SHAs, and workflow-path review ownership lives in
@@ -229,7 +226,7 @@ See [README.md](../README.md) for the full local verification surface and
 | ------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `CLOUDFLARE_API_TOKEN`    | Rotate in Cloudflare dashboard, update the shared secret-provider selection, re-run deploy            |
 | `CF_ACCESS_CLIENT_SECRET` | Rotate the Cloudflare Access service token, update the shared secret-provider selection, re-run smoke |
-| CI secret-provider token  | Rotate in the configured provider, update `CI_SECRET_PROVIDER_TOKEN` in GitHub                        |
+| CI Doppler config tokens  | Rotate the preview / production config tokens in Doppler and update the matching GitHub secrets       |
 
 ## Related
 

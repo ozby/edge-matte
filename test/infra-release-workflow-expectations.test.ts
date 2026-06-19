@@ -120,6 +120,11 @@ test("preview deploy workflow deploys main and PR previews with PR cleanup", () 
     /wrangler deploy[^\n]*--env production/u,
     `${PREVIEW_DEPLOY_WORKFLOW} must not deploy the production Wrangler env`,
   );
+  assert.match(
+    workflow.contents,
+    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+    `${PREVIEW_DEPLOY_WORKFLOW} must pass the preview Doppler config token into the shared caller contract`,
+  );
 });
 
 test("production deploy workflow serializes deploys and runs smoke verification", () => {
@@ -132,6 +137,11 @@ test("production deploy workflow serializes deploys and runs smoke verification"
     workflow.contents,
     /branches:\s*\[[^\]]*main/u,
     `${PRODUCTION_DEPLOY_WORKFLOW} must not deploy production on ordinary main pushes`,
+  );
+  assert.match(
+    workflow.contents,
+    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+    `${PRODUCTION_DEPLOY_WORKFLOW} must pass the production Doppler config token into the shared caller contract`,
   );
 });
 

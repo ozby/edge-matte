@@ -3,6 +3,7 @@
   "installed": {
     "tier3Skills": ["base-kit"]
   },
+  "integrations": {},
   "hosts": {
     "selected": ["codex", "claude", "opencode"],
     "requiredCapabilities": [
@@ -67,5 +68,11 @@
     "overrides": []
   },
   "scripts": {},
+  "generatedCleanup": {
+    "removePaths": [
+      ".github/actions/setup-webpresso/action.yml",
+      "scripts/resolve-webpresso-cli-versions.js"
+    ]
+  },
   "durablePlanningRoot": ".agent/planning/"
 }

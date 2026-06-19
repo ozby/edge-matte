@@ -3,7 +3,7 @@ export const SECRETS_CONFIG_PATH = ".webpresso/secrets.config.json";
 export const SECRET_VALUE_PATTERN =
   /(?:^|[\s"'`=:])(?:(?:sk|pk)(?=[-_0-9])|ghp|gho|ghu|ghs|ghr|dp\.st|napi_|pplx-|ctx7sk-)[-_a-zA-Z0-9./+=]{8,}/u;
 
-const ALLOWED_CONFIG_KEYS = new Set(["manager", "projectId", "projectLabel"]);
+const ALLOWED_CONFIG_KEYS = new Set(["manager", "projectId", "projectLabel", "profiles"]);
 const FORBIDDEN_CONFIG_KEY =
   /(?:^|_)(?:token|secret|password|api[_-]?key|credential|private[_-]?key)(?:$|_)/iu;
 const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,62}$/u;
@@ -27,6 +27,7 @@ export type SecretsConfigMetadata = {
   manager: "doppler" | "infisical";
   projectId: string;
   projectLabel?: string;
+  profiles?: Record<string, { environment: string }>;
 };
 
 function normalizePath(relativePath: string): string {
@@ -135,6 +136,39 @@ export function parseSecretsConfigMetadata(
       throw new Error(`${sourceLabel} projectLabel must not contain secret values`);
     }
     config.projectLabel = obj.projectLabel;
+  }
+  if (obj.profiles !== undefined) {
+    if (typeof obj.profiles !== "object" || obj.profiles === null || Array.isArray(obj.profiles)) {
+      throw new Error(`${sourceLabel}: "profiles" must be an object when set`);
+    }
+    const profiles: Record<string, { environment: string }> = {};
+    for (const [profileName, profileValue] of Object.entries(
+      obj.profiles as Record<string, unknown>,
+    )) {
+      if (FORBIDDEN_CONFIG_KEY.test(profileName)) {
+        throw new Error(`${sourceLabel}: profile name "${profileName}" looks like a secret name`);
+      }
+      if (
+        typeof profileValue !== "object" ||
+        profileValue === null ||
+        Array.isArray(profileValue)
+      ) {
+        throw new Error(`${sourceLabel}: profile "${profileName}" must be an object`);
+      }
+      const environment = (profileValue as Record<string, unknown>).environment;
+      if (typeof environment !== "string" || environment.length === 0) {
+        throw new Error(
+          `${sourceLabel}: profile "${profileName}" must set a non-empty environment`,
+        );
+      }
+      if (SECRET_VALUE_PATTERN.test(environment)) {
+        throw new Error(
+          `${sourceLabel}: profile "${profileName}" environment must not contain secret values`,
+        );
+      }
+      profiles[profileName] = { environment };
+    }
+    config.profiles = profiles;
   }
   return config;
 }

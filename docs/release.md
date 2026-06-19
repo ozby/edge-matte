@@ -23,15 +23,15 @@ Infrastructure deployment Mermaid chart:
 EdgeMatte follows the IngestLens boundary: **Pulumi owns durable Cloudflare
 resources; Wrangler owns Worker-scoped deployment.**
 
-| Surface                       | Owner                                                  | What it manages                                                  |
-| ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------- |
-| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                                | Bucket creation, lifecycle cleanup rules, optional CORS          |
-| Worker runtime                | **Wrangler** (`apps/workers/wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars |
-| Static SPA shell              | **Wrangler** (`apps/workers/wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                   |
-| R2 runtime binding            | **Wrangler**                                           | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)  |
-| Images transform binding      | **Wrangler**                                           | `IMAGES` binding for horizontal flip via Cloudflare Images       |
-| Deploy credentials            | **Configured Webpresso secret provider**               | CI via `CI_SECRET_PROVIDER_TOKEN`; local via `with-secrets`      |
-| Local/dev secret injection    | **Webpresso secret-provider contract**                 | `wp config secrets ...`; never `.dev.vars` on disk               |
+| Surface                       | Owner                                                  | What it manages                                                                 |
+| ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| R2 bucket `edge-matte-images` | **Pulumi** (`infra/**`)                                | Bucket creation, lifecycle cleanup rules, optional CORS                         |
+| Worker runtime                | **Wrangler** (`apps/workers/wrangler.toml`)            | Worker script, `env.production` route, bindings, non-secret vars                |
+| Static SPA shell              | **Wrangler** (`apps/workers/wrangler.toml` `[assets]`) | `apps/client/dist` served via `ASSETS` binding                                  |
+| R2 runtime binding            | **Wrangler**                                           | `IMAGES_BUCKET` → `edge-matte-images` (bucket must exist first)                 |
+| Images transform binding      | **Wrangler**                                           | `IMAGES` binding for horizontal flip via Cloudflare Images                      |
+| Deploy credentials            | **Configured Webpresso secret provider**               | CI via shared reusable workflow + config token secret; local via `with-secrets` |
+| Local/dev secret injection    | **Webpresso secret-provider contract**                 | `wp config secrets ...`; never `.dev.vars` on disk                              |
 
 Do not duplicate ownership: Pulumi must not deploy the Worker; Wrangler must not
 create the R2 bucket.
@@ -211,7 +211,7 @@ One-time platform setup (before first production deploy):
 
 1. **Pulumi** — provision R2 bucket and lifecycle rules ([`infra/README.md`](../infra/README.md);
    blueprint `2026-05-27-edge-matte-infra-and-release`).
-2. **GitHub Actions** — add `CI_SECRET_PROVIDER_TOKEN`
+2. **GitHub Actions** — add the shared `CI_SECRET_PROVIDER_TOKEN` repository secret, then keep callers on `secret_profile: preview|deploy`
    (see [secrets](./secrets.md#github-actions-bootstrap)). Do not add raw
    `CLOUDFLARE_API_TOKEN` as GitHub repository secrets.
 3. **Images binding** — ensure `IMAGES` is bound in production Wrangler config

@@ -77,13 +77,12 @@ jobs:
   preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@11e2b313823763e5f8ced862d4a798d8070e3628
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
       install_command: |
-        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
-        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
         vp install --frozen-lockfile
       verify_command: |
         vp run verify:secrets
@@ -93,6 +92,7 @@ jobs:
         vp run check-types
         vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
+      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
@@ -118,17 +118,17 @@ jobs:
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@11e2b313823763e5f8ced862d4a798d8070e3628
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
       install_command: |
-        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
-        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
         vp install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
+      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

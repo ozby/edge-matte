@@ -79,17 +79,19 @@ test("webpresso.config.ts re-exports the repo config on the canonical upstream s
   assert.match(config, /agent-kit\.config/u);
 });
 
-test("scaffolded hooks use global wp binaries and vp-first recovery guidance", () => {
-  const setupAction = readText(".github/actions/setup-webpresso/action.yml");
+test("deprecated local setup scaffolds are deleted and owned by Agent Kit cleanup", () => {
+  const pkg = readJson("package.json");
+  const config = readJson(".webpressorc.json");
 
-  assert.match(
-    setupAction,
-    /Install shared Webpresso CLIs needed by the base-kit workflow surface/u,
+  assert.equal(existsSync(resolve(root, ".github/actions/setup-webpresso/action.yml")), false);
+  assert.equal(existsSync(resolve(root, "scripts/resolve-webpresso-cli-versions.js")), false);
+  assert.equal(pkg.scripts.postinstall, 'test -n "$CI" || wp setup');
+  assert.ok(
+    config.generatedCleanup?.removePaths?.includes(".github/actions/setup-webpresso/action.yml"),
   );
-  assert.match(setupAction, /npm install -g/u);
-  assert.match(setupAction, /@webpresso\/agent-kit/u);
-  assert.match(setupAction, /vite-plus/u);
-  assert.match(setupAction, /resolve-webpresso-cli-versions\.js/u);
+  assert.ok(
+    config.generatedCleanup?.removePaths?.includes("scripts/resolve-webpresso-cli-versions.js"),
+  );
 });
 
 test("apps/e2e exposes smoke suite manifest wiring", () => {
