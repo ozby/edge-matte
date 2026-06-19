@@ -39,31 +39,6 @@ ignoreUntil = 2026-09-30
 reason = "@opentelemetry/core is only present through dev-only vite-plus / agent-kit toolchain paths in this repo snapshot."
 
 [[IgnoredVulns]]
-id = "GHSA-88fw-hqm2-52qc"
-ignoreUntil = 2026-09-30
-reason = "hono 4.12.23 remains only through the dev-only MCP/agent-kit tooling graph; runtime worker dependency is pinned to 4.12.25."
-
-[[IgnoredVulns]]
-id = "GHSA-j6c9-x7qj-28xf"
-ignoreUntil = 2026-09-30
-reason = "hono 4.12.23 remains only through the dev-only MCP/agent-kit tooling graph; runtime worker dependency is pinned to 4.12.25."
-
-[[IgnoredVulns]]
-id = "GHSA-rv63-4mwf-qqc2"
-ignoreUntil = 2026-09-30
-reason = "hono 4.12.23 remains only through the dev-only MCP/agent-kit tooling graph; runtime worker dependency is pinned to 4.12.25."
-
-[[IgnoredVulns]]
-id = "GHSA-wgpf-jwqj-8h8p"
-ignoreUntil = 2026-09-30
-reason = "hono 4.12.23 remains only through the dev-only MCP/agent-kit tooling graph; runtime worker dependency is pinned to 4.12.25."
-
-[[IgnoredVulns]]
-id = "GHSA-wwfh-h76j-fc44"
-ignoreUntil = 2026-09-30
-reason = "hono 4.12.23 remains only through the dev-only MCP/agent-kit tooling graph; runtime worker dependency is pinned to 4.12.25."
-
-[[IgnoredVulns]]
 id = "GHSA-h67p-54hq-rp68"
 ignoreUntil = 2026-09-30
 reason = "js-yaml is only present through dev-only toolchain/transitive package metadata parsing paths in this repo snapshot."
@@ -74,24 +49,44 @@ ignoreUntil = 2026-09-30
 reason = "protobufjs is only present through dev-only transitive tooling in this repo snapshot."
 
 [[IgnoredVulns]]
+id = "GHSA-35p6-xmwp-9g52"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-g8m3-5g58-fq7m"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-hm92-r4w5-c3mj"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-p88m-4jfj-68fv"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-pr7r-676h-xcf6"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-vmh5-mc38-953g"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-vxpw-j846-p89q"
+ignoreUntil = 2026-09-30
+reason = "undici remains only in dev-only toolchain and infra-helper dependency graphs (wrangler/miniflare and Pulumi CLI); EdgeMatte does not expose undici in the production Worker runtime."
+
+[[IgnoredVulns]]
 id = "GHSA-vmf3-w455-68vh"
 ignoreUntil = 2026-09-30
 reason = "tar is only present through dev-only package/tooling workflows in this repo snapshot."
-
-[[IgnoredVulns]]
-id = "GHSA-fx2h-pf6j-xcff"
-ignoreUntil = 2026-09-30
-reason = "vite and vite-plus vulnerabilities are fixed in direct repo dependencies; remaining hits are dev-only transitive toolchain paths tracked until upstream packages refresh."
-
-[[IgnoredVulns]]
-id = "GHSA-v6wh-96g9-6wx3"
-ignoreUntil = 2026-09-30
-reason = "vite and vite-plus vulnerabilities are fixed in direct repo dependencies; remaining hits are dev-only transitive toolchain paths tracked until upstream packages refresh."
-
-[[IgnoredVulns]]
-id = "GHSA-g8mr-85jm-7xhm"
-ignoreUntil = 2026-09-30
-reason = "vite-plus is fixed directly in this repo; remaining vulnerable entries are dev-only transitive toolchain paths tracked until upstream packages refresh."
 
 [[IgnoredVulns]]
 id = "GHSA-96hv-2xvq-fx4p"

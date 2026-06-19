@@ -41,7 +41,7 @@
     "lint": "wp lint",
     "test": "vp run --filter @edge-matte/client test && vp run --filter @edge-matte/e2e test && vp run --filter @edge-matte/worker test && vp run --filter @edge-matte/infra test && node --test \"test/**/*.test.ts\"",
     "e2e": "wp e2e",
-    "act:ci:e2e": "with-secrets -- act -W .github/workflows/ci.yml -j e2e",
+    "act:ci:e2e": "wp ci act --workflow-path .github/workflows/ci.yml --job e2e --execute",
     "deploy:preview": "wp deploy --lane preview_main",
     "deploy:production": "wp deploy --lane prd",
     "verify:deploy-contract": "bun infra/src/deploy/verify-deploy-contract.ts",

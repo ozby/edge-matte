@@ -11,15 +11,15 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  packages: read
+  packages: write
+  id-token: write
 
 jobs:
   release:
-    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@3f0136f88a488bc0894ab81ab3c8544b2e8dabf2
+    uses: webpresso/github-actions/.github/workflows/changesets-release.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
     with:
       install_command: |
-        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
-        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
         vp install --frozen-lockfile
       version_command: vp run version
       publish_command: vp run release:publish
@@ -41,11 +41,10 @@ jobs:
   deploy:
     needs: gate
     if: ${{ needs.gate.outputs.should_deploy == 'true' }}
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@11e2b313823763e5f8ced862d4a798d8070e3628
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
     with:
       install_command: |
-        eval "$(node ./scripts/resolve-webpresso-cli-versions.js)"
-        npm install -g "vite-plus@${VITE_PLUS_VERSION}" "@webpresso/agent-kit@${AGENT_KIT_VERSION}"
+        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
         vp install --frozen-lockfile
       verify_command: |
         vp run verify:secrets
@@ -73,6 +72,7 @@ jobs:
         E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
         E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ needs.gate.outputs.release_version }}
+      secret_profile: deploy
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

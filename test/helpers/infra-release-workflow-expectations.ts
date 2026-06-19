@@ -43,6 +43,11 @@ export const PREVIEW_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "preview-main lane", pattern: /preview-main/u },
   { label: "preview-pr lane", pattern: /preview-pr/u },
   { label: "closed PR cleanup", pattern: /--destroy/u },
+  { label: "repo-owned preview secret profile", pattern: /secret_profile:\s*preview/u },
+  {
+    label: "preview token secret mapping",
+    pattern: /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+  },
 ];
 
 /** Production deploy must serialize releases and verify smoke (IR-1 / blueprint tasks 6–7). */
@@ -79,7 +84,11 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "architecture drift audit", pattern: /wp audit architecture-drift --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
   { label: "production-journey e2e suite", pattern: /production-journey/u },
-  { label: "generic ci secret-provider injection", pattern: /ci_secret_provider_token/u },
+  { label: "repo-owned production secret profile", pattern: /secret_profile:\s*deploy/u },
+  {
+    label: "production token secret mapping",
+    pattern: /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+  },
   {
     label: "pre-deploy credential verify",
     pattern: /verify-cloudflare-deploy-creds/u,
