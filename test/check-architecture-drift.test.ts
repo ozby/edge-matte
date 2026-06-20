@@ -18,7 +18,7 @@ test("repo surfaces call wp audit architecture-drift directly", () => {
     "AGENTS.md",
     "README.md",
     "docs/release.md",
-    ".github/workflows/architecture-drift.yml",
+    ".github/workflows/ci.yml",
   ];
 
   for (const file of files) {

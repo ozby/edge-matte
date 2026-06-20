@@ -81,14 +81,11 @@ test("root command surface keeps vp as substrate while routing quality work thro
   });
 });
 
-test("root package keeps agent-config only and does not install agent-kit directly", () => {
+test("root package declares the shared CI toolchain without package-local wrapper deps", () => {
   const pkg = readJson("package.json");
   assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
-  assert.equal(pkg.devDependencies?.["@webpresso/agent-kit"], undefined);
-  assert.doesNotMatch(
-    readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8"),
-    /"@webpresso\/agent-kit"/u,
-  );
+  assert.match(pkg.devDependencies?.["@webpresso/agent-kit"] ?? "", /^\^2\.1\.2$/u);
+  assert.equal(pkg.devDependencies?.["vite-plus"], "^0.1.24");
 });
 
 test("package-local quality scripts route through wp surfaces", () => {

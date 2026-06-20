@@ -43,6 +43,7 @@ jobs:
         E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ inputs.release_version }}
+      secret_profile: deploy
       runner: ubuntu-latest
     secrets:
-      ci_secret_provider_token: ${{ secrets.DOPPLER_SERVICE_TOKEN || secrets.DOPPLER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
