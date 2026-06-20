@@ -24,6 +24,11 @@ concurrency:
   group: edge-matte-preview-${{ github.event.pull_request.number || github.ref_name || inputs.lane }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
 jobs:
   resolve:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'changeset-release/main' }}
