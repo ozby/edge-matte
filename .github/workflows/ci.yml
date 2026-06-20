@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
+      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@f6fc93375f4ce83c8234341ec22137f43deff148
         with:
           cli-global-packages: "vite-plus @webpresso/agent-kit"
       - run: vp install --frozen-lockfile
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
+      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@f6fc93375f4ce83c8234341ec22137f43deff148
         with:
           cli-global-packages: "vite-plus @webpresso/agent-kit"
       - run: vp install --frozen-lockfile
@@ -115,7 +115,7 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
+      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@f6fc93375f4ce83c8234341ec22137f43deff148
         with:
           cli-global-packages: "vite-plus @webpresso/agent-kit"
       - run: vp install --frozen-lockfile
