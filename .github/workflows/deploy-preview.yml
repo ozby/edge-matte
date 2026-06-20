@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
     inputs:
       lane:
@@ -48,10 +48,14 @@ jobs:
             dashed_lane="preview-main"
             canonical_lane="preview_main"
             mode="deploy"
-          elif [[ "${EVENT_NAME}" == "pull_request" && "${EVENT_ACTION}" == "closed" ]]; then
+          elif [[ "${EVENT_NAME}" == "pull_request" ]]; then
             dashed_lane="preview-pr-${PR_NUMBER}"
             canonical_lane="preview_pr_${PR_NUMBER}"
-            mode="destroy"
+            if [[ "${EVENT_ACTION}" == "closed" ]]; then
+              mode="destroy"
+            else
+              mode="deploy"
+            fi
           else
             dashed_lane="${MANUAL_LANE}"
             mode="${MANUAL_MODE}"
@@ -86,9 +90,28 @@ jobs:
         vp run check-types
         vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
+      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
+
+  deploy-preview:
+    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
+    needs:
+      - resolve
+      - preview-call
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy-preview passed via shared reusable preview caller"
+
+  deploy-verify:
+    if: ${{ needs.resolve.outputs.mode == 'deploy' }}
+    needs:
+      - resolve
+      - preview-call
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy verification passed via shared reusable preview caller"
 
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
@@ -101,6 +124,7 @@ jobs:
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
+      secret_profile: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

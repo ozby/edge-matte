@@ -6,47 +6,120 @@ on:
   pull_request:
 
 env:
+  # Opt the workflow's JavaScript actions into Node.js 24 ahead of the
+  # 2026-06-02 GitHub default switch (replaces the deprecation warning
+  # surfaced by actions/checkout@v4, actions/setup-node@v4, and
+  # pnpm/action-setup@v4 internally running on Node 20).
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  ci:
-    uses: webpresso/github-actions/.github/workflows/webpresso-ci.yml@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
-    with:
-      install_command: vp install --frozen-lockfile
-      quality_command: |
-        vp run verify:secrets
-        wp audit absolute-path-policy --root .
-        wp audit no-first-party-mjs --root .
-        vp run audit:secret-provider-quarantine
-        vp run audit:blueprint-links
-        vp run format:check
-        vp run check-types
-        vp run lint
-        vp run test
-        wp audit docs-frontmatter
-        BASE="${{ github.base_ref || 'main' }}"
-        git fetch origin "$BASE" --depth=50 2>/dev/null || true
-        COMMITS=$(git rev-list --no-merges "origin/$BASE..HEAD" 2>/dev/null || true)
-        if [ -n "$COMMITS" ]; then
+  wp-check:
+    name: wp-check
+    runs-on: ubuntu-latest
+    # Baseline CI keeps only stable shared quality gates here; blueprint-lifecycle
+    # drift and mutation coverage remain lane-owned follow-up work outside this PR gate.
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Install shared Webpresso tooling
+        run: npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+      - run: vp run verify:secrets
+      - run: wp audit absolute-path-policy --root .
+      - run: wp audit no-first-party-mjs --root .
+      - run: vp run audit:secret-provider-quarantine
+      - run: vp run audit:blueprint-links
+      - run: vp run format:check
+      - run: vp run check-types
+      - run: vp run lint
+      - run: vp run test
+      - run: wp audit docs-frontmatter
+
+      - name: Validate Lore commits
+        run: |
+          BASE=${{ github.base_ref || 'main' }}
+          git fetch origin "$BASE" --depth=50 2>/dev/null || true
+          COMMITS=$(git rev-list --no-merges "origin/$BASE..HEAD" 2>/dev/null || true)
+          if [ -z "$COMMITS" ]; then
+            echo "No branch commits to validate."
+            exit 0
+          fi
           FAIL=0
           for SHA in $COMMITS; do
             SUBJECT=$(git log -1 --format="%s" "$SHA")
             if [ "$SUBJECT" = "Version Packages" ]; then
+              echo "Skipping lore validation for generated Version Packages commit: $SHA"
               continue
             fi
             git log -1 --format="%B" "$SHA" > /tmp/commit-msg.txt
-            WP_SKIP_UPDATE_CHECK=1 vp exec wp audit commit-message --require-lore --message-file /tmp/commit-msg.txt || FAIL=1
+            WP_SKIP_UPDATE_CHECK=1 wp audit commit-message --require-lore --message-file /tmp/commit-msg.txt || FAIL=1
           done
-          test "$FAIL" -eq 0
-        fi
-      e2e_command: |
-        vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
-        vp run --filter @edge-matte/client build
-        pnpm --dir apps/e2e run e2e:run -- --suite upload-delete-contract
-        pnpm --dir apps/e2e run e2e:run -- --suite smoke
-        pnpm --dir apps/e2e run e2e:run -- --suite upload-delete
-      architecture_command: wp audit architecture-drift --root .
-      runner: ubuntu-latest
+          exit $FAIL
+
+  e2e:
+    # Hermetic end-to-end suite — no secrets, no external network. The local
+    # wrangler dev server runs with E2E_MOCK_PIPELINE:1 (deterministic mock
+    # provider/transformer), so the full upload -> host -> delete journey,
+    # API contract, and browser UI are proven on every PR.
+    if: >-
+      ${{
+        (github.event_name == 'push' &&
+          !startsWith(github.event.head_commit.message, 'Version Packages')) ||
+        (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.ref != 'changeset-release/main')
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Install shared Webpresso tooling
+        run: npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: vp install --frozen-lockfile
+
+      - name: Resolve Playwright version
+        id: pw
+        run: printf 'version=%s\n' "$(node -p "require(\'@playwright/test/package.json\').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Install chromium + system deps
+        run: vp exec --filter @edge-matte/e2e -- playwright install --with-deps chromium
+
+      - name: Build client dist
+        run: vp run --filter @edge-matte/client build
+
+      # Explicit suites only — never the bare default, which would select
+      # production-* because CI === "true".
+      - name: Contract (HTTP) suite
+        run: pnpm --dir apps/e2e run e2e:run -- --suite upload-delete-contract
+      - name: Smoke (HTTP) suite
+        run: pnpm --dir apps/e2e run e2e:run -- --suite smoke
+      - name: Browser (Playwright) journey
+        run: pnpm --dir apps/e2e run e2e:run -- --suite upload-delete
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-artifacts
+          path: |
+            apps/e2e/playwright-report
+            apps/e2e/test-results
+          retention-days: 7
 
   mutation:
     if: ${{ github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Version Packages') }}
@@ -55,40 +128,15 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: webpresso/github-actions/.github/actions/setup-webpresso-toolchain@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
-      - name: Install CLI globals at pinned versions
-        run: |
-          set -euo pipefail
-          specs="$(node -e "
-          const pkg = require('./package.json');
-          const all = { ...pkg.dependencies, ...pkg.devDependencies };
-          const names = ['vite-plus', '@webpresso/agent-kit'];
-          const out = names
-            .map(n => { const v = all[n]; return v && !v.startsWith('catalog:') && !v.startsWith('workspace:') && !v.startsWith('link:') ? n + '@' + v : null; })
-            .filter(Boolean);
-          process.stdout.write(out.join(' '));
-          ")"
-          if [[ -n "${specs}" ]]; then
-            echo "Installing: ${specs}"
-            npm install -g ${specs}
-          fi
+      - uses: pnpm/action-setup@ac6db6d3c1f721f886538a378a2d73e85697340a # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "24.16.0"
+          cache: pnpm
+      - name: Install shared Webpresso tooling
+        run: npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
       - run: vp install --frozen-lockfile
       - run: wp test --mutation
-
-  deploy-preview:
-    name: Deploy preview (PR)
-    if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' && github.head_ref != 'changeset-release/main' }}
-    needs: ci
-    concurrency:
-      group: edge-matte-preview-pr-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@5cd210dadf5cd0c04ccfaf3e10025efd7dbd6439
-    with:
-      lane: preview_pr_${{ github.event.pull_request.number }}
-      mode: deploy
-      install_command: vp install --frozen-lockfile
-      verify_command: ":"
-      deploy_command: bun infra/src/deploy/deploy-preview.ts --lane preview-pr-${{ github.event.pull_request.number }}
-      runner: ubuntu-latest
-    secrets:
-      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}

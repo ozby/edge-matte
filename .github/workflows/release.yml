@@ -11,7 +11,8 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  packages: read
+  packages: write
+  id-token: write
 
 jobs:
   release:
@@ -67,6 +68,7 @@ jobs:
         E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
         E2E_BASE_URL="https://edge-matte.ozby.dev" E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ needs.gate.outputs.release_version }}
+      secret_profile: deploy
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
