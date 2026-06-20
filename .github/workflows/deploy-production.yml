@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy:
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@f6fc93375f4ce83c8234341ec22137f43deff148
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@53869e557de386bd4d04656b275d6691d153bff9
     with:
       install_command: vp install --frozen-lockfile
       verify_command: |
