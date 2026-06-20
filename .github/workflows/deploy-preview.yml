@@ -24,6 +24,11 @@ concurrency:
   group: edge-matte-preview-${{ github.event.pull_request.number || github.ref_name || inputs.lane }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
 jobs:
   resolve:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'changeset-release/main' }}
@@ -77,13 +82,11 @@ jobs:
   preview-call:
     if: ${{ needs.resolve.outputs.mode == 'deploy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@53869e557de386bd4d04656b275d6691d153bff9
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
-      install_command: |
-        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
-        vp install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: |
         vp run verify:secrets
         vp run verify:paths
@@ -118,13 +121,11 @@ jobs:
   destroy-preview-call:
     if: ${{ needs.resolve.outputs.mode == 'destroy' }}
     needs: resolve
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@53869e557de386bd4d04656b275d6691d153bff9
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
-      install_command: |
-        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
-        vp install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: ":"
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy

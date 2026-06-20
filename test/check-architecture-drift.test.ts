@@ -14,12 +14,7 @@ test("repo removes the local architecture-drift wrapper script", () => {
 });
 
 test("repo surfaces call wp audit architecture-drift directly", () => {
-  const files = [
-    "AGENTS.md",
-    "README.md",
-    "docs/release.md",
-    ".github/workflows/architecture-drift.yml",
-  ];
+  const files = ["AGENTS.md", "README.md", "docs/release.md", ".github/workflows/ci.yml"];
 
   for (const file of files) {
     const content = read(file);

@@ -14,11 +14,9 @@ concurrency:
 
 jobs:
   deploy:
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@b0464171f61f5c90b4c2082fc05954f4324d96dd
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@53869e557de386bd4d04656b275d6691d153bff9
     with:
-      install_command: |
-        npm install -g vite-plus@0.1.24 @webpresso/agent-kit@2.1.1
-        vp install --frozen-lockfile
+      install_command: vp install --frozen-lockfile
       verify_command: |
         vp run verify:secrets
         vp run verify:paths
