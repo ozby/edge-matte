@@ -28,7 +28,7 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
 
   const port = process.env.E2E_LOCAL_PORT?.trim() || "4173";
   const baseUrl = `http://127.0.0.1:${port}`;
-  const child = spawn("bun", ["./src/cli/start-local-e2e-server.ts"], {
+  const child = spawn("tsx", ["./src/cli/start-local-e2e-server.ts"], {
     cwd: import.meta.dirname,
     stdio: "inherit",
     env: { ...process.env, E2E_LOCAL_PORT: port },

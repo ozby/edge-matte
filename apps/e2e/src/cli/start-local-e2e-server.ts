@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env tsx
 import { spawn } from "node:child_process";
 import { writeFile, rm, mkdir } from "node:fs/promises";
 import { join } from "node:path";

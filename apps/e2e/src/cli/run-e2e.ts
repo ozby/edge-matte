@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env tsx
 import { spawnSync } from "node:child_process";
 import { buildExecutionPlan } from "#agent-kit-host-adapter";
 import { findRepoRoot } from "#repo-root";

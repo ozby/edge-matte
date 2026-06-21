@@ -9,9 +9,11 @@ describe("agent-kit-host-adapter", () => {
       expect.objectContaining({
         suiteId: "upload-delete",
         runner: "playwright",
-        command: "pnpm",
+        command: "vp",
         args: [
           "exec",
+          "--workspace-root",
+          "--",
           "playwright",
           "test",
           "--config",
@@ -29,9 +31,11 @@ describe("agent-kit-host-adapter", () => {
       expect.objectContaining({
         suiteId: "upload-delete-contract",
         runner: "vitest",
-        command: "pnpm",
+        command: "vp",
         args: [
           "exec",
+          "--workspace-root",
+          "--",
           "vitest",
           "run",
           "--config",

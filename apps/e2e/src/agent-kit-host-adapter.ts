@@ -49,9 +49,11 @@ function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
   switch (step.runner) {
     case "vitest":
       return {
-        command: "pnpm",
+        command: "vp",
         args: [
           "exec",
+          "--workspace-root",
+          "--",
           "vitest",
           "run",
           "--config",
@@ -61,9 +63,11 @@ function buildCommand(step: E2ESuiteStep): { command: string; args: string[] } {
       };
     case "playwright":
       return {
-        command: "pnpm",
+        command: "vp",
         args: [
           "exec",
+          "--workspace-root",
+          "--",
           "playwright",
           "test",
           "--config",
