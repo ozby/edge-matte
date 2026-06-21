@@ -48,7 +48,7 @@ Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-
 | App-local selection     | App-local secrets when populated                                            |
 | Shared infra selection  | Shared infra credentials (`CLOUDFLARE_API_TOKEN`, `PULUMI_ACCESS_TOKEN`, …) |
 
-**Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points at the per-app `edge-matte` project inside the separate ozby Doppler workplace (committed **metadata only**). On `vp install`, the repo
+**Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points at the shared `ozby-dev` project inside the separate ozby Doppler workplace (committed **metadata only**). On `vp install`, the repo
 applies that default through the canonical **`wp config secrets set`** surface
 (seed-only — it does not overwrite an existing local selection). Command
 execution now goes through shared `wp` secret surfaces such as
