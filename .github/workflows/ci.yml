@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, master]
   pull_request:
+  workflow_dispatch:
 
 env:
   # Opt the workflow's JavaScript actions into Node.js 24 ahead of the
