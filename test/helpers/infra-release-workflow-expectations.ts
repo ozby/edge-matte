@@ -46,7 +46,7 @@ export const PREVIEW_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "repo-owned preview secret profile", pattern: /secret_profile:\s*preview/u },
   {
     label: "preview token secret mapping",
-    pattern: /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+    pattern: /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN_PREVIEW \}\}/u,
   },
 ];
 
@@ -84,10 +84,11 @@ export const PRODUCTION_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   { label: "architecture drift audit", pattern: /wp audit architecture-drift --root \./u },
   { label: "production-smoke e2e suite", pattern: /production-smoke/u },
   { label: "production-journey e2e suite", pattern: /production-journey/u },
-  { label: "repo-owned production secret profile", pattern: /secret_profile:\s*deploy/u },
+  { label: "repo-owned production secret profile", pattern: /secret_profile:\s*production/u },
   {
     label: "production token secret mapping",
-    pattern: /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
+    pattern:
+      /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN_PRODUCTION \}\}/u,
   },
   {
     label: "pre-deploy credential verify",
@@ -117,16 +118,16 @@ export const WAIT_FOR_HTTP_REQUIREMENTS: WorkflowExpectation[] = [
 
 export const LOCAL_DEPLOY_REQUIREMENTS: WorkflowExpectation[] = [
   {
-    label: "with-secrets deploy",
-    pattern: /runWithSecrets\("pnpm".*@edge-matte\/worker/su,
+    label: "shared secret-surface deploy requirement",
+    pattern: /CLOUDFLARE_API_TOKEN.*wp secrets run --sink deploy-wrangler --profile production/su,
   },
   {
     label: "deploy contract verify",
     pattern: /run\("pnpm",\s*\["run",\s*"verify:deploy-contract"\]\)/u,
   },
   {
-    label: "with-secrets smoke probes",
-    pattern: /runWithSecrets\("bash".*infra\/src\/deploy\/wait-for-http\.sh.*PRODUCTION_URL/su,
+    label: "post-deploy smoke probes",
+    pattern: /run\("bash".*infra\/src\/deploy\/wait-for-http\.sh.*PRODUCTION_URL/su,
   },
   {
     label: "production-smoke suite",

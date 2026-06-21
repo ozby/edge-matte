@@ -53,7 +53,7 @@ test("root command surface keeps vp as substrate while routing quality work thro
     "vp run --filter @edge-matte/client build && vp run --filter @edge-matte/worker build",
   );
 
-  assert.equal(pkg.scripts["setup:agent"], "wp setup");
+  assert.equal(pkg.scripts["setup:agent"], undefined);
   assert.equal(pkg.scripts.lint, "wp lint");
   assert.equal(
     pkg.scripts.test,
@@ -84,8 +84,8 @@ test("root command surface keeps vp as substrate while routing quality work thro
 test("root package declares the shared CI toolchain without package-local wrapper deps", () => {
   const pkg = readJson("package.json");
   assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
-  assert.match(pkg.devDependencies?.["@webpresso/agent-kit"] ?? "", /^\^2\.1\.2$/u);
-  assert.equal(pkg.devDependencies?.["vite-plus"], "^0.1.24");
+  assert.match(pkg.devDependencies?.["@webpresso/agent-kit"] ?? "", /^\^2\.3\.2$/u);
+  assert.equal(pkg.devDependencies?.["vite-plus"], "^0.2.1");
 });
 
 test("package-local quality scripts route through wp surfaces", () => {

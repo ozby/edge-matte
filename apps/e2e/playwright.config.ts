@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: `E2E_LOCAL_PORT=${port} bun ./src/cli/start-local-e2e-server.ts`,
+        command: `E2E_LOCAL_PORT=${port} tsx ./src/cli/start-local-e2e-server.ts`,
         url: `${baseURL}/health`,
         timeout: 120_000,
         reuseExistingServer: !process.env.CI,

@@ -19,10 +19,11 @@
     "test:browser": "wp e2e",
     "check-types": "wp typecheck",
     "lint": "wp lint",
-    "e2e:run": "bun src/cli/run-e2e.ts"
+    "e2e:run": "tsx src/cli/run-e2e.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "tsx": "^4.22.4",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

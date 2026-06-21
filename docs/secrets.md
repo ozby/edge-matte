@@ -30,16 +30,16 @@ Do not create or commit:
 
 Enforcement:
 
-| Check                                           | What it guards                                                                |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| `scripts/verify-secrets-policy.ts`              | Working-tree secret carriers, tracked carriers, and secret-like values in git |
-| `scripts/sync-webpresso-config.ts --check-only` | Committed wp default is metadata-only                                         |
-| `vp run audit:secret-provider-quarantine`       | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
-| `wp audit absolute-path-policy --root .`        | Canonical shared path-policy audit surface                                    |
+| Check                                     | What it guards                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `scripts/verify-secrets-policy.ts`        | Working-tree secret carriers, tracked carriers, and secret-like values in git |
+| `wp audit secrets-config`                 | Committed wp default is metadata-only                                         |
+| `vp run audit:secret-provider-quarantine` | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
+| `wp audit absolute-path-policy --root .`  | Canonical shared path-policy audit surface                                    |
 
 Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-quarantine`
 (both in CI). Pre-commit also runs `wp audit absolute-path-policy --root .` and
-`sync-webpresso-config.ts --check-only`.
+`wp audit secrets-config`.
 
 ## Two-project model (mirrors ingest-lens)
 
@@ -51,12 +51,13 @@ Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-
 **Repo default for deploy and Pulumi:** `.webpresso/secrets.config.json` points at the per-app `edge-matte` project inside the separate ozby Doppler workplace (committed **metadata only**). On `vp install`, the repo
 applies that default through the canonical **`wp config secrets set`** surface
 (seed-only — it does not overwrite an existing local selection). Command
-execution still goes through **`with-secrets -- <cmd>`**, which reads the
-runtime config `wp` persisted under `.git/webpresso/secrets.json`.
+execution now goes through shared `wp` secret surfaces such as
+**`wp secrets run --sink <sink> --profile <profile> -- <cmd>`** and `wp deploy`.
 
 ### Security rules for the committed config
 
-- Allowed keys: `manager`, `projectId`, `projectLabel` only — **no secret values**.
+- Allowed top-level shape: `schemaVersion`, `providers`, `profiles`, and `sinks`
+  only — **no secret values**.
 - Forbidden in git: tokens, passwords, API keys, or any secret-provider-managed secret values.
 - Runtime wp selection (manager/project only, no values) lives under
   `.git/webpresso/secrets.json` (untracked, written by `wp`, never committed).
@@ -66,7 +67,7 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
 
 | Secret / credential       | Where the value lives                                         | Who sets it                     | Used by                                                                                        |
 | ------------------------- | ------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`    | **Configured secret-provider selection**                      | Operator / shared infra project | `with-secrets`, Pulumi, `wrangler deploy`                                                      |
+| `CLOUDFLARE_API_TOKEN`    | **Configured secret-provider selection**                      | Operator / shared infra project | `wp secrets run`, Pulumi, `wrangler deploy`                                                    |
 | `CLOUDFLARE_ACCOUNT_ID`   | **Configured secret-provider selection** or **Pulumi config** | Operator                        | Pulumi preview/up, `wrangler deploy`                                                           |
 | `CF_ACCESS_CLIENT_ID`     | **Configured secret-provider selection**                      | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Id` for Access-protected `/health`, `/`, API, and image verification |
 | `CF_ACCESS_CLIENT_SECRET` | **Configured secret-provider selection**                      | Operator / Zero Trust owner     | Sent as `CF-Access-Client-Secret` for the same Access automation flows                         |
@@ -82,10 +83,8 @@ runtime config `wp` persisted under `.git/webpresso/secrets.json`.
    TypeScript `Env` types reference binding names and non-secret vars. Secret
    values are not part of the current runtime contract.
 4. **Local bootstrap uses committed defaults through wp.** Edit
-   `.webpresso/secrets.config.json` (metadata only) in git. `vp install`
-   runs `wp config secrets set` when no runtime selection exists; local overrides
-   from an earlier `wp config secrets set` are preserved. Refresh after changing
-   the committed default: `vp run setup:secrets`.
+   `.webpresso/secrets.config.json` (metadata only) in git. Diagnose and verify
+   it with `wp secrets doctor --profile preview --json`.
 5. **Reusable Cloudflare/Pulumi deploy helpers stay private by default.** If a
    separate infra helper package is introduced for sync/render/deploy plumbing,
    keep it private/internal unless a later package-surface blueprint explicitly
@@ -131,7 +130,7 @@ No Worker secrets required. Background removal uses the `IMAGES` binding (Cloudf
 Deploy and dry-run CI use the shared reusable workflow contract from
 `webpresso/github-actions` — secret values never land in repo files. Callers pass:
 
-1. callers map `ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}` and pass the repo-owned `secret_profile` (`preview` or `deploy`)
+1. callers map `ci_secret_provider_token` from lane-scoped `CI_SECRET_PROVIDER_TOKEN_PREVIEW` or `CI_SECRET_PROVIDER_TOKEN_PRODUCTION` and pass the repo-owned `secret_profile` (`preview` or `production`)
 
 The shared workflow validates the committed profile name and uses the mapped
 Doppler config token to inject runtime secrets. Do **not** inline raw token
@@ -171,13 +170,12 @@ Minimum token permissions on the **ozby** account:
    permissions above (or use the same token that already deploys ingest-lens).
 2. Update `CLOUDFLARE_API_TOKEN` in the configured secret-provider selection
 3. Confirm `CLOUDFLARE_ACCOUNT_ID` stays `e93986039ea9bd9729fa534a29e9e88f`.
-4. Locally: `with-secrets -- bash infra/src/deploy/verify-cloudflare-deploy-creds.sh`
+4. Locally: `wp secrets run --sink pulumi --profile production -- bash infra/src/deploy/verify-cloudflare-deploy-creds.sh`
 5. Re-run **Deploy production** (`workflow_dispatch` on `main` is fine).
 
 ## Local bootstrap
 
-1. Install global Webpresso CLIs: `wp`, `vp`, and ensure `with-secrets` is on
-   `PATH` (ships with `@webpresso/framework`).
+1. Install global Webpresso CLIs: `wp` and `vp`.
 2. Install dependencies (auto-syncs wp secrets config from
    `.webpresso/secrets.config.json`):
 
@@ -200,8 +198,8 @@ Minimum token permissions on the **ozby** account:
    cd infra
    pulumi stack init production   # once
    pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
-   with-secrets -- pulumi preview
-   with-secrets -- pulumi up
+   wp secrets run --sink pulumi --profile preview -- vp exec --filter @edge-matte/infra -- pulumi preview
+   wp secrets run --sink pulumi --profile production -- vp exec --filter @edge-matte/infra -- pulumi up
    # or from repo root:
    vp run pulumi:up
    ```

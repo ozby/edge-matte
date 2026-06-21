@@ -8,14 +8,14 @@ test("harness gate suite manifest declares deterministic held-in and held-out su
     `version: 1
 consumer: edge-matte
 suites:
-  - id: edge-matte.agent-setup-smoke
+  - id: edge-matte.global-wp-smoke
     tier: held-in
-    command: wp setup --check
+    command: wp audit harness-surfaces
     surfaces:
       - generated-agent-surfaces
       - codex-hooks
       - claude-hooks
-    proof: validates that generated agent surfaces and hook install checks remain consumable in edge-matte
+    proof: validates that global wp harness surfaces remain consumable in edge-matte
   - id: edge-matte.e2e-smoke
     tier: held-in
     command: wp e2e --suite smoke
