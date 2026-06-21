@@ -109,6 +109,21 @@ test("preview deploy workflow exists for main and PR preview lanes", () => {
   );
 });
 
+test("release workflow skips no-op private changesets before invoking shared release", () => {
+  const workflow = readWorkflow(root, ".github/workflows/release.yml");
+  assert.equal(workflow.exists, true, ".github/workflows/release.yml must exist");
+  assert.match(workflow.contents, /release-preflight:/u);
+  assert.match(workflow.contents, /Detect versionable release diff/u);
+  assert.match(workflow.contents, /oven-sh\/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6/u);
+  assert.match(workflow.contents, /vp run version/u);
+  assert.match(workflow.contents, /has_version_diff=false/u);
+  assert.match(workflow.contents, /needs\.release-preflight\.outputs\.has_version_diff == 'true'/u);
+  assert.match(
+    workflow.contents,
+    /Skipping shared release workflow because vp run version produced no commitable diff\./u,
+  );
+});
+
 test("preview deploy workflow deploys main and PR previews with PR cleanup", () => {
   const workflow = readWorkflow(root, PREVIEW_DEPLOY_WORKFLOW);
   assert.equal(workflow.exists, true, `${PREVIEW_DEPLOY_WORKFLOW} must exist`);
@@ -122,8 +137,8 @@ test("preview deploy workflow deploys main and PR previews with PR cleanup", () 
   );
   assert.match(
     workflow.contents,
-    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
-    `${PREVIEW_DEPLOY_WORKFLOW} must pass the preview Doppler config token into the shared caller contract`,
+    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN_PREVIEW \}\}/u,
+    `${PREVIEW_DEPLOY_WORKFLOW} must pass the preview provider token into the shared caller contract`,
   );
 });
 
@@ -140,8 +155,8 @@ test("production deploy workflow serializes deploys and runs smoke verification"
   );
   assert.match(
     workflow.contents,
-    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN \}\}/u,
-    `${PRODUCTION_DEPLOY_WORKFLOW} must pass the production Doppler config token into the shared caller contract`,
+    /ci_secret_provider_token:\s*\$\{\{ secrets\.CI_SECRET_PROVIDER_TOKEN_PRODUCTION \}\}/u,
+    `${PRODUCTION_DEPLOY_WORKFLOW} must pass the production provider token into the shared caller contract`,
   );
 });
 
@@ -163,7 +178,7 @@ test("wait-for-http supports optional access auth and rejects non-2xx responses"
   assert.equal(missing.length, 0, formatMissingExpectations(missing, WAIT_FOR_HTTP_SCRIPT));
 });
 
-test("local deploy script keeps truthful smoke and production suites behind with-secrets", () => {
+test("local deploy script requires shared secret-surface invocation and keeps truthful smoke suites", () => {
   const script = readWorkflow(root, DEPLOY_PRODUCTION_SCRIPT);
   assert.equal(script.exists, true, `${DEPLOY_PRODUCTION_SCRIPT} must exist`);
 
@@ -179,8 +194,8 @@ test("preview deploy script renders preview-main and preview-pr workers without 
     { label: "preview-main lane", pattern: /preview-main/u },
     { label: "preview-pr lane", pattern: /preview-pr/u },
     {
-      label: "skip with-secrets when CI already injected Cloudflare creds",
-      pattern: /!process\.env\.CLOUDFLARE_API_TOKEN && hasCommand\("with-secrets"\)/u,
+      label: "shared secret-surface invocation hint",
+      pattern: /wp secrets run --sink deploy-wrangler --profile preview/u,
     },
     { label: "temporary wrangler config", pattern: /mkdtemp|tmpdir/u },
     { label: "workers.dev disabled", pattern: /workers_dev\s*=\s*false/u },

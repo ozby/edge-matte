@@ -87,7 +87,7 @@ test("production workflow stays manual-only while release.yml delegates Changese
   assert.match(releaseWorkflow, /\bgate:/u);
   assert.match(
     releaseWorkflow,
-    /should_deploy: \$\{\{ needs\.release\.outputs\.should_deploy \}\}/u,
+    /SHOULD_DEPLOY: \$\{\{ needs\.release\.outputs\.should_deploy \}\}/u,
   );
   assert.match(
     releaseWorkflow,

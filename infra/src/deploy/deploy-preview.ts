@@ -63,20 +63,7 @@ function run(command: string, commandArgs: string[], env: NodeJS.ProcessEnv = pr
   }
 }
 
-function hasCommand(command: string): boolean {
-  const result = spawnSync("command", ["-v", command], {
-    env: buildChildEnv(repoRoot, process.env),
-    shell: true,
-    stdio: "ignore",
-  });
-  return result.status === 0;
-}
-
-function runWithSecrets(command: string, commandArgs: string[]) {
-  if (!process.env.CLOUDFLARE_API_TOKEN && hasCommand("with-secrets")) {
-    run("with-secrets", ["--", command, ...commandArgs]);
-    return;
-  }
+function runSecretScoped(command: string, commandArgs: string[]) {
   run(command, commandArgs);
 }
 
@@ -200,7 +187,12 @@ if (destroy) {
     throw new Error("--destroy and --dry-run cannot be combined");
   }
   console.log(`\n▶ Destroying preview Worker ${workerName}\n`);
-  runWithSecrets("vp", [
+  if (!process.env.CLOUDFLARE_API_TOKEN) {
+    throw new Error(
+      "Preview deploy requires CLOUDFLARE_API_TOKEN in the environment. Invoke via `wp secrets run --sink deploy-wrangler --profile preview -- bun infra/src/deploy/deploy-preview.ts --lane <preview-main|preview-pr-<n>>`.",
+    );
+  }
+  runSecretScoped("vp", [
     "exec",
     "--filter",
     "@edge-matte/worker",
@@ -229,6 +221,11 @@ if (dryRun) {
   process.exit(0);
 }
 
-runWithSecrets("vp", [...deployArgs, "--config", configPath]);
+if (!process.env.CLOUDFLARE_API_TOKEN) {
+  throw new Error(
+    "Preview deploy requires CLOUDFLARE_API_TOKEN in the environment. Invoke via `wp secrets run --sink deploy-wrangler --profile preview -- bun infra/src/deploy/deploy-preview.ts --lane <preview-main|preview-pr-<n>>`.",
+  );
+}
+runSecretScoped("vp", [...deployArgs, "--config", configPath]);
 
 console.log(`\n✅ Preview deployed: ${previewOrigin()}\n`);

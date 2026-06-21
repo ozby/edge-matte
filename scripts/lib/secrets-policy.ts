@@ -3,7 +3,13 @@ export const SECRETS_CONFIG_PATH = ".webpresso/secrets.config.json";
 export const SECRET_VALUE_PATTERN =
   /(?:^|[\s"'`=:])(?:(?:sk|pk)(?=[-_0-9])|ghp|gho|ghu|ghs|ghr|dp\.st|napi_|pplx-|ctx7sk-)[-_a-zA-Z0-9./+=]{8,}/u;
 
-const ALLOWED_CONFIG_KEYS = new Set(["manager", "projectId", "projectLabel", "profiles"]);
+const V1_ALLOWED_CONFIG_KEYS = new Set([
+  "schemaVersion",
+  "providers",
+  "profiles",
+  "sinks",
+  "projectLabel",
+]);
 const FORBIDDEN_CONFIG_KEY =
   /(?:^|_)(?:token|secret|password|api[_-]?key|credential|private[_-]?key)(?:$|_)/iu;
 const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,62}$/u;
@@ -108,67 +114,89 @@ export function parseSecretsConfigMetadata(
   }
 
   const obj = parsed as Record<string, unknown>;
-  for (const key of Object.keys(obj)) {
-    if (!ALLOWED_CONFIG_KEYS.has(key)) {
-      throw new Error(`${sourceLabel}: unexpected key "${key}"`);
-    }
-    if (FORBIDDEN_CONFIG_KEY.test(key)) {
-      throw new Error(`${sourceLabel}: key "${key}" looks like a secret name`);
-    }
-  }
-
-  if (obj.manager !== "doppler" && obj.manager !== "infisical") {
-    throw new Error(`${sourceLabel}: "manager" must be "doppler" or "infisical"`);
-  }
-  if (typeof obj.projectId !== "string" || obj.projectId.length === 0) {
-    throw new Error(`${sourceLabel}: "projectId" must be a non-empty string`);
-  }
-  if (!PROJECT_ID_PATTERN.test(obj.projectId)) {
-    throw new Error(`${sourceLabel}: "projectId" must be a valid secret-provider project slug`);
-  }
-
-  const config: SecretsConfigMetadata = { manager: obj.manager, projectId: obj.projectId };
-  if (obj.projectLabel !== undefined) {
-    if (typeof obj.projectLabel !== "string" || obj.projectLabel.length === 0) {
-      throw new Error(`${sourceLabel}: "projectLabel" must be a non-empty string when set`);
-    }
-    if (SECRET_VALUE_PATTERN.test(obj.projectLabel)) {
-      throw new Error(`${sourceLabel} projectLabel must not contain secret values`);
-    }
-    config.projectLabel = obj.projectLabel;
-  }
-  if (obj.profiles !== undefined) {
-    if (typeof obj.profiles !== "object" || obj.profiles === null || Array.isArray(obj.profiles)) {
-      throw new Error(`${sourceLabel}: "profiles" must be an object when set`);
-    }
-    const profiles: Record<string, { environment: string }> = {};
-    for (const [profileName, profileValue] of Object.entries(
-      obj.profiles as Record<string, unknown>,
-    )) {
-      if (FORBIDDEN_CONFIG_KEY.test(profileName)) {
-        throw new Error(`${sourceLabel}: profile name "${profileName}" looks like a secret name`);
+  if (obj.schemaVersion === 1) {
+    for (const key of Object.keys(obj)) {
+      if (!V1_ALLOWED_CONFIG_KEYS.has(key)) {
+        throw new Error(`${sourceLabel}: unexpected key "${key}"`);
       }
+      if (FORBIDDEN_CONFIG_KEY.test(key)) {
+        throw new Error(`${sourceLabel}: key "${key}" looks like a secret name`);
+      }
+    }
+    const providers = obj.providers;
+    if (typeof providers !== "object" || providers === null || Array.isArray(providers)) {
+      throw new Error(`${sourceLabel}: "providers" must be an object`);
+    }
+    const defaultProvider = (providers as Record<string, unknown>).default;
+    if (
+      typeof defaultProvider !== "object" ||
+      defaultProvider === null ||
+      Array.isArray(defaultProvider)
+    ) {
+      throw new Error(`${sourceLabel}: "providers.default" must be an object`);
+    }
+    const provider = defaultProvider as Record<string, unknown>;
+    if (provider.type !== "doppler" && provider.type !== "infisical") {
+      throw new Error(`${sourceLabel}: "providers.default.type" must be "doppler" or "infisical"`);
+    }
+    if (typeof provider.project !== "string" || provider.project.length === 0) {
+      throw new Error(`${sourceLabel}: "providers.default.project" must be a non-empty string`);
+    }
+    if (!PROJECT_ID_PATTERN.test(provider.project)) {
+      throw new Error(
+        `${sourceLabel}: "providers.default.project" must be a valid secret-provider project slug`,
+      );
+    }
+
+    const config: SecretsConfigMetadata = { manager: provider.type, projectId: provider.project };
+    if (obj.projectLabel !== undefined) {
+      if (typeof obj.projectLabel !== "string" || obj.projectLabel.length === 0) {
+        throw new Error(`${sourceLabel}: "projectLabel" must be a non-empty string when set`);
+      }
+      if (SECRET_VALUE_PATTERN.test(obj.projectLabel)) {
+        throw new Error(`${sourceLabel} projectLabel must not contain secret values`);
+      }
+      config.projectLabel = obj.projectLabel;
+    }
+    if (obj.profiles !== undefined) {
       if (
-        typeof profileValue !== "object" ||
-        profileValue === null ||
-        Array.isArray(profileValue)
+        typeof obj.profiles !== "object" ||
+        obj.profiles === null ||
+        Array.isArray(obj.profiles)
       ) {
-        throw new Error(`${sourceLabel}: profile "${profileName}" must be an object`);
+        throw new Error(`${sourceLabel}: "profiles" must be an object when set`);
       }
-      const environment = (profileValue as Record<string, unknown>).environment;
-      if (typeof environment !== "string" || environment.length === 0) {
-        throw new Error(
-          `${sourceLabel}: profile "${profileName}" must set a non-empty environment`,
-        );
+      const profiles: Record<string, { environment: string }> = {};
+      for (const [profileName, profileValue] of Object.entries(
+        obj.profiles as Record<string, unknown>,
+      )) {
+        if (FORBIDDEN_CONFIG_KEY.test(profileName)) {
+          throw new Error(`${sourceLabel}: profile name "${profileName}" looks like a secret name`);
+        }
+        if (
+          typeof profileValue !== "object" ||
+          profileValue === null ||
+          Array.isArray(profileValue)
+        ) {
+          throw new Error(`${sourceLabel}: profile "${profileName}" must be an object`);
+        }
+        const environment = (profileValue as Record<string, unknown>).environment;
+        if (typeof environment !== "string" || environment.length === 0) {
+          throw new Error(
+            `${sourceLabel}: profile "${profileName}" must set a non-empty environment`,
+          );
+        }
+        if (SECRET_VALUE_PATTERN.test(environment)) {
+          throw new Error(
+            `${sourceLabel}: profile "${profileName}" environment must not contain secret values`,
+          );
+        }
+        profiles[profileName] = { environment };
       }
-      if (SECRET_VALUE_PATTERN.test(environment)) {
-        throw new Error(
-          `${sourceLabel}: profile "${profileName}" environment must not contain secret values`,
-        );
-      }
-      profiles[profileName] = { environment };
+      config.profiles = profiles;
     }
-    config.profiles = profiles;
+    return config;
   }
-  return config;
+
+  throw new Error(`${sourceLabel}: "schemaVersion" must be 1`);
 }

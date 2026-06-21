@@ -72,9 +72,9 @@ Do not invent parallel local QA workflows when agent-kit already owns the lane.
 
 Enforced checks:
 
-- Pre-commit runs `verify-secrets-policy.ts`, `wp audit absolute-path-policy --root .`,
-  `sync-webpresso-config.ts --check-only`, and
-  `wp audit secret-provider-quarantine` via `.husky/pre-commit`.
+- Pre-commit runs `wp audit secrets-policy`, `wp audit absolute-path-policy --root .`,
+  `wp audit secrets-config`, and `wp audit secret-provider-quarantine`
+  via `.husky/pre-commit`.
 - `vp run verify:secrets` runs the policy verifier and committed secrets metadata validation.
 - Agents should prefer the shared `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` surface.
 - `verify:paths` remains a package-script wrapper, but agents should prefer `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` directly.

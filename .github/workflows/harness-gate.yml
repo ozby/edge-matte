@@ -1,0 +1,26 @@
+name: Harness gate
+
+on:
+  pull_request:
+    paths:
+      - catalog/agent/**
+      - .github/workflows/harness-gate.yml
+      - .github/workflows/**
+      - .husky/**
+      - package.json
+      - .webpresso/**
+      - agent-rules/**
+      - agent-skills/**
+      - AGENTS.md
+      - README.md
+      - test/**
+      - harness-gate/**
+
+permissions:
+  contents: read
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Harness surface change detected"

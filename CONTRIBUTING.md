@@ -94,7 +94,7 @@ treated as durable decision records, not diff labels.
 Format (mirror existing `git log`):
 
 ```
-fix(ci): route edge-matte act e2e through with-secrets
+fix(ci): route edge-matte act e2e through wp secrets run
 
 Short rationale describing the decision and why.
 

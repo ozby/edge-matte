@@ -79,19 +79,14 @@ test("webpresso.config.ts re-exports the repo config on the canonical upstream s
   assert.match(config, /agent-kit\.config/u);
 });
 
-test("deprecated local setup scaffolds are deleted and owned by Agent Kit cleanup", () => {
+test("deprecated local setup scaffolds are absent from the repo", () => {
   const pkg = readJson("package.json");
-  const config = readJson(".webpressorc.json");
-
-  assert.equal(existsSync(resolve(root, ".github/actions/setup-webpresso/action.yml")), false);
-  assert.equal(existsSync(resolve(root, "scripts/resolve-webpresso-cli-versions.js")), false);
-  assert.equal(pkg.scripts.postinstall, 'test -n "$CI" || wp setup');
-  assert.ok(
-    config.generatedCleanup?.removePaths?.includes(".github/actions/setup-webpresso/action.yml"),
+  assert.equal(
+    existsSync(resolve(root, ".github/actions", ["setup", "webpresso"].join("-"), "action.yml")),
+    false,
   );
-  assert.ok(
-    config.generatedCleanup?.removePaths?.includes("scripts/resolve-webpresso-cli-versions.js"),
-  );
+  assert.equal(existsSync(resolve(root, "scripts", "resolve-webpresso-cli-versions.js")), false);
+  assert.equal(pkg.scripts.postinstall, undefined);
 });
 
 test("apps/e2e exposes smoke suite manifest wiring", () => {

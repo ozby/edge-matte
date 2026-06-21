@@ -1,0 +1,125 @@
+version: 1
+surfaces:
+  - id: codex-hooks
+    title: Codex hook runtime
+    owner: agent-kit
+    kind: hook
+    lifecycle: locked
+    paths:
+      - path: .codex
+        status: projected
+    triggers:
+      - wp setup
+      - wp audit guardrails
+    evidence:
+      - AGENTS.md
+  - id: claude-hooks
+    title: Claude hook runtime
+    owner: agent-kit
+    kind: hook
+    lifecycle: locked
+    paths:
+      - path: .claude
+        status: projected
+    triggers:
+      - wp setup
+      - wp audit guardrails
+    evidence:
+      - AGENTS.md
+  - id: generated-agent-surfaces
+    title: Generated agent instructions and skills
+    owner: agent-kit
+    kind: generated-surface
+    lifecycle: locked
+    paths:
+      - path: catalog/agent/skills
+        status: projected
+      - path: agent-rules
+        status: projected
+      - path: .agent
+        status: projected
+    triggers:
+      - wp setup
+      - wp sync
+      - wp audit guardrails
+    evidence:
+      - AGENTS.md
+  - id: permission-policy
+    title: Prompt-time permission and deny policy
+    owner: agent-kit
+    kind: policy
+    lifecycle: locked
+    paths:
+      - path: .codex
+        status: projected
+      - path: .claude
+        status: projected
+    triggers:
+      - wp setup
+      - wp audit guardrails
+      - git commit
+    evidence:
+      - .github/workflows/ci.yml
+      - AGENTS.md
+  - id: secret-gate
+    title: Secret-provider quarantine and no-dev-vars enforcement
+    owner: agent-kit
+    kind: secret-gate
+    lifecycle: locked
+    paths:
+      - path: .github/workflows/ci.yml
+        status: concrete
+      - path: .webpresso/secrets.config.json
+        status: concrete
+      - path: .husky/pre-commit
+        status: concrete
+    triggers:
+      - wp audit no-dev-vars
+      - wp audit secret-provider-quarantine
+      - vp run verify:secrets
+    evidence:
+      - package.json
+      - test/thin-consumer-contract.test.ts
+  - id: omx-runtime-state
+    title: OMX runtime and workflow state
+    owner: oh-my-codex
+    kind: runtime-state
+    lifecycle: governed
+    paths:
+      - path: .omx
+        status: projected
+    triggers:
+      - omx ultragoal checkpoint
+      - omx team status
+    evidence:
+      - AGENTS.md
+  - id: harness-regression-gate
+    title: Reference consumer regression gate
+    owner: agent-kit
+    kind: regression-gate
+    lifecycle: governed
+    paths:
+      - path: .github/workflows
+        status: concrete
+      - path: test
+        status: concrete
+      - path: harness-gate
+        status: concrete
+    triggers:
+      - wp audit harness-surfaces
+      - wp audit guardrails
+    evidence:
+      - test/harness-gate-suites.test.ts
+  - id: agent-overlays
+    title: Evidence-backed agent overlays
+    owner: agent-kit
+    kind: overlay
+    lifecycle: experimental
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - wp sync
+      - omx setup
+    evidence:
+      - AGENTS.md

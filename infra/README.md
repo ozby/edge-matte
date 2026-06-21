@@ -60,13 +60,15 @@ vp install --frozen-lockfile
 cd infra
 pulumi login
 pulumi stack init production   # once
-with-secrets -- pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
-with-secrets -- pulumi config set artifactMaxAgeDays 30
-vp run pulumi:preview        # from repo root, or: with-secrets -- pulumi preview
+wp secrets run --sink pulumi --profile production -- pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
+wp secrets run --sink pulumi --profile production -- pulumi config set artifactMaxAgeDays 30
+vp run pulumi:preview
 vp run pulumi:up
 ```
 
-Or run Pulumi commands from `infra/` with `with-secrets --` so
+Or run Pulumi commands from `infra/` through
+`wp secrets run --sink pulumi --profile <profile> --`
+so
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` load from the configured
 secret-provider selection.
 

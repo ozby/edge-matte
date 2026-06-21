@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy:
-    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@53869e557de386bd4d04656b275d6691d153bff9
+    uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@aaf5e03cb7b215bcc8232858ebcf4cbbec2a8c0e
     with:
       install_command: vp install --frozen-lockfile
       verify_command: |
@@ -43,7 +43,7 @@ jobs:
         E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
         E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
       release_version: ${{ inputs.release_version }}
-      secret_profile: deploy
+      secret_profile: production
       runner: ubuntu-latest
     secrets:
-      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN }}
+      ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PRODUCTION }}

@@ -5,7 +5,7 @@
   },
   "integrations": {},
   "hosts": {
-    "selected": ["codex", "claude", "opencode"],
+    "selected": [],
     "requiredCapabilities": [
       "fix",
       "verify",
@@ -13,33 +13,7 @@
       "plan-refine",
       "pll",
       "best-practice-research"
-    ],
-    "visibility": {
-      "codex": {
-        "fix": "visible-after-restart",
-        "verify": "visible-after-restart",
-        "testing-philosophy": "visible-after-restart",
-        "plan-refine": "visible-after-restart",
-        "pll": "visible-after-restart",
-        "best-practice-research": "visible-after-restart"
-      },
-      "claude": {
-        "fix": "visible-after-restart",
-        "verify": "visible-after-restart",
-        "testing-philosophy": "visible-after-restart",
-        "plan-refine": "visible-after-restart",
-        "pll": "visible-after-restart",
-        "best-practice-research": "visible-after-restart"
-      },
-      "opencode": {
-        "fix": "visible-after-restart",
-        "verify": "visible-after-restart",
-        "testing-philosophy": "visible-after-restart",
-        "plan-refine": "visible-after-restart",
-        "pll": "visible-after-restart",
-        "best-practice-research": "visible-after-restart"
-      }
-    }
+    ]
   },
   "audit": {
     "toolchainIsolation": {
@@ -68,11 +42,5 @@
     "overrides": []
   },
   "scripts": {},
-  "generatedCleanup": {
-    "removePaths": [
-      ".github/actions/setup-webpresso/action.yml",
-      "scripts/resolve-webpresso-cli-versions.js"
-    ]
-  },
   "durablePlanningRoot": ".agent/planning/"
 }

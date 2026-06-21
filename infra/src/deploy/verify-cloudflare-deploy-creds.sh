@@ -5,7 +5,7 @@ set -euo pipefail
 
 if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
   echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID."
-  echo "Use the shared OIDC reusable workflow contract (secret_profile + DOPPLER_IDENTITY_ID) in CI, or load the credentials through the configured secret-provider wrapper locally."
+  echo "Configure CI_SECRET_PROVIDER_TOKEN or invoke this check through 'wp secrets run --sink deploy-wrangler --profile production -- bash infra/src/deploy/verify-cloudflare-deploy-creds.sh'."
   exit 1
 fi
 
