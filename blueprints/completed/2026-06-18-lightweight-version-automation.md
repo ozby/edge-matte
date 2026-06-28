@@ -2,11 +2,13 @@
 type: blueprint
 owner: ozby
 title: "Lightweight version automation"
-status: in-progress
+status: completed
+completed_at: "2026-06-28"
 complexity: S
 created: "2026-06-18"
-last_updated: "2026-06-26"
-progress: "90% (workflow lane lightening merged; shared workflow Node 24 pin refresh in progress)"
+last_updated: "2026-06-28"
+progress_pct: 100
+progress: "100% (workflow lane lightening and shared workflow pin refresh are already present on main)"
 depends_on: []
 ---
 
@@ -40,7 +42,7 @@ depends_on: []
 
 #### [ci] Task 1.1: Lighten version automation workflow lanes
 
-**Status:** in progress
+**Status:** done
 
 **Depends:** None
 
@@ -55,3 +57,18 @@ depends_on: []
 - `wp audit architecture-drift --root .`
 - Local targeted test suites pass after workflow edits.
 - Release/preview workflow caller contract tests assert the shared SHA refresh.
+
+## Current completion evidence
+
+- Current `main` already implements the release-lane skip rules in:
+  - `.github/workflows/ci.yml` for generated `Version Packages` mutation skips
+  - `.github/workflows/ci.yml`, `.github/workflows/deploy-preview.yml`, and `.github/workflows/security-scan.yml` for `changeset-release/main` PR skips
+- Shared reusable workflow callers are already pinned to the Node-24-safe SHA on current `main`.
+- Local contract verification passed on 2026-06-28:
+  - `node --test test/reusable-deploy-workflows.test.ts`
+- Current-main GitHub evidence:
+  - `CI` success on `9ecc1162444c3b50a858ed40556690b2e6a264cc`: https://github.com/ozby/edge-matte/actions/runs/28240218079
+  - `Deploy preview` success on `9ecc1162444c3b50a858ed40556690b2e6a264cc`: https://github.com/ozby/edge-matte/actions/runs/28240218423
+  - `Release` success on `9ecc1162444c3b50a858ed40556690b2e6a264cc`: https://github.com/ozby/edge-matte/actions/runs/28240218405
+  - `Security scan` success on `9ecc1162444c3b50a858ed40556690b2e6a264cc`: https://github.com/ozby/edge-matte/actions/runs/28311390474
+- `gh pr list --repo ozby/edge-matte --base main --state open` returned no open PRs on 2026-06-28.
