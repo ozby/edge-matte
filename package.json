@@ -58,8 +58,8 @@
     "deploy:dry-run": "wp deploy --lane prd --dry-run",
     "changeset": "changeset",
     "changeset:status": "changeset status",
-    "version": "changeset version && bun scripts/sync-release-metadata-version.ts",
-    "release:publish": "bun scripts/release-publish.ts"
+    "version": "changeset version && wp release-metadata sync",
+    "release:publish": "wp release-metadata prepare"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
