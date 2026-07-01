@@ -1,8 +1,3 @@
-import { defineConfig } from "vitest/config";
+import { nodeConfig } from "@webpresso/agent-config/vitest/node";
 
-export default defineConfig({
-  test: {
-    environment: "node",
-    include: ["src/**/*.test.ts"],
-  },
-});
+export default nodeConfig;
