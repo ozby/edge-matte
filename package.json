@@ -58,8 +58,8 @@
     "deploy:dry-run": "wp deploy --lane prd --dry-run",
     "changeset": "changeset",
     "changeset:status": "changeset status",
-    "version": "changeset version && bun scripts/sync-release-metadata-version.ts",
-    "release:publish": "bun scripts/release-publish.ts"
+    "version": "changeset version && wp release-metadata sync",
+    "release:publish": "wp release-metadata prepare"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
@@ -70,7 +70,6 @@
     "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "^24.3.0",
     "@webpresso/agent-config": "catalog:",
-    "@webpresso/agent-kit": "^2.3.2",
     "husky": "^9.0.0",
     "secretlint": "^9.3.0",
     "tsx": "^4.22.4",
