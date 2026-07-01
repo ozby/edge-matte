@@ -1,10 +1,3 @@
-import { defineConfig } from "@playwright/test";
+import { createQualityScaffoldConfig } from "@webpresso/agent-config/playwright/quality-scaffold";
 
-export default defineConfig({
-  testDir: "./e2e",
-  fullyParallel: true,
-  reporter: [["list"]],
-  use: {
-    trace: "retain-on-failure",
-  },
-});
+export default createQualityScaffoldConfig();
