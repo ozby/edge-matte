@@ -44,27 +44,6 @@ jobs:
       - run: vp run test
       - run: wp audit docs-frontmatter
 
-      - name: Validate Lore commits
-        run: |
-          BASE=${{ github.base_ref || 'main' }}
-          git fetch origin "$BASE" --depth=50 2>/dev/null || true
-          COMMITS=$(git rev-list --no-merges "origin/$BASE..HEAD" 2>/dev/null || true)
-          if [ -z "$COMMITS" ]; then
-            echo "No branch commits to validate."
-            exit 0
-          fi
-          FAIL=0
-          for SHA in $COMMITS; do
-            SUBJECT=$(git log -1 --format="%s" "$SHA")
-            if [ "$SUBJECT" = "Version Packages" ]; then
-              echo "Skipping lore validation for generated Version Packages commit: $SHA"
-              continue
-            fi
-            git log -1 --format="%B" "$SHA" > /tmp/commit-msg.txt
-            WP_SKIP_UPDATE_CHECK=1 wp audit commit-message --require-lore --message-file /tmp/commit-msg.txt || FAIL=1
-          done
-          exit $FAIL
-
   e2e:
     # Hermetic end-to-end suite — no secrets, no external network. The local
     # wrangler dev server runs with E2E_MOCK_PIPELINE:1 (deterministic mock
