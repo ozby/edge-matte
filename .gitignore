@@ -17,6 +17,7 @@ dist/
 build/
 .next/
 coverage/
+.test-reports/
 apps/e2e/.e2e-base-url
 apps/e2e/.client-build-lock/
 apps/e2e/playwright-report/
