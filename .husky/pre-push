@@ -1,23 +1,10 @@
 #!/usr/bin/env sh
 set -eu
-BASE="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')"
-if [ -z "${BASE}" ]; then
-  if git rev-parse --verify origin/main >/dev/null 2>&1; then
-    BASE="main"
-  elif git rev-parse --verify origin/master >/dev/null 2>&1; then
-    BASE="master"
-  else
-    BASE="main"
-  fi
-fi
-git fetch origin "${BASE}" --depth=50 2>/dev/null || true
-COMMITS=$(git rev-list --no-merges "origin/${BASE}..HEAD" 2>/dev/null || git rev-list --no-merges "${BASE}..HEAD" 2>/dev/null || true)
-if [ -z "${COMMITS}" ]; then
-  exit 0
-fi
-FAIL=0
-for SHA in ${COMMITS}; do
-  git log -1 --format="%B" "${SHA}" > /tmp/commit-msg.txt
-  wp audit commit-message --require-lore --message-file /tmp/commit-msg.txt || FAIL=1
-done
-exit "${FAIL}"
+
+# >>> managed by webpresso (husky-pre-push)
+# Webpresso keeps whole-repo push/merge gates in CI; no local pre-push check is installed by default.
+# <<< managed by webpresso (husky-pre-push)
+
+# >>> user-owned (husky-pre-push)
+# Add repo-local pre-push checks here. This block is preserved by `wp setup`.
+# <<< user-owned (husky-pre-push)
