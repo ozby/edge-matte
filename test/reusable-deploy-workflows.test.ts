@@ -45,7 +45,7 @@ test("package scripts and changeset config expose the shared release surface", (
   assert.equal(pkg.scripts["release:publish"], "wp release-metadata prepare");
   assert.ok(pkg.devDependencies?.["@changesets/cli"]);
   assert.match(readRepoFile(".changeset/config.json"), /"privatePackages"/u);
-  assert.match(readRepoFile("CHANGELOG.md"), /# Changelog/u);
+  assert.throws(() => readRepoFile("CHANGELOG.md"), /ENOENT/u);
 });
 
 test("production workflow stays manual-only while release.yml delegates Changesets and deploy finalization through the shared reusable shells", () => {
