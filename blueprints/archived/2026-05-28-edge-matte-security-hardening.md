@@ -3,14 +3,14 @@ type: blueprint
 complexity: L
 owner: ozby
 title: "EdgeMatte: private-beta security hardening"
-status: parked
+status: archived
 created: 2026-05-28
-last_updated: "2026-06-06"
+last_updated: "2026-07-02"
 review_target: public GitHub repository
 depends_on:
   - 2026-05-27-edge-matte-audit-remediation
   - 2026-05-29-edge-matte-shared-cloudflare-deploy-contract
-progress: "100% repo-local tasks landed; external Cloudflare rollout/evidence still pending (updated 2026-05-30)"
+progress: "Archived on 2026-07-02: repo-local Access/Turnstile code and runbooks are landed, but live production still lacks the external Cloudflare Access + Turnstile rollout this blueprint was waiting on."
 ---
 
 # EdgeMatte: private-beta security hardening
@@ -78,6 +78,29 @@ Deployment-contract note: if shared preview/main/prod lane semantics move into
 `agent-kit`, this blueprint should consume that contract rather than invent a
 second deployment taxonomy. Provider-specific deploy plumbing remains outside
 this blueprint’s scope.
+
+## Archive note (2026-07-02)
+
+Fresh production evidence shows the remaining gap is outside this repo:
+
+- `curl -I https://edge-matte.ozby.dev/health` returned `HTTP/2 200` without
+  Cloudflare Access headers.
+- `curl -I https://edge-matte.ozby.dev/` returned `HTTP/2 200` without Access
+  headers.
+- `curl -s https://edge-matte.ozby.dev/api/security-config` returned
+  `{"turnstile":{"enabled":false,"siteKey":null,"action":"upload"}}`.
+
+That proves the repo-local implementation is present, but the live private-beta
+rollout is still waiting on out-of-repo Cloudflare Zero Trust / Turnstile
+configuration and production secret enablement. Keeping the file in `parked/`
+would incorrectly imply missing repo-local code; archiving preserves the record
+while making the external obligation explicit.
+
+The operator-owned follow-up remains documented in:
+
+- `docs/release.md`
+- `docs/secrets.md`
+- `docs/runbooks/abuse-response.md`
 
 ## Progress
 

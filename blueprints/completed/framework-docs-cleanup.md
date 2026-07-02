@@ -3,12 +3,13 @@ type: blueprint
 complexity: XS
 owner: ozby
 title: "EdgeMatte: framework docs cleanup"
-status: draft
+status: completed
 created: 2026-06-17
-last_updated: "2026-06-17"
+last_updated: "2026-07-02"
 review_target: public GitHub repository
+completed_at: "2026-07-02"
 depends_on: []
-progress: "Docs + quarantine audit fix implemented on branch; blueprint records the minimal contract cleanup needed for architecture-drift compliance."
+progress: "Completed from fresh origin/main evidence: docs already reference @webpresso/framework, quarantine audit worktree handling is already landed, and architecture-drift now passes."
 ---
 
 # EdgeMatte: framework docs cleanup
@@ -65,10 +66,16 @@ needed to keep CI green in a multi-worktree workspace.
 - [x] `pnpm check`
 - [x] `~/.vite-plus/bin/wp audit blueprint-lifecycle blueprints/draft/framework-docs-cleanup.md`
 - [x] `~/.vite-plus/bin/wp audit tph`
-- [ ] `~/.vite-plus/bin/wp audit architecture-drift --root .`
+- [x] `~/.vite-plus/bin/wp audit architecture-drift --root .`
 
 ## Non-goals
 
 - No runtime, routing, Worker, or deploy contract changes.
 - No package version or release process changes.
 - No new dependencies or CI workflows.
+
+## Completion evidence
+
+- `docs/secrets.md` already uses `@webpresso/framework`.
+- `wp audit architecture-drift --root .` now passes on fresh `origin/main`.
+- No runtime, deploy, or package-boundary changes were required beyond lifecycle truth.
