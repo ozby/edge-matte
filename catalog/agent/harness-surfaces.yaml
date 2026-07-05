@@ -6,11 +6,9 @@ surfaces:
     kind: generated-surface
     lifecycle: locked
     paths:
-      - path: catalog/agent/skills
-        status: projected
       - path: agent-rules
         status: projected
-      - path: .agent
+      - path: agent-skills
         status: projected
     triggers:
       - wp setup
@@ -37,19 +35,6 @@ surfaces:
     evidence:
       - package.json
       - test/thin-consumer-contract.test.ts
-  - id: omx-runtime-state
-    title: OMX runtime and workflow state
-    owner: oh-my-codex
-    kind: runtime-state
-    lifecycle: governed
-    paths:
-      - path: .omx
-        status: projected
-    triggers:
-      - omx ultragoal checkpoint
-      - omx team status
-    evidence:
-      - README.md
   - id: harness-regression-gate
     title: Reference consumer regression gate
     owner: agent-kit
