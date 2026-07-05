@@ -1,5 +1,29 @@
 version: 1
 surfaces:
+  - id: codex-hooks
+    title: Retired repo-local Codex hook surface
+    owner: agent-kit
+    kind: hook
+    lifecycle: retired
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - manual cleanup
+    evidence:
+      - AGENTS.md
+  - id: claude-hooks
+    title: Retired repo-local Claude hook surface
+    owner: agent-kit
+    kind: hook
+    lifecycle: retired
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - manual cleanup
+    evidence:
+      - AGENTS.md
   - id: generated-agent-surfaces
     title: Generated agent instructions and skills
     owner: agent-kit
@@ -35,6 +59,30 @@ surfaces:
     evidence:
       - package.json
       - test/thin-consumer-contract.test.ts
+  - id: permission-policy
+    title: Retired repo-local permission policy surface
+    owner: agent-kit
+    kind: policy
+    lifecycle: retired
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - manual cleanup
+    evidence:
+      - AGENTS.md
+  - id: omx-runtime-state
+    title: Retired repo-local OMX runtime surface
+    owner: oh-my-codex
+    kind: runtime-state
+    lifecycle: retired
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - manual cleanup
+    evidence:
+      - AGENTS.md
   - id: harness-regression-gate
     title: Reference consumer regression gate
     owner: agent-kit
