@@ -4,12 +4,8 @@ task.pdf
 # Agent/runtime state regenerated locally
 .agent/
 .agents/
-.gemini/
 .cursor/
-.windsurf/
 .omx/
-.codex/
-.opencode/
 
 # Dependencies and builds
 node_modules/
@@ -46,17 +42,11 @@ credentials.json
 # >>> managed by webpresso (rule-sync)
 .agent/rules/
 .cursor/rules/
-.windsurf/rules/
-.claude/rules/
-.gemini/commands/
 # <<< managed by webpresso (rule-sync)
 
 # >>> managed by webpresso (skill-sync)
 .agent/skills/
 .cursor/skills/
-.windsurf/skills/
-.claude/skills/
-.gemini/commands/
 .agents/skills/
 # <<< managed by webpresso (skill-sync)
 
@@ -88,7 +78,6 @@ agent-rules/context-mode-routing.md
 agent-rules/engineering-principles.md
 agent-rules/extraction-parity.md
 agent-rules/generated-code-governance.md
-agent-rules/gstack-routing.md
 agent-rules/no-timeout-as-fix.md
 agent-rules/package-conventions.md
 agent-rules/pre-implementation.md
@@ -102,13 +91,6 @@ agent-rules/ts-coding-conventions.md
 
 # Local Claude runtime noise until this repo refreshes to the newer shared
 # generated ignore block from agent-kit (`wp setup` / `wp sync`).
-.claude/settings.json
-!.claude/settings.json
-.claude/agents/
-.claude/hooks/
-.gstack/
-!.codex/
-!.codex/hooks.json
 
 
 # wp setup scaffolds these scripts but wp audit commands replace them
@@ -140,27 +122,14 @@ e2e/fixtures/smoke.html
 # Commit canonical sources (`agent-skills/`, `agent-rules/`, catalog) instead.
 # Ignore generated projections and local-only runtime state, but avoid
 # blanket tool-root ignores when repos may deliberately commit specific
-# instruction surfaces (for example selected `.claude/*` files).
 .agent/
 .agents/
 .cursor/
 .omx/
 .omc/
-.opencode/
-.codex/
 _worktrees/
 .webpresso/hooks-manifest.json
-.claude/settings.json
-.claude/settings.local.json
-.claude/agents/
-.claude/hooks/
-.claude/rules/
-.claude/skills/
-.claude/worktrees/
-.claude/scheduled_tasks.lock
 .cursor/rules/
-.opencode/agents/
-.opencode/commands/
 .agents/skills/
 .agent/.merged.provenance.json
 .agent/.compile-manifest.json
