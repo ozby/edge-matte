@@ -28,7 +28,7 @@ and that IngestLens can align to later, with **agent-kit** owning the shared
 contract surface and a separate private Cloudflare/Pulumi package owning
 provider-specific deploy plumbing.
 
-This blueprint is intentionally **not** a gstack or OMX change. Those codebases
+This blueprint is intentionally **not** a legacy external workflow or OMX change. Those codebases
 stay out of scope even when they expose nearby bugs or stale assumptions. The
 only upstream shared-policy surface in scope is **agent-kit**; provider-specific
 Cloudflare/Pulumi plumbing belongs in the separate private infra package.
@@ -39,7 +39,7 @@ Cloudflare/Pulumi plumbing belongs in the separate private infra package.
   repo-local blueprint/docs updates that define the shared deployment contract.
 - **In scope, but private:** the separate Cloudflare/Pulumi helper package that
   owns provider-specific sync/render/deploy plumbing.
-- **Out of scope:** gstack, OMX, Claude skill repos, and unrelated workspace
+- **Out of scope:** legacy external workflow code, OMX, Claude skill repos, and unrelated workspace
   tooling churn outside what this blueprint explicitly adopts.
 
 ## Multi-agent coordination
@@ -53,7 +53,7 @@ Treat these as lane boundaries if multiple agents work in parallel:
 | Agent-kit contract      | `@webpresso/agent-kit` templates / audits / workflow docs (external upstream)                                                                                       | Allowed ownership surface                                                                                 |
 | Cloudflare infra pkg    | `wrangler-sync` seed repo or successor private package (external upstream)                                                                                          | Private provider-specific plumbing; **not** part of agent-kit                                             |
 | IngestLens alignment    | `ingest-lens` deploy plumbing, preview lifecycle, secret-provider config hierarchy (external upstream)                                                              | Reference repo; do not assume same app topology as EdgeMatte                                              |
-| Excluded external code  | gstack / OMX / Claude skill repos                                                                                                                                   | Out of scope even if adjacent bugs are discovered                                                         |
+| Excluded external code  | legacy external workflow / OMX / Claude skill repos                                                                                                                 | Out of scope even if adjacent bugs are discovered                                                         |
 
 ## Architecture governance
 
@@ -85,7 +85,7 @@ deployment reuse across repos is still ad hoc:
 - Cloudflare Workers Preview URLs are not a viable exact standard across repos
   because current Cloudflare docs say preview URLs are not generated for
   Workers that implement Durable Objects; IngestLens uses Durable Objects.
-- Adjacent stale auth logic exists in external gstack Claude skill code, but it
+- Adjacent stale auth logic exists in external legacy workflow code, but it
   is outside the ownership boundary for this blueprint.
 
 ## Architecture after
@@ -110,7 +110,7 @@ deployment becomes a shared **multi-repo contract**:
 - The private package stays provider-specific: it does not absorb repo-owned
   e2e suites, supply-chain policy, secret bootstrap policy, or other
   agent-kit/vite-plus quality rails.
-- No work in this lane modifies gstack or OMX.
+- No work in this lane modifies legacy workflow code or OMX.
 
 ## EdgeMatte adoption update (2026-06-02)
 
@@ -188,15 +188,15 @@ Reference docs used during this refresh:
 
 ## Key decisions
 
-| Decision                 | Choice                                                          | Rationale                                                                                                                                 |
-| ------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared lane names        | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos                                                                    |
-| Preview mechanism        | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects                                                       |
-| Shared policy owner      | `agent-kit`                                                     | Templates, audits, workflow docs, and repo-contract rules are already its durable lane                                                    |
-| Shared plumbing owner    | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit                                                          |
-| Workflow hardening owner | `agent-kit` + repo workflow docs                                | Full-SHA action pins, frozen installs, explicit suite gating, and environment policy are reusable process contract, not provider plumbing |
-| Consumer proof points    | EdgeMatte + IngestLens                                          | One deterministic-name repo plus one split-topology Durable Object repo proves contract breadth                                           |
-| gstack / OMX scope       | excluded                                                        | Not owned by this lane even if nearby issues exist                                                                                        |
+| Decision                    | Choice                                                          | Rationale                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared lane names           | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos                                                                    |
+| Preview mechanism           | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects                                                       |
+| Shared policy owner         | `agent-kit`                                                     | Templates, audits, workflow docs, and repo-contract rules are already its durable lane                                                    |
+| Shared plumbing owner       | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit                                                          |
+| Workflow hardening owner    | `agent-kit` + repo workflow docs                                | Full-SHA action pins, frozen installs, explicit suite gating, and environment policy are reusable process contract, not provider plumbing |
+| Consumer proof points       | EdgeMatte + IngestLens                                          | One deterministic-name repo plus one split-topology Durable Object repo proves contract breadth                                           |
+| legacy workflow / OMX scope | excluded                                                        | Not owned by this lane even if nearby issues exist                                                                                        |
 
 ## Quick Reference (Execution Waves)
 
@@ -233,7 +233,7 @@ the shared findings are locked. Parallelization score: **C**.
 **Depends:** None
 
 Make the ownership line explicit in this blueprint and local docs: `agent-kit`
-may change; gstack and OMX may not. The goal is to prevent later execution from
+may change; legacy workflow code and OMX may not. The goal is to prevent later execution from
 silently widening scope into unrelated external code.
 
 **Files:**
@@ -249,7 +249,7 @@ silently widening scope into unrelated external code.
 
 **Acceptance:**
 
-- [x] Active-work docs name `agent-kit` as in-scope and gstack/OMX as out-of-scope.
+- [x] Active-work docs name `agent-kit` as in-scope and legacy workflow code/OMX as out-of-scope.
 - [x] Blueprint link audit passes.
 - [x] Blueprint lifecycle audit passes.
 
@@ -480,7 +480,7 @@ agent-kit or the private infra package.
 
 **Depends:** Task 1.2
 
-Make sure adjacent external issues, such as the stale gstack Claude auth check,
+Make sure adjacent external issues, such as the stale legacy-workflow Claude auth check,
 are tracked as upstream bugs rather than quietly re-entering this lane.
 
 **Files:**
@@ -493,12 +493,12 @@ are tracked as upstream bugs rather than quietly re-entering this lane.
 **Steps (TDD):**
 
 1. Add an explicit “External upstream issues observed” note.
-2. Name the stale gstack `/claude` auth check as external and non-blocking for this blueprint.
-3. Confirm no task in this blueprint names gstack or OMX code as write scope.
+2. Name the stale legacy-workflow `/claude` auth check as external and non-blocking for this blueprint.
+3. Confirm no task in this blueprint names legacy workflow or OMX code as write scope.
 
 **Acceptance:**
 
-- [x] The blueprint cannot be misread as permission to patch gstack/OMX.
+- [x] The blueprint cannot be misread as permission to patch legacy workflow code/OMX.
 - [x] External bugs are preserved as context without widening scope.
 
 ## Phase 4: consolidate for execution [Complexity: M]
@@ -534,7 +534,7 @@ risks, edge cases, technology choices, and cross-plan references.
 
 ## Execution checklist
 
-- [x] Freeze the ownership boundary: `agent-kit` yes; gstack/OMX no.
+- [x] Freeze the ownership boundary: `agent-kit` yes; legacy workflow/OMX no.
 - [x] Lock the canonical lane vocabulary: `dev`, `preview_main`, `preview_pr_<n>`, `prd`.
 - [x] Define the first `agent-kit` delivery slice:
       workflow template(s), rule doc(s), deployment-contract drift audit, and
@@ -662,11 +662,11 @@ dead code by this blueprint.
 | F4 — EdgeMatte’s simple deploy path is mistaken for proof that sync/render is unnecessary everywhere | Shared contract becomes too narrow for richer repos                                             | Support no-op/simple repos and generated-ID repos in the private package                                                     | 2.2      |
 | F7 — Reusability is mistaken for automatic public-package scope                                      | Provider-specific plumbing leaks across the ownership boundary or gets published without review | Keep the helper package private-by-default and require separate public-package-safety review for any promotion               | 1.2, 1.3 |
 | F6 — Consumer adoption ignores ongoing toolchain churn                                               | Adoption work stomps package / tsconfig / vitest / oxlint alignment work                        | Coordinate through the tooling-churn lane and avoid stale pre-change assumptions                                             | 2.3      |
-| External gstack bug gets silently pulled into this lane                                              | Scope creep and ownership confusion                                                             | Record it explicitly as external and excluded                                                                                | 3.2      |
+| External legacy-workflow bug gets silently pulled into this lane                                     | Scope creep and ownership confusion                                                             | Record it explicitly as external and excluded                                                                                | 3.2      |
 
 ## Non-goals
 
-- Modifying gstack code
+- Modifying legacy workflow code
 - Modifying OMX / oh-my-codex code
 - Replacing EdgeMatte’s one-Worker product topology
 - Forcing IngestLens to collapse its split client/API topology
@@ -675,8 +675,8 @@ dead code by this blueprint.
 
 ## External upstream issues observed
 
-- Stale gstack `/claude` auth-check behavior remains external context only. Keep
-  it recorded, but do not widen this lane into gstack / OMX write scope.
+- Stale legacy-workflow `/claude` auth-check behavior remains external context only. Keep
+  it recorded, but do not widen this lane into legacy workflow / OMX write scope.
 
 ## Risks
 
