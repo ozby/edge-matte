@@ -53,7 +53,7 @@ Treat these as lane boundaries if multiple agents work in parallel:
 | Agent-kit contract      | `@webpresso/agent-kit` templates / audits / workflow docs (external upstream)                                                                                       | Allowed ownership surface                                                                                 |
 | Cloudflare infra pkg    | `wrangler-sync` seed repo or successor private package (external upstream)                                                                                          | Private provider-specific plumbing; **not** part of agent-kit                                             |
 | IngestLens alignment    | `ingest-lens` deploy plumbing, preview lifecycle, secret-provider config hierarchy (external upstream)                                                              | Reference repo; do not assume same app topology as EdgeMatte                                              |
-| Excluded external code  | legacy external workflow / OMX / Claude skill repos                                                                                                                | Out of scope even if adjacent bugs are discovered                                                         |
+| Excluded external code  | legacy external workflow / OMX / Claude skill repos                                                                                                                 | Out of scope even if adjacent bugs are discovered                                                         |
 
 ## Architecture governance
 
@@ -188,15 +188,15 @@ Reference docs used during this refresh:
 
 ## Key decisions
 
-| Decision                 | Choice                                                          | Rationale                                                                                                                                 |
-| ------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared lane names        | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos                                                                    |
-| Preview mechanism        | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects                                                       |
-| Shared policy owner      | `agent-kit`                                                     | Templates, audits, workflow docs, and repo-contract rules are already its durable lane                                                    |
-| Shared plumbing owner    | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit                                                          |
-| Workflow hardening owner | `agent-kit` + repo workflow docs                                | Full-SHA action pins, frozen installs, explicit suite gating, and environment policy are reusable process contract, not provider plumbing |
-| Consumer proof points    | EdgeMatte + IngestLens                                          | One deterministic-name repo plus one split-topology Durable Object repo proves contract breadth                                           |
-| legacy workflow / OMX scope | excluded                                                     | Not owned by this lane even if nearby issues exist                                                                                        |
+| Decision                    | Choice                                                          | Rationale                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared lane names           | `dev`, `preview_main`, `preview_pr_<n>`, `prd`                  | Matches the stronger existing IngestLens model and scales across repos                                                                    |
+| Preview mechanism           | Custom-domain preview lanes, not Workers Preview URLs           | Current Cloudflare Preview URL limitations conflict with IngestLens Durable Objects                                                       |
+| Shared policy owner         | `agent-kit`                                                     | Templates, audits, workflow docs, and repo-contract rules are already its durable lane                                                    |
+| Shared plumbing owner       | Private Cloudflare/Pulumi package expanded from `wrangler-sync` | Provider-specific deploy code is a different abstraction boundary from agent-kit                                                          |
+| Workflow hardening owner    | `agent-kit` + repo workflow docs                                | Full-SHA action pins, frozen installs, explicit suite gating, and environment policy are reusable process contract, not provider plumbing |
+| Consumer proof points       | EdgeMatte + IngestLens                                          | One deterministic-name repo plus one split-topology Durable Object repo proves contract breadth                                           |
+| legacy workflow / OMX scope | excluded                                                        | Not owned by this lane even if nearby issues exist                                                                                        |
 
 ## Quick Reference (Execution Waves)
 
