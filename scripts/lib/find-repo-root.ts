@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
-const REPO_ROOT_MARKERS = ["package.json", "pnpm-workspace.yaml", "AGENTS.md"];
+const REPO_ROOT_MARKERS = ["package.json", "pnpm-workspace.yaml"];
 
 function hasRepoMarkers(dir: string) {
   return REPO_ROOT_MARKERS.every((marker) => existsSync(join(dir, marker)));

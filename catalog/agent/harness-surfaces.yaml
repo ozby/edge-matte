@@ -1,31 +1,5 @@
 version: 1
 surfaces:
-  - id: codex-hooks
-    title: Codex hook runtime
-    owner: agent-kit
-    kind: hook
-    lifecycle: locked
-    paths:
-      - path: .codex
-        status: projected
-    triggers:
-      - wp setup
-      - wp audit guardrails
-    evidence:
-      - AGENTS.md
-  - id: claude-hooks
-    title: Claude hook runtime
-    owner: agent-kit
-    kind: hook
-    lifecycle: locked
-    paths:
-      - path: .claude
-        status: projected
-    triggers:
-      - wp setup
-      - wp audit guardrails
-    evidence:
-      - AGENTS.md
   - id: generated-agent-surfaces
     title: Generated agent instructions and skills
     owner: agent-kit
@@ -43,23 +17,6 @@ surfaces:
       - wp sync
       - wp audit guardrails
     evidence:
-      - AGENTS.md
-  - id: permission-policy
-    title: Prompt-time permission and deny policy
-    owner: agent-kit
-    kind: policy
-    lifecycle: locked
-    paths:
-      - path: .codex
-        status: projected
-      - path: .claude
-        status: projected
-    triggers:
-      - wp setup
-      - wp audit guardrails
-      - git commit
-    evidence:
-      - .github/workflows/ci.yml
       - AGENTS.md
   - id: secret-gate
     title: Secret-provider quarantine and no-dev-vars enforcement
@@ -92,7 +49,7 @@ surfaces:
       - omx ultragoal checkpoint
       - omx team status
     evidence:
-      - AGENTS.md
+      - README.md
   - id: harness-regression-gate
     title: Reference consumer regression gate
     owner: agent-kit
@@ -110,16 +67,3 @@ surfaces:
       - wp audit guardrails
     evidence:
       - test/harness-gate-suites.test.ts
-  - id: agent-overlays
-    title: Evidence-backed agent overlays
-    owner: agent-kit
-    kind: overlay
-    lifecycle: experimental
-    paths:
-      - path: AGENTS.md
-        status: concrete
-    triggers:
-      - wp sync
-      - omx setup
-    evidence:
-      - AGENTS.md
