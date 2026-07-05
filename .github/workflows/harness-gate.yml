@@ -11,6 +11,7 @@ on:
       - .webpresso/**
       - agent-rules/**
       - agent-skills/**
+      - AGENTS.md
       - README.md
       - test/**
       - harness-gate/**

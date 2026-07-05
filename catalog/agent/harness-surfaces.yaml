@@ -4,7 +4,7 @@ surfaces:
     title: Retired repo-local Codex hook surface
     owner: agent-kit
     kind: hook
-    lifecycle: retired
+    lifecycle: locked
     paths:
       - path: AGENTS.md
         status: concrete
@@ -16,7 +16,7 @@ surfaces:
     title: Retired repo-local Claude hook surface
     owner: agent-kit
     kind: hook
-    lifecycle: retired
+    lifecycle: locked
     paths:
       - path: AGENTS.md
         status: concrete
@@ -63,7 +63,7 @@ surfaces:
     title: Retired repo-local permission policy surface
     owner: agent-kit
     kind: policy
-    lifecycle: retired
+    lifecycle: locked
     paths:
       - path: AGENTS.md
         status: concrete
@@ -75,7 +75,7 @@ surfaces:
     title: Retired repo-local OMX runtime surface
     owner: oh-my-codex
     kind: runtime-state
-    lifecycle: retired
+    lifecycle: governed
     paths:
       - path: AGENTS.md
         status: concrete
@@ -100,3 +100,16 @@ surfaces:
       - wp audit guardrails
     evidence:
       - test/harness-gate-suites.test.ts
+  - id: agent-overlays
+    title: Evidence-backed agent overlays
+    owner: agent-kit
+    kind: overlay
+    lifecycle: experimental
+    paths:
+      - path: AGENTS.md
+        status: concrete
+    triggers:
+      - wp sync
+      - omx setup
+    evidence:
+      - AGENTS.md
