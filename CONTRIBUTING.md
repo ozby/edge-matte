@@ -118,7 +118,7 @@ Co-Authored-By: Your Name <you@example.com>
 - Ensure the fast contributor check passes locally before requesting review.
 - Describe the change, the verification you ran, and any architecture-contract
   or docs updates.
-- Never hand-edit generated agent surfaces (`.agent/`, `.claude/`, `.cursor/`,
+- Never hand-edit generated agent surfaces (`.agent/`, `.cursor/`,
   etc.) — they are synced by tooling.
 
 ## Code style

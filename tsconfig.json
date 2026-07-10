@@ -25,5 +25,5 @@
     "scripts/**/*.ts",
     "test/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", ".agent", ".agents", ".claude", ".husky", "coverage", ".git"]
+  "exclude": ["node_modules", "dist", ".agent", ".agents", ".husky", "coverage", ".git"]
 }

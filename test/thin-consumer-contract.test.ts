@@ -161,7 +161,6 @@ test("repo does not keep a local pretool-guard workaround", () => {
   );
 });
 
-test("generated OpenCode surface uses direct wp mcp in global-install mode", () => {
-  const opencode = readJson("opencode.json");
-  assert.deepEqual(opencode.mcp?.webpresso?.command, ["wp", "mcp"]);
+test("repo does not keep a project-local OpenCode surface", () => {
+  assert.equal(existsSync(resolve(root, "opencode.json")), false);
 });

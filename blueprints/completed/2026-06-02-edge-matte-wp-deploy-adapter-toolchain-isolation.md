@@ -170,7 +170,7 @@ fix and setup refresh.
 
 - EdgeMatte's product behavior (route/assets/R2/images, smoke/e2e) is unchanged.
 - The Cloudflare/Pulumi helper stays private; no public promotion in this lane.
-- agent-kit remains the only shared-policy upstream in scope (no gstack/OMX).
+- agent-kit remains the only shared-policy upstream in scope (no legacy workflow/OMX).
 - Toolchain isolation here means global `wp` plus `wp setup`; it does not forbid root shared-package imports that the repo still uses.
 
 ## Completion evidence (2026-06-04)

@@ -150,7 +150,7 @@ pass. The live write surface still includes:
 - `apps/e2e/**`
 - `apps/worker/**`
 - root/workspace quality-rail files (`package.json`, `tsconfig.json`, `oxlint.config.ts`, `pnpm-lock.yaml`)
-- root governance/runtime glue (`.codex/hooks.json`, `scripts/lib/find-repo-root.ts`, `scripts/mcp-first-pretool-guard.ts`, `test/**/*.test.ts`)
+- root governance/runtime glue (`scripts/lib/find-repo-root.ts`, `scripts/mcp-first-pretool-guard.ts`, `test/**/*.test.ts`)
 - package-local quality-rail files under `apps/client`, `apps/e2e`, `apps/worker`, and `infra`
 
 Docs / completed-blueprint truth tightening already landed in the repo history;
