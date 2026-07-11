@@ -101,17 +101,18 @@ a repository dependency, a resolver step, or a second version default.
 - [ ] No workflow contains `AGENT_KIT_VERSION=2.4.1` or a direct agent-kit package install.
 - [ ] The existing Vite+ package source and job behavior remain unchanged.
 
-#### [qa] Task 1.3: Validate agent-kit 3.1.10 ownership and repo gates
+#### [qa] Task 1.3: Validate current agent-kit ownership and compatibility gates
 
 **Status:** todo
 
 **Depends:** Task 1.2
 
-Run the exact published `3.1.10` audit surface relevant to the changed harness
-contract. Add `runtime-runtime-state` only if the exact audit proves it is
-required and derive its shape from current agent-kit ownership rules. Preserve
-historical blueprint failures as explicit validation gaps rather than weakening
-or rewriting unrelated blueprint history.
+Run the exact current `3.1.11` audit surface relevant to the changed harness
+contract and retain a `3.1.10` compatibility check for the migration boundary.
+Add `runtime-runtime-state` only if the exact audits prove it is required and
+derive its shape from current agent-kit ownership rules. Preserve historical
+blueprint failures as explicit validation gaps rather than weakening or
+rewriting unrelated blueprint history.
 
 **Files:**
 
@@ -119,22 +120,23 @@ or rewriting unrelated blueprint history.
 
 **Acceptance:**
 
-- [ ] Exact 3.1.10 harness and guardrail audits pass for the current manifest.
+- [ ] Exact 3.1.11 harness and targeted ownership audits pass for the current manifest.
+- [ ] Exact 3.1.10 migration compatibility audits pass.
 - [ ] Targeted workflow contracts, typecheck, lint, tests, and format checks pass.
 - [ ] Any unrelated historical blueprint-lifecycle failure is reported without being papered over.
 
 ## Verification gates
 
-| Gate                | Command                                                              | Success criteria                                            |
-| ------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Workflow contract   | `vp run test -- test/agent-kit-workflow-bootstrap.test.ts`           | Discovery contract passes                                   |
-| Exact harness audit | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit harness-surfaces`    | Manifest passes under 3.1.10                                |
-| Exact guardrails    | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit guardrails`          | Guardrails pass under 3.1.10                                |
-| Type safety         | `wp typecheck`                                                       | Zero errors                                                 |
-| Lint                | `wp lint`                                                            | Zero violations                                             |
-| Tests               | `wp test --file vitest.config.ts`                                    | All repo tests pass                                         |
-| Format              | `wp format --check`                                                  | No formatting drift                                         |
-| Blueprint history   | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit blueprint-lifecycle` | Pass, or pre-existing historical failures recorded verbatim |
+| Gate                  | Command                                                              | Success criteria                                            |
+| --------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Workflow contract     | `vp run test -- test/agent-kit-workflow-bootstrap.test.ts`           | Discovery contract passes                                   |
+| Current harness audit | `npx -y -p @webpresso/agent-kit@3.1.11 wp audit harness-surfaces`    | Manifest passes under 3.1.11                                |
+| Compatibility audit   | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit harness-surfaces`    | Manifest remains compatible with 3.1.10                     |
+| Type safety           | `wp typecheck`                                                       | Zero errors                                                 |
+| Lint                  | `wp lint`                                                            | Zero violations                                             |
+| Tests                 | `wp test --file vitest.config.ts`                                    | All repo tests pass                                         |
+| Format                | `wp format --check`                                                  | No formatting drift                                         |
+| Blueprint history     | `npx -y -p @webpresso/agent-kit@3.1.11 wp audit blueprint-lifecycle` | Pass, or pre-existing historical failures recorded verbatim |
 
 ## Non-goals
 
@@ -149,4 +151,4 @@ or rewriting unrelated blueprint history.
 | ----------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | A future workflow bypasses the self-versioning action | CI jobs drift across agent-kit releases  | Recursive discovery test rejects direct installs, version inputs, and legacy pins in every workflow YAML file. |
 | The action runs before Vite+ is available             | `setup-wp` exits because `vp` is missing | Preserve each job's existing exact Vite+ bootstrap before invoking the action.                                 |
-| Agent-kit 3.x adds harness ownership requirements     | Harness gate fails after migration       | Run exact 3.1.10 audits and add only evidence-backed manifest ownership.                                       |
+| Agent-kit 3.x adds harness ownership requirements     | Harness gate fails after migration       | Run exact current and compatibility audits and add only evidence-backed manifest ownership.                    |
