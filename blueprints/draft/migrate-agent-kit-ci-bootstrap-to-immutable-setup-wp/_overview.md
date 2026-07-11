@@ -27,6 +27,20 @@ self-versioning upstream `setup-wp` action.
 This is CI toolchain maintenance. It does not change runtime topology,
 deployment shape, storage boundaries, or the public application contract.
 
+## Architecture before
+
+Edge-matte runtime and deployment architecture are unchanged. CI jobs that need
+`wp` independently install Vite+ and a hard-coded `@webpresso/agent-kit@2.4.1`
+package spec, so installer ownership and version selection are duplicated across
+workflow jobs.
+
+## Architecture after
+
+Edge-matte runtime and deployment architecture remain unchanged. The released
+`wp setup` migration rewrites direct CI installs to one immutable, upstream-owned
+self-versioning setup action. Consumer workflows retain only the action reference
+and no longer own an agent-kit package version or installer implementation.
+
 ## Key decisions
 
 | Decision            | Choice                                                                                               | Rationale                                                                                                           |
