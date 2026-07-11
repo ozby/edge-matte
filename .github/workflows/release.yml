@@ -28,13 +28,12 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - name: Install shared Webpresso CLIs
-        shell: bash
-        run: |
-          set -euo pipefail
-          VITE_PLUS_VERSION=$(node -p "require('./package.json').devDependencies['vite-plus'].replace(/^[^0-9]*/, '')")
-          npm install -g "vite-plus@${VITE_PLUS_VERSION}"
-      - uses: webpresso/agent-kit/.github/actions/setup-wp@3c28da8510d9da977654757e049c76d50bef4c07
+      - uses: voidzero-dev/setup-vp@13e7afb99c66525824db54e107d667216e795d37 # v1.14.0
+        with:
+          node-version: "24.16.0"
+          cache: true
+          run-install: false
+      - uses: webpresso/agent-kit/.github/actions/setup-wp@666c86f139765d0a59f91b55e0df66f2d674cc57
       - name: Check workflow action pins
         run: node scripts/check-workflow-action-pins.ts
       - run: vp install --frozen-lockfile
