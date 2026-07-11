@@ -33,7 +33,7 @@ jobs:
           node-version: "24.16.0"
           cache: true
           run-install: false
-      - uses: webpresso/agent-kit/.github/actions/setup-wp@666c86f139765d0a59f91b55e0df66f2d674cc57
+      - uses: webpresso/agent-kit/.github/actions/setup-wp@9e10b3494d4db019c89fe56f6a0286995b5ce772
       - name: Check workflow action pins
         run: node scripts/check-workflow-action-pins.ts
       - run: vp install --frozen-lockfile
