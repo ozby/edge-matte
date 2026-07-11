@@ -103,7 +103,7 @@ DELETE /api/images/:id
 
 ### Public repo dependency access
 
-- A public GitHub repo should not require private registry credentials just to install. If `@webpresso/webpresso` is used, it must be a public package with documented registry setup.
+- A public GitHub repo should not require private registry credentials just to install; dependencies must resolve from their documented public registries.
 - Mitigation: prefer copying patterns from Webpresso/IngestLens into local tiny helpers for this repo, and use Webpresso packages only for dev/test helpers if they install cleanly for reviewers.
 
 ## Community Sentiment
