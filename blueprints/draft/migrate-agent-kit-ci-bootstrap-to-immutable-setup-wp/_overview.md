@@ -2,9 +2,9 @@
 type: blueprint
 status: draft
 complexity: M
-created: '2026-07-11'
-last_updated: '2026-07-11'
-progress: '0% (drafted)'
+created: "2026-07-11"
+last_updated: "2026-07-11"
+progress: "0% (drafted)"
 depends_on: []
 tags:
   - ci
@@ -29,13 +29,13 @@ deployment shape, storage boundaries, or the public application contract.
 
 ## Key decisions
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Version source | The immutable setup action's checked-in package metadata | The action ref and installed package version advance together, eliminating consumer-side version plumbing. |
-| Migration owner | Released `wp setup` | Consumer workflows should be generated/migrated by agent-kit rather than patched independently in every repository. |
-| Installer | Immutable `webpresso/agent-kit/.github/actions/setup-wp@<40-character commit>` with no version input | The upstream action installs its own released version globally through Vite+ and is supply-chain pinned. |
-| Consumer dependency | Keep agent-kit global-only | Preserves the thin-consumer contract and avoids adding package or lockfile ownership. |
-| Regression coverage | Discover every workflow YAML file at test runtime | Newly added workflows are covered automatically and cannot hide legacy direct installs. |
+| Decision            | Choice                                                                                               | Rationale                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Version source      | The immutable setup action's checked-in package metadata                                             | The action ref and installed package version advance together, eliminating consumer-side version plumbing.          |
+| Migration owner     | Released `wp setup`                                                                                  | Consumer workflows should be generated/migrated by agent-kit rather than patched independently in every repository. |
+| Installer           | Immutable `webpresso/agent-kit/.github/actions/setup-wp@<40-character commit>` with no version input | The upstream action installs its own released version globally through Vite+ and is supply-chain pinned.            |
+| Consumer dependency | Keep agent-kit global-only                                                                           | Preserves the thin-consumer contract and avoids adding package or lockfile ownership.                               |
+| Regression coverage | Discover every workflow YAML file at test runtime                                                    | Newly added workflows are covered automatically and cannot hide legacy direct installs.                             |
 
 ## Execution plan
 
@@ -111,16 +111,16 @@ or rewriting unrelated blueprint history.
 
 ## Verification gates
 
-| Gate | Command | Success criteria |
-| --- | --- | --- |
-| Workflow contract | `vp run test -- test/agent-kit-workflow-bootstrap.test.ts` | Discovery contract passes |
-| Exact harness audit | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit harness-surfaces` | Manifest passes under 3.1.10 |
-| Exact guardrails | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit guardrails` | Guardrails pass under 3.1.10 |
-| Type safety | `wp typecheck` | Zero errors |
-| Lint | `wp lint` | Zero violations |
-| Tests | `wp test --file vitest.config.ts` | All repo tests pass |
-| Format | `wp format --check` | No formatting drift |
-| Blueprint history | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit blueprint-lifecycle` | Pass, or pre-existing historical failures recorded verbatim |
+| Gate                | Command                                                              | Success criteria                                            |
+| ------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Workflow contract   | `vp run test -- test/agent-kit-workflow-bootstrap.test.ts`           | Discovery contract passes                                   |
+| Exact harness audit | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit harness-surfaces`    | Manifest passes under 3.1.10                                |
+| Exact guardrails    | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit guardrails`          | Guardrails pass under 3.1.10                                |
+| Type safety         | `wp typecheck`                                                       | Zero errors                                                 |
+| Lint                | `wp lint`                                                            | Zero violations                                             |
+| Tests               | `wp test --file vitest.config.ts`                                    | All repo tests pass                                         |
+| Format              | `wp format --check`                                                  | No formatting drift                                         |
+| Blueprint history   | `npx -y -p @webpresso/agent-kit@3.1.10 wp audit blueprint-lifecycle` | Pass, or pre-existing historical failures recorded verbatim |
 
 ## Non-goals
 
@@ -131,8 +131,8 @@ or rewriting unrelated blueprint history.
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| A future workflow bypasses the self-versioning action | CI jobs drift across agent-kit releases | Recursive discovery test rejects direct installs, version inputs, and legacy pins in every workflow YAML file. |
-| The action runs before Vite+ is available | `setup-wp` exits because `vp` is missing | Preserve each job's existing exact Vite+ bootstrap before invoking the action. |
-| Agent-kit 3.x adds harness ownership requirements | Harness gate fails after migration | Run exact 3.1.10 audits and add only evidence-backed manifest ownership. |
+| Risk                                                  | Impact                                   | Mitigation                                                                                                     |
+| ----------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A future workflow bypasses the self-versioning action | CI jobs drift across agent-kit releases  | Recursive discovery test rejects direct installs, version inputs, and legacy pins in every workflow YAML file. |
+| The action runs before Vite+ is available             | `setup-wp` exits because `vp` is missing | Preserve each job's existing exact Vite+ bootstrap before invoking the action.                                 |
+| Agent-kit 3.x adds harness ownership requirements     | Harness gate fails after migration       | Run exact 3.1.10 audits and add only evidence-backed manifest ownership.                                       |
