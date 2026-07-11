@@ -71,16 +71,17 @@ surfaces:
       - manual cleanup
     evidence:
       - AGENTS.md
-  - id: omx-runtime-state
-    title: Retired repo-local OMX runtime surface
-    owner: oh-my-codex
+  - id: runtime-runtime-state
+    title: External runtime state
+    owner: external-runtime
     kind: runtime-state
     lifecycle: governed
     paths:
       - path: AGENTS.md
         status: concrete
     triggers:
-      - manual cleanup
+      - wp setup
+      - wp sync
     evidence:
       - AGENTS.md
   - id: harness-regression-gate
