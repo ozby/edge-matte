@@ -59,7 +59,8 @@
     "changeset": "changeset",
     "changeset:status": "changeset status",
     "version": "changeset version && bun scripts/sync-release-metadata-version.ts",
-    "release:publish": "bun scripts/release-publish.ts"
+    "release:publish": "bun scripts/release-publish.ts",
+    "workflow-actions:check": "node scripts/check-workflow-action-pins.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
