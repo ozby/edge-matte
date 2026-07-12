@@ -74,7 +74,6 @@ Add a repository-level Vitest assertion for schema version 1, Doppler project
 
 - Modify or create: `test/secrets-config-contract.test.ts`
 - Modify or create: `infra/src/deploy/probe-cloudflare-workers-auth.ts`
-- Modify or create: `blueprints/completed/2026-05-27-edge-matte-audit-remediation.md`
 - Modify: `apps/client/tsconfig.json`
 - Modify: `apps/workers/tsconfig.json`
 - Modify: `apps/workers/src/adapters/hono/app.ts`
@@ -84,7 +83,7 @@ Add a repository-level Vitest assertion for schema version 1, Doppler project
 1. Add the exact contract assertion.
 2. Confirm it detects a temporary `ozby-shell` mutation.
 3. Restore the committed `ozby-dev` value and verify the test passes.
-4. Correct stale operator and completed-plan project references without changing behavior.
+4. Correct stale active operator guidance without rewriting historical completed records.
 5. Remove the retired TypeScript `baseUrl` option exposed by the final typecheck gate.
 6. Keep the Hono catch-all handler on one async return contract for TypeScript 6.
 
