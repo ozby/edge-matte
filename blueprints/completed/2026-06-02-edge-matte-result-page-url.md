@@ -4,6 +4,8 @@ complexity: S
 owner: ozby
 title: "EdgeMatte: result page URL contract"
 status: completed
+historical_zero_task_waiver: true
+historical_zero_task_rationale: "Historical completed feature record predates strict task-block tracking; implementation and evidence remain preserved below."
 created: 2026-06-02
 last_updated: "2026-06-06"
 review_target: public GitHub repository
