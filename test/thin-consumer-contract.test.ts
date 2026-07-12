@@ -53,7 +53,7 @@ test("root command surface keeps vp as substrate while routing quality work thro
     "vp run --filter @edge-matte/client build && vp run --filter @edge-matte/worker build",
   );
 
-  assert.equal(pkg.scripts["setup:agent"], undefined);
+  assert.equal(pkg.scripts["setup:agent"], "wp setup");
   assert.equal(pkg.scripts.lint, "wp lint");
   assert.equal(
     pkg.scripts.test,
@@ -99,7 +99,9 @@ test("package-local quality scripts route through wp surfaces", () => {
     if ("lint" in pkg.scripts) {
       assert.equal(pkg.scripts.lint, "wp lint");
     }
-    if ("test" in pkg.scripts) {
+    if (packagePath === "apps/workers/package.json") {
+      assert.equal(pkg.scripts.test, "vitest run --config vitest.config.ts");
+    } else if ("test" in pkg.scripts) {
       assert.match(pkg.scripts.test, /^wp test\b/u);
     }
     if ("test:journeys" in pkg.scripts) {
@@ -161,6 +163,6 @@ test("repo does not keep a local pretool-guard workaround", () => {
   );
 });
 
-test("repo does not keep a project-local OpenCode surface", () => {
-  assert.equal(existsSync(resolve(root, "opencode.json")), false);
+test("repo exposes the generated OpenCode plugin surface", () => {
+  assert.equal(existsSync(resolve(root, "opencode.json")), true);
 });

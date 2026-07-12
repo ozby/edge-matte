@@ -3,6 +3,8 @@ type: blueprint
 title: "EdgeMatte: shared reusable deploy workflow alignment cleanup"
 owner: ozby
 status: completed
+historical_zero_task_waiver: true
+historical_zero_task_rationale: "Historical completed alignment record predates strict task-block tracking; implementation and evidence remain preserved below."
 complexity: S
 created: "2026-06-09"
 last_updated: "2026-06-11"

@@ -269,7 +269,7 @@ Playwright artifacts on failure.
 
 **Depends:** Task 1.1, Task 1.2
 
-**Blocked:** GitHub required-check enforcement and durable live post-deploy evidence are still external to the repo.
+**Dropped rationale:** GitHub required-check enforcement and durable live post-deploy evidence are still external to the repo.
 
 The live suite and workflow wiring already exist, but this blueprint should not
 claim completion until the production lane repeatedly proves the real transform

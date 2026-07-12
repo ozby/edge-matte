@@ -3,6 +3,8 @@ type: blueprint
 title: "EdgeMatte: consumer apps/workers + infra standardization"
 owner: ozby
 status: completed
+historical_zero_task_waiver: true
+historical_zero_task_rationale: "Historical completed outcome record predates strict task-block tracking; implementation and evidence remain preserved below."
 complexity: M
 created: "2026-06-16"
 last_updated: "2026-06-16"

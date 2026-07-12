@@ -198,8 +198,8 @@ export const createApp = (
   // to the ASSETS binding so the security-headers middleware applies uniformly.
   // The in-memory dev/test path has no ASSETS binding — return a small placeholder
   // there so existing tests (createWorkerApp() without env) stay stable.
-  app.all("*", (c) => {
-    if (deps.assets) return deps.assets.fetch(c.req.raw);
+  app.all("*", async (c) => {
+    if (deps.assets) return await deps.assets.fetch(c.req.raw);
     return c.text("EdgeMatte placeholder service");
   });
 
