@@ -20,6 +20,28 @@ tags: [ci, agent-kit]
 cannot grant private-repo Actions access to callers outside the `webpresso`
 GitHub org.
 
+- [Architecture narrative](../../../docs/architecture.md)
+- [Architecture contract](../../../docs/architecture.contract.json)
+- Deployment target remains `edge-matte.ozby.dev`.
+
+This is CI toolchain maintenance. It does not change runtime topology,
+deployment shape, storage boundaries, or the public application contract.
+
+## Architecture before
+
+Edge-matte runtime and deployment architecture are unchanged. CI jobs
+install `wp` via a `uses:` reference to a composite action hosted in the
+private `webpresso/agent-kit` repo, which cannot be resolved by this repo's
+GitHub org — every CI run fails at "Set up job".
+
+## Architecture after
+
+Edge-matte runtime and deployment architecture remain unchanged. CI jobs
+install `wp` via the same composite-action pattern, now hosted in the public
+`webpresso/github-actions` repo, which this repo's org can resolve. The
+action now takes an explicit `version` input (`"2.4.1"`), matching this
+repo's existing version-pinning convention.
+
 ## Product wedge anchor
 
 - **Stage outcome:** This repo is a live, publicly-hosted product
