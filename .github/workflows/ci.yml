@@ -30,7 +30,7 @@ jobs:
           run-install: false
       - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
         with:
-          version: "2.4.1"
+          version: "3.1.17"
       - name: Check workflow action pins
         run: node scripts/check-workflow-action-pins.ts
       - run: vp install --frozen-lockfile
@@ -69,7 +69,7 @@ jobs:
           run-install: false
       - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
         with:
-          version: "2.4.1"
+          version: "3.1.17"
       - run: vp install --frozen-lockfile
       - name: Resolve Playwright version
         id: pw
@@ -114,6 +114,6 @@ jobs:
           run-install: false
       - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
         with:
-          version: "2.4.1"
+          version: "3.1.17"
       - run: vp install --frozen-lockfile
       - run: wp test --mutation
