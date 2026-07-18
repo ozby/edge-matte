@@ -98,6 +98,8 @@ jobs:
         vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       secret_profile: preview
+      secret_sink: deploy-wrangler
+      github_environment: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
@@ -184,6 +186,8 @@ jobs:
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
       secret_profile: preview
+      secret_sink: deploy-wrangler
+      github_environment: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
