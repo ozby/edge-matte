@@ -211,7 +211,13 @@ Full charts: [`docs/architecture.md`](../../docs/architecture.md). Drift contrac
 
 ```ts
 type ImageJobStatus =
-  "validating" | "uploading" | "removing_background" | "flipping" | "ready" | "deleted" | "failed";
+  | "validating"
+  | "uploading"
+  | "removing_background"
+  | "flipping"
+  | "ready"
+  | "deleted"
+  | "failed";
 
 type ImageJob = {
   id: string;
