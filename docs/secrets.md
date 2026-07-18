@@ -34,10 +34,10 @@ Enforcement:
 | ----------------------------------------- | ----------------------------------------------------------------------------- |
 | `scripts/verify-secrets-policy.ts`        | Working-tree secret carriers, tracked carriers, and secret-like values in git |
 | `wp audit secrets-config`                 | Committed wp default is metadata-only                                         |
-| `vp run audit:secret-provider-quarantine` | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
+| `wp run audit:secret-provider-quarantine` | Direct provider CLI bypasses, dotenv imports, and secret downloads            |
 | `wp audit absolute-path-policy --root .`  | Canonical shared path-policy audit surface                                    |
 
-Run secret gates with `vp run verify:secrets` and `vp run audit:secret-provider-quarantine`
+Run secret gates with `wp run verify:secrets` and `wp run audit:secret-provider-quarantine`
 (both in CI). Pre-commit also runs `wp audit absolute-path-policy --root .` and
 `wp audit secrets-config`.
 
@@ -61,7 +61,7 @@ execution now goes through shared `wp` secret surfaces such as
 - Forbidden in git: tokens, passwords, API keys, or any secret-provider-managed secret values.
 - Runtime wp selection (manager/project only, no values) lives under
   `.git/webpresso/secrets.json` (untracked, written by `wp`, never committed).
-- CI validates metadata via `vp run verify:secrets`.
+- CI validates metadata via `wp run verify:secrets`.
 
 ## Where each credential lives
 
@@ -100,7 +100,7 @@ They are not Worker bindings and must never be committed.
 
 | Name                      | Owner                       | Where the value lives                | Consumed by                                                                                            |
 | ------------------------- | --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `CF_ACCESS_CLIENT_ID`     | Cloudflare Zero Trust owner | Configured secret-provider selection | `vp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
+| `CF_ACCESS_CLIENT_ID`     | Cloudflare Zero Trust owner | Configured secret-provider selection | `wp run deploy:production`, GitHub Actions post-deploy smoke, `production-smoke`, `production-journey` |
 | `CF_ACCESS_CLIENT_SECRET` | Cloudflare Zero Trust owner | Configured secret-provider selection | Same flows; sent only as `CF-Access-Client-Secret` at runtime                                          |
 
 Rules:
@@ -187,9 +187,9 @@ Minimum token permissions on the **ozby** account:
 3. Run policy checks:
 
    ```bash
-   vp run verify:secrets
+   wp run verify:secrets
    wp audit absolute-path-policy --root .
-   vp run audit:secret-provider-quarantine
+   wp run audit:secret-provider-quarantine
    ```
 
 4. **Pulumi (R2 bucket)** — account ID can live in stack config instead of relying on the secret-provider env:
@@ -198,16 +198,16 @@ Minimum token permissions on the **ozby** account:
    cd infra
    pulumi stack init production   # once
    pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
-   wp secrets run --sink pulumi --profile preview -- vp exec --filter @edge-matte/infra -- pulumi preview
-   wp secrets run --sink pulumi --profile production -- vp exec --filter @edge-matte/infra -- pulumi up
+   wp secrets run --sink pulumi --profile preview -- wp exec --filter @edge-matte/infra -- pulumi preview
+   wp secrets run --sink pulumi --profile production -- wp exec --filter @edge-matte/infra -- pulumi up
    # or from repo root:
-   vp run pulumi:up
+   wp run pulumi:up
    ```
 
 5. **Production Worker deploy** (operator-local, same as ingest-lens deploy runbook):
 
    ```bash
-   vp run deploy:production
+   wp run deploy:production
    ```
 
    When Cloudflare Access private-beta protection is enabled for

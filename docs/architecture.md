@@ -266,7 +266,7 @@ v1 has no user accounts.
 
 ```mermaid
 flowchart TD
-    DEV[Developer / CI] --> VP[vite-plus scripts<br/>vp check / vp fmt / vp run test]
+    DEV[Developer / CI] --> VP[vite-plus scripts<br/>vp check / vp fmt / wp run test]
     DEV --> WP[agent-kit CLI<br/>wp setup / wp audit]
     DEV --> MCP[agent-kit MCP tools<br/>wp_audit / structured verification lanes]
 
