@@ -26,8 +26,8 @@ test("release docs define healthy production as both production suites passing",
 
 test("production release path documents both post-deploy production suites", () => {
   const ciAndRelease = section("CI and release path");
-  assert.match(ciAndRelease, /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke/u);
-  assert.match(ciAndRelease, /E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey/u);
+  assert.match(ciAndRelease, /E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-smoke/u);
+  assert.match(ciAndRelease, /E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-journey/u);
 });
 
 test("release checklist and rollback both require production-smoke plus production-journey", () => {

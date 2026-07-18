@@ -13,7 +13,7 @@ See also:
 
 ```mermaid
 flowchart LR
-    CI[deploy.production.yml<br/>or vp run deploy:production] --> WRANGLER[Wrangler deploy]
+    CI[deploy.production.yml<br/>or wp run deploy:production] --> WRANGLER[Wrangler deploy]
 
     PULUMI[Pulumi stack] --> R2[(R2 bucket)]
     PULUMI --> LIFE[R2 lifecycle rules]
@@ -62,8 +62,8 @@ pulumi login
 pulumi stack init production   # once
 wp secrets run --sink pulumi --profile production -- pulumi config set cloudflareAccountId "$CLOUDFLARE_ACCOUNT_ID" --secret
 wp secrets run --sink pulumi --profile production -- pulumi config set artifactMaxAgeDays 30
-vp run pulumi:preview
-vp run pulumi:up
+wp run pulumi:preview
+wp run pulumi:up
 ```
 
 Or run Pulumi commands from `infra/` through

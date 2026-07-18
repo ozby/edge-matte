@@ -84,7 +84,7 @@ jobs:
     needs:
       - resolve
       - secret-preflight
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@ba439b2d66ece6f16d3e7fee34bdee3ac5c987c0
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@dbbaaa07c5d50d3def514807a7419055632afcb5
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
@@ -98,6 +98,8 @@ jobs:
         vp run build
       deploy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }}
       secret_profile: preview
+      secret_sink: deploy-wrangler
+      github_environment: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
@@ -175,7 +177,7 @@ jobs:
     needs:
       - resolve
       - secret-preflight
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@ba439b2d66ece6f16d3e7fee34bdee3ac5c987c0
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@dbbaaa07c5d50d3def514807a7419055632afcb5
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
@@ -184,6 +186,8 @@ jobs:
       deploy_command: ":"
       destroy_command: bun infra/src/deploy/deploy-preview.ts --lane ${{ needs.resolve.outputs.dashed_lane }} --destroy
       secret_profile: preview
+      secret_sink: deploy-wrangler
+      github_environment: preview
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}

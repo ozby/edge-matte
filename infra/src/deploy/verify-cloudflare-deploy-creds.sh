@@ -10,12 +10,12 @@ if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; th
 fi
 
 echo "▶ wrangler whoami (token account membership)"
-vp exec --filter @edge-matte/worker -- wrangler whoami
+wp exec --filter @edge-matte/worker -- wrangler whoami
 
 echo "▶ Workers Services API auth probe (same path as wrangler deploy)"
 bun infra/src/deploy/probe-cloudflare-workers-auth.ts
 
 echo "▶ wrangler deploy dry-run (bundle validation only)"
-vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
+wp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
 
 echo "OK: Cloudflare deploy credentials verified"

@@ -8,7 +8,7 @@ Keep changes small, reviewable, and verified.
 ## Setup after clone
 
 ```bash
-vp install && vp run setup:agent  # setup:agent runs wp setup, which scaffolds .agent/, AGENTS.md, hooks, and runs wp sync
+vp install && wp run setup:agent  # setup:agent runs wp setup, which scaffolds .agent/, AGENTS.md, hooks, and runs wp sync
 ```
 
 agent-kit's catalog is the single source of truth for generated agent surfaces.
@@ -105,6 +105,13 @@ verbatim across `wp sync` runs.
 
 ## Edge-matte architecture contract
 
+### Command routing (hard rule)
+
+Prefer `wp`, then `vp`, then `pnpm`. Use `vp` only when `wp` has no
+equivalent, and raw `pnpm` only when neither facade can perform the operation.
+All documentation, instructions, scripts, and workflow examples must follow
+this hierarchy without exception.
+
 # Operating Contract
 
 This repo treats architecture as a **living contract**, not a one-off design
@@ -182,10 +189,10 @@ Enforced checks:
 - Pre-commit runs `wp audit secrets-policy`, `wp audit absolute-path-policy --root .`,
   `wp audit secrets-config`, and `wp audit secret-provider-quarantine`
   via `.husky/pre-commit`.
-- `vp run verify:secrets` runs the policy verifier and committed secrets metadata validation.
+- `wp run verify:secrets` runs the policy verifier and committed secrets metadata validation.
 - Agents should prefer the shared `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` surface.
 - `verify:paths` remains a package-script wrapper, but agents should prefer `wp_audit(kind=absolute-path-policy)` / `wp audit absolute-path-policy --root .` directly.
-- `vp run audit:secret-provider-quarantine` enforces provider-neutral secret execution.
+- `wp run audit:secret-provider-quarantine` enforces provider-neutral secret execution.
 
 <!-- <<< user-owned (repo-customizations) -->
 
@@ -219,7 +226,7 @@ Packages use **Changesets**. Release-visible changes need `.changeset/*.md`; non
 Flow: changeset → commit → merge; Version PR uses `release.yml` only. Never local publish; `npm view` is registry evidence.
 
 ```bash
-vp run changeset:status
+wp run changeset:status
 ```
 
 Protocol: `.agent/rules/changeset-release.md`
@@ -247,6 +254,7 @@ Full details: `.agent/rules/package-conventions.md`
 - Playwright
 - TypeScript
 - Vitest
+
 <!-- <<< managed by webpresso (planning-and-release) -->
 
 <!-- >>> user-owned (escalation-map) -->

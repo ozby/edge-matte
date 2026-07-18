@@ -31,7 +31,7 @@ managed hooks/runtime surfaces. If those drift later, rerun `wp setup`.
 Run the app locally against the no-setup mock pipeline:
 
 ```bash
-vp run --filter @edge-matte/worker dev:mock
+wp run --filter @edge-matte/worker dev:mock
 ```
 
 This boots `wrangler dev` with `E2E_MOCK_PIPELINE:1` and prints a local URL;
@@ -44,16 +44,16 @@ the full upload → process → host → delete flow works without any secrets.
 
 ```bash
 vp install --frozen-lockfile
-vp run -r lint
-vp run -r check-types
-vp run test
-vp run e2e -- --suite smoke
+wp run -r lint
+wp run -r check-types
+wp run test
+wp run e2e -- --suite smoke
 ```
 
 For the HTTP contract surface, also run:
 
 ```bash
-vp run e2e -- --suite upload-delete-contract
+wp run e2e -- --suite upload-delete-contract
 ```
 
 **Full maintainer check (maintainer only)** — adds mutation testing, the
@@ -61,10 +61,10 @@ architecture-drift gate, and production e2e. Requires deploy credentials and a
 live deployment, so contributors do not need to run it:
 
 ```bash
-vp run qa                               # wp lint + typecheck + vitest + mutation + playwright e2e
+wp run qa                               # wp lint + typecheck + vitest + mutation + playwright e2e
 wp audit architecture-drift --root .
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-journey
 ```
 
 ## No secrets on disk
@@ -125,4 +125,4 @@ Co-Authored-By: Your Name <you@example.com>
 
 TypeScript with strict typing — no `any`, no default exports in new code, named
 exports, readonly by default, and structured logging. `oxlint` enforces most of
-this; run `vp run -r lint` before committing.
+this; run `wp run -r lint` before committing.

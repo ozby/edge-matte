@@ -102,7 +102,7 @@ smoke, local operator checks, and production-only E2E do not regress.
 
 - **Browser allow rules**: keep the Access app scoped to `edge-matte.ozby.dev`
   and limit interactive access to maintainers plus the explicit beta allowlist.
-- **Automation rules**: local `vp run deploy:production`, GitHub Actions
+- **Automation rules**: local `wp run deploy:production`, GitHub Actions
   post-deploy smoke, and any production-only E2E must source
   `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` from the secret manager,
   then send them as `CF-Access-Client-Id` / `CF-Access-Client-Secret`
@@ -188,17 +188,17 @@ wp setup
 wp config secrets show   # should report the shared secret-provider selection after vp install
 
 # Quality gates (same surface CI uses)
-vp run verify:secrets
+wp run verify:secrets
 wp audit absolute-path-policy --root .  # canonical shared audit surface
-vp run audit:secret-provider-quarantine
-vp run -r check-types
-vp run -r lint
-vp run test
-vp run -r build
+wp run audit:secret-provider-quarantine
+wp run -r check-types
+wp run -r lint
+wp run test
+wp run -r build
 
 # Local journey verification
-vp run e2e -- --suite smoke
-vp run e2e -- --suite upload-delete
+wp run e2e -- --suite smoke
+wp run e2e -- --suite upload-delete
 
 # Architecture + docs governance
 wp audit docs-frontmatter
@@ -238,22 +238,22 @@ custom-domain route (`preview-main.edge-matte.ozby.dev` or
 Operator-local production deploy (mirrors the shared secret-provider deploy contract):
 
 ```bash
-vp run deploy:production
+wp run deploy:production
 ```
 
 This builds the workspace, then runs the shared `wp deploy --lane prd`
 (loading `CLOUDFLARE_*` from the configured secret-provider selection), then verifies `/health` and runs
 both post-deploy production suites: `production-smoke` and
 `production-journey`.
-Before deploy, it also runs `vp run verify:deploy-contract`, which verifies the
+Before deploy, it also runs `wp run verify:deploy-contract`, which verifies the
 shared release metadata gate and confirms `env.production` / stable production
 Worker naming remain intact.
 
 Dry-run without mutating production (PR CI uses the same shape):
 
 ```bash
-vp run --filter @edge-matte/worker build
-vp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
+wp run --filter @edge-matte/worker build
+wp exec --filter @edge-matte/worker -- wrangler deploy --dry-run --env production
 ```
 
 ## CI and release path
@@ -306,9 +306,9 @@ Implemented in [`.github/workflows/deploy-preview.yml`](../.github/workflows/dep
 Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.yml) with a manual fallback in [`.github/workflows/deploy-production.yml`](../.github/workflows/deploy-production.yml):
 
 1. Feature branches merge a `.changeset/*.md` file to `main`; the shared Changesets release harness opens or updates the **Version Packages** PR automatically.
-2. When the Version Packages PR merges, CI runs `vp run version` and `vp run release:publish`, then forwards the resolved `release_version` into the shared production deploy harness.
+2. When the Version Packages PR merges, CI runs `wp run version` and `wp run release:publish`, then forwards the resolved `release_version` into the shared production deploy harness.
 3. The production deploy path runs quality gates (`verify:secrets`, shared path-policy audit, `audit:secret-provider-quarantine`, format, lint, typecheck, build, test).
-4. CI runs `vp run verify:deploy-contract` so production release metadata is present, contains a semver `releaseVersion`, and is valid before any deploy.
+4. CI runs `wp run verify:deploy-contract` so production release metadata is present, contains a semver `releaseVersion`, and is valid before any deploy.
 5. CI runs the same hermetic pre-deploy e2e gate used for PR confidence (`upload-delete-contract`, `smoke`, `upload-delete`).
 6. The CI secret-provider bridge injects `CLOUDFLARE_*` for the deploy job.
 7. The worker deploy still uses `wrangler deploy --env production`, but release orchestration no longer depends on a manually pushed `v*` tag.
@@ -317,8 +317,8 @@ Implemented in [`.github/workflows/release.yml`](../.github/workflows/release.ym
 10. **Post-deploy production evidence** — after deploy succeeds:
     - `GET https://edge-matte.ozby.dev/health`
     - `GET https://edge-matte.ozby.dev/`
-    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke`
-    - `E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey`
+    - `E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-smoke`
+    - `E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-journey`
 
 Today those probes are bare requests. Once Cloudflare Access is enabled for
 private beta, the same checks must send `CF-Access-Client-Id` /
@@ -347,10 +347,10 @@ curl -sf \
   https://edge-matte.ozby.dev/
 CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
 CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-smoke
 CF_ACCESS_CLIENT_ID="$CF_ACCESS_CLIENT_ID" \
 CF_ACCESS_CLIENT_SECRET="$CF_ACCESS_CLIENT_SECRET" \
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-journey
 ```
 
 Under Access, `/health` and `/` stay valid probes, but only through the
@@ -384,7 +384,7 @@ v1 rollback is redeploy of the last known-good Worker revision:
 
 1. Identify last green commit on `main` (hermetic PR gate green and both `production-smoke` + `production-journey` green after deploy)
 2. Re-run deploy workflow on that commit, or:
-   `vp run deploy:production` from that checkout
+   `wp run deploy:production` from that checkout
 3. Re-run post-deploy verification (`/health`, `/`, `production-smoke`, and `production-journey`)
 
 R2 data is not rolled back with Worker deploys; job artifacts persist until

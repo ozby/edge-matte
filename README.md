@@ -35,20 +35,20 @@ vp install --frozen-lockfile
 #   postinstall runs wp setup to scaffold hooks/runtime surfaces
 
 # Run the no-setup mock pipeline (no Cloudflare account or secrets needed)
-vp run --filter @edge-matte/worker dev:mock
+wp run --filter @edge-matte/worker dev:mock
 # → wrangler dev boots with E2E_MOCK_PIPELINE:1 and prints a local URL;
 #   the full upload → process → host → delete flow works end to end
 
 # Run the unit + integration suites
-vp run test
+wp run test
 # → worker, client, and root suites pass green
 
 # Run the hermetic smoke e2e suite
-vp run e2e -- --suite smoke
+wp run e2e -- --suite smoke
 # → wrangler dev (mock pipeline) boots; /health + SPA shell checks pass
 
 # Run the HTTP contract e2e suite
-vp run e2e -- --suite upload-delete-contract
+wp run e2e -- --suite upload-delete-contract
 # → upload → serve → delete plus every error code pass
 ```
 
@@ -95,19 +95,19 @@ Hono routes inside one Worker; the pure core is dependency-injected with the `cf
 
 ```bash
 vp install --frozen-lockfile
-vp run -r lint
-vp run -r check-types
-vp run test
-vp run e2e -- --suite smoke
+wp run -r lint
+wp run -r check-types
+wp run test
+wp run e2e -- --suite smoke
 ```
 
 **Full maintainer check (maintainer only)** — includes mutation testing, the architecture-drift gate, and production e2e against the deployed URL:
 
 ```bash
-vp run qa                               # wp lint + typecheck + vitest + mutation + playwright e2e
+wp run qa                               # wp lint + typecheck + vitest + mutation + playwright e2e
 wp audit architecture-drift --root .
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-smoke
-E2E_RUN_PRODUCTION=1 vp run e2e -- --suite production-journey
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-smoke
+E2E_RUN_PRODUCTION=1 wp run e2e -- --suite production-journey
 ```
 
 `production-journey` is the only suite that proves the real background-removal + flip transform; the hermetic suites prove plumbing, the API contract, and the browser UI.
