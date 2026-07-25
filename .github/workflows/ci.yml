@@ -44,6 +44,8 @@ jobs:
       - run: vp run format:check
       - run: vp run check-types
       - run: vp run lint
+      - name: Run wp audit guardrails
+        run: wp audit guardrails
       - run: vp run test
       - run: wp audit docs-frontmatter
 

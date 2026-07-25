@@ -74,6 +74,8 @@ jobs:
       should_deploy: ${{ steps.release.outputs.should_deploy }}
       release_version: ${{ steps.release.outputs.release_version }}
     steps:
+      - name: Run wp audit guardrails
+        run: wp audit guardrails
       - name: Resolve release result
         id: release
         shell: bash
