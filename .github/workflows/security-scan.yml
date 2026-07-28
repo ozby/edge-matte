@@ -11,8 +11,10 @@ on:
 jobs:
   security:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'changeset-release/main' }}
-    uses: webpresso/github-actions/.github/workflows/webpresso-security.yml@aaf5e03cb7b215bcc8232858ebcf4cbbec2a8c0e
+    uses: webpresso/github-actions/.github/workflows/webpresso-security.yml@7a7cd0b92d7e751f42f8ec8614a8ca84e8d5e20f
     with:
       install_command: vp install --frozen-lockfile
       security_command: vp exec secretlint "**/*"
       runner: ubuntu-latest
+    secrets:
+      CI_AGENT_KIT_TOKEN: ${{ secrets.CI_AGENT_KIT_TOKEN }}

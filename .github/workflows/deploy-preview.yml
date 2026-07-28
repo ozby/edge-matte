@@ -84,7 +84,7 @@ jobs:
     needs:
       - resolve
       - secret-preflight
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@dbbaaa07c5d50d3def514807a7419055632afcb5
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@7a7cd0b92d7e751f42f8ec8614a8ca84e8d5e20f
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: deploy
@@ -103,6 +103,7 @@ jobs:
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
+      CI_AGENT_KIT_TOKEN: ${{ secrets.CI_AGENT_KIT_TOKEN }}
 
   secret-preflight:
     needs: resolve
@@ -177,7 +178,7 @@ jobs:
     needs:
       - resolve
       - secret-preflight
-    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@dbbaaa07c5d50d3def514807a7419055632afcb5
+    uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@7a7cd0b92d7e751f42f8ec8614a8ca84e8d5e20f
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
       mode: destroy
@@ -191,3 +192,4 @@ jobs:
       runner: ubuntu-latest
     secrets:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
+      CI_AGENT_KIT_TOKEN: ${{ secrets.CI_AGENT_KIT_TOKEN }}
