@@ -28,9 +28,10 @@ jobs:
           node-version: "24.16.0"
           cache: true
           run-install: false
-      - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
+      - uses: ./.github/actions/setup-wp-release
         with:
-          version: "3.1.17"
+          version: "3.3.6"
+          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
       - name: Check workflow action pins
         run: node scripts/check-workflow-action-pins.ts
       - run: vp install --frozen-lockfile
@@ -70,9 +71,10 @@ jobs:
           node-version: "24.16.0"
           cache: true
           run-install: false
-      - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
+      - uses: ./.github/actions/setup-wp-release
         with:
-          version: "3.1.17"
+          version: "3.3.6"
+          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
       - run: vp install --frozen-lockfile
       - name: Resolve Playwright version
         id: pw
@@ -115,8 +117,9 @@ jobs:
           node-version: "24.16.0"
           cache: true
           run-install: false
-      - uses: webpresso/github-actions/.github/actions/setup-wp@c2c71a7a4be446fc6858e6b57bf55a11ccfa2d88
+      - uses: ./.github/actions/setup-wp-release
         with:
-          version: "3.1.17"
+          version: "3.3.6"
+          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
       - run: vp install --frozen-lockfile
       - run: wp test --mutation
