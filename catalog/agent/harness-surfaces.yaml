@@ -111,6 +111,5 @@ surfaces:
         status: concrete
     triggers:
       - wp sync
-      - omx setup
     evidence:
       - AGENTS.md
