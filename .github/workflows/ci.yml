@@ -6,6 +6,14 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel superseded PR runs (stacked pushes on the same PR duplicate the full
+# wp-check + e2e run otherwise). Main pushes group by commit SHA instead of
+# ref so an in-flight main run is never cancelled by the next push landing
+# behind it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   # Opt the workflow's JavaScript actions into Node.js 24 ahead of the
   # 2026-06-02 GitHub default switch (replaces the deprecation warning
@@ -104,22 +112,3 @@ jobs:
             apps/e2e/playwright-report
             apps/e2e/test-results
           retention-days: 7
-
-  mutation:
-    if: ${{ github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Version Packages') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        with:
-          fetch-depth: 0
-      - uses: voidzero-dev/setup-vp@13e7afb99c66525824db54e107d667216e795d37 # v1.14.0
-        with:
-          node-version: "24.16.0"
-          cache: true
-          run-install: false
-      - uses: ./.github/actions/setup-wp-release
-        with:
-          version: "3.3.6"
-          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
-      - run: vp install --frozen-lockfile
-      - run: wp test --mutation

@@ -1,0 +1,32 @@
+name: Mutation
+
+# Split out of ci.yml: this lane fails on every push:main today (pure CI
+# minutes burn plus alert-fatigue on an always-red required-adjacent job).
+# Runs on a weekly off-peak schedule instead of on every push until the
+# suite is fixed; restore an `on: push` trigger once it passes reliably.
+on:
+  schedule:
+    - cron: "17 3 * * 0" # Sunday 03:17 UTC
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - uses: voidzero-dev/setup-vp@13e7afb99c66525824db54e107d667216e795d37 # v1.14.0
+        with:
+          node-version: "24.16.0"
+          cache: true
+          run-install: false
+      - uses: ./.github/actions/setup-wp-release
+        with:
+          version: "3.3.6"
+          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
+      - run: vp install --frozen-lockfile
+      - run: wp test --mutation

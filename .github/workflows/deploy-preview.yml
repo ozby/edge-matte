@@ -79,11 +79,16 @@ jobs:
             printf 'mode=%s\n' "${mode}"
           } >> "$GITHUB_OUTPUT"
 
+  # Gated by the CI_HAS_PREVIEW_TOKEN repository variable instead of a
+  # separate probe job that spun up a full runner just to test
+  # `[[ -n "$TOKEN" ]]`. `vars` (unlike `secrets`) is readable in a job-level
+  # `if:`, so the check no longer needs its own job/runner. Keep the
+  # variable in sync with CI_SECRET_PROVIDER_TOKEN_PREVIEW's actual
+  # availability: `gh variable set CI_HAS_PREVIEW_TOKEN --body <true|false>`.
   preview-call:
-    if: ${{ needs.resolve.outputs.mode == 'deploy' && needs.secret-preflight.outputs.preview_token_present == 'true' }}
+    if: ${{ needs.resolve.outputs.mode == 'deploy' && vars.CI_HAS_PREVIEW_TOKEN == 'true' }}
     needs:
       - resolve
-      - secret-preflight
     uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@7a7cd0b92d7e751f42f8ec8614a8ca84e8d5e20f
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}
@@ -105,79 +110,10 @@ jobs:
       ci_secret_provider_token: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
       CI_AGENT_KIT_TOKEN: ${{ secrets.CI_AGENT_KIT_TOKEN }}
 
-  secret-preflight:
-    needs: resolve
-    runs-on: ubuntu-latest
-    outputs:
-      preview_token_present: ${{ steps.preview-token.outputs.present }}
-    steps:
-      - name: Check preview secret-provider token availability
-        id: preview-token
-        shell: bash
-        env:
-          CI_SECRET_PROVIDER_TOKEN_PREVIEW: ${{ secrets.CI_SECRET_PROVIDER_TOKEN_PREVIEW }}
-        run: |
-          set -euo pipefail
-          if [[ -n "${CI_SECRET_PROVIDER_TOKEN_PREVIEW}" ]]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping preview deploy because CI_SECRET_PROVIDER_TOKEN_PREVIEW is not available to this run."
-          fi
-
-  deploy-preview:
-    if: ${{ always() && needs.resolve.outputs.mode == 'deploy' }}
-    needs:
-      - resolve
-      - secret-preflight
-      - preview-call
-    runs-on: ubuntu-latest
-    steps:
-      - name: Summarize preview deploy result
-        env:
-          PREVIEW_TOKEN_PRESENT: ${{ needs.secret-preflight.outputs.preview_token_present }}
-          PREVIEW_RESULT: ${{ needs.preview-call.result }}
-        run: |
-          set -euo pipefail
-          if [[ "${PREVIEW_TOKEN_PRESENT}" != "true" ]]; then
-            echo "deploy-preview skipped because CI_SECRET_PROVIDER_TOKEN_PREVIEW is unavailable."
-            exit 0
-          fi
-          if [[ "${PREVIEW_RESULT}" != "success" ]]; then
-            echo "deploy-preview failed via shared reusable preview caller: ${PREVIEW_RESULT}" >&2
-            exit 1
-          fi
-          echo "deploy-preview passed via shared reusable preview caller"
-
-  deploy-verify:
-    if: ${{ always() && needs.resolve.outputs.mode == 'deploy' }}
-    needs:
-      - resolve
-      - secret-preflight
-      - preview-call
-    runs-on: ubuntu-latest
-    steps:
-      - name: Summarize preview verification result
-        env:
-          PREVIEW_TOKEN_PRESENT: ${{ needs.secret-preflight.outputs.preview_token_present }}
-          PREVIEW_RESULT: ${{ needs.preview-call.result }}
-        run: |
-          set -euo pipefail
-          if [[ "${PREVIEW_TOKEN_PRESENT}" != "true" ]]; then
-            echo "deploy verification skipped because CI_SECRET_PROVIDER_TOKEN_PREVIEW is unavailable."
-            exit 0
-          fi
-          if [[ "${PREVIEW_RESULT}" != "success" ]]; then
-            echo "deploy verification failed via shared reusable preview caller: ${PREVIEW_RESULT}" >&2
-            exit 1
-          fi
-          echo "deploy verification passed via shared reusable preview caller"
-
   destroy-preview-call:
-    if: ${{ needs.resolve.outputs.mode == 'destroy' && needs.secret-preflight.outputs.preview_token_present == 'true' }}
+    if: ${{ needs.resolve.outputs.mode == 'destroy' && vars.CI_HAS_PREVIEW_TOKEN == 'true' }}
     needs:
       - resolve
-      - secret-preflight
     uses: webpresso/github-actions/.github/workflows/cloudflare-preview.yml@7a7cd0b92d7e751f42f8ec8614a8ca84e8d5e20f
     with:
       lane: ${{ needs.resolve.outputs.canonical_lane }}

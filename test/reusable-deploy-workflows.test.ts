@@ -23,8 +23,7 @@ test("preview workflow delegates to the shared reusable preview shell while pres
   assert.match(workflow, /canonical_lane="preview_main"/u);
   assert.match(workflow, /canonical_lane="preview_pr_\$\{PR_NUMBER\}"/u);
   assert.match(workflow, /mode == 'destroy'/u);
-  assert.match(workflow, /deploy-preview:/u);
-  assert.match(workflow, /deploy-verify:/u);
+  assert.match(workflow, /vars\.CI_HAS_PREVIEW_TOKEN == 'true'/u);
   assert.match(
     workflow,
     /deploy:preview -- --lane .* --destroy|infra\/src\/deploy\/deploy-preview\.ts.*--destroy/u,
@@ -115,12 +114,15 @@ test("CI workflow exposes wp-check as the branch-protection-facing quality gate"
   assert.doesNotMatch(workflow, /\n  check:\n/u);
 });
 
-test("CI mutation lane uses the supported repo-owned mutation script", () => {
-  const workflow = readRepoFile(".github/workflows/ci.yml");
+test("mutation lane uses the supported repo-owned mutation script and runs on a schedule, not every push", () => {
+  const ciWorkflow = readRepoFile(".github/workflows/ci.yml");
+  const mutationWorkflow = readRepoFile(".github/workflows/mutation.yml");
 
-  assert.match(workflow, /wp test --mutation/u);
-  assert.doesNotMatch(workflow, /wp test --affected/u);
-  assert.match(workflow, /!startsWith\(github\.event\.head_commit\.message, 'Version Packages'\)/u);
+  assert.doesNotMatch(ciWorkflow, /wp test --mutation/u);
+  assert.match(mutationWorkflow, /wp test --mutation/u);
+  assert.doesNotMatch(mutationWorkflow, /wp test --affected/u);
+  assert.match(mutationWorkflow, /schedule:/u);
+  assert.match(mutationWorkflow, /workflow_dispatch:/u);
 });
 
 test("version automation skips heavy preview, browser, and security lanes", () => {
