@@ -12,6 +12,15 @@ concurrency:
   group: edge-matte-production-deploy
   cancel-in-progress: false
 
+permissions:
+  # Must cover every scope the called workflow requests: a called workflow
+  # cannot elevate the caller token, and requesting an ungranted scope fails
+  # the ENTIRE caller at startup (startup_failure, jobs=0).
+  contents: read
+  packages: read
+  id-token: write
+  checks: read
+
 jobs:
   deploy:
     uses: webpresso/github-actions/.github/workflows/cloudflare-production.yml@3430411170ca684377741b0ecac4849396cc9789
