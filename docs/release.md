@@ -273,8 +273,10 @@ Canonical PR contract:
 2. **e2e** job — hermetic PR gate for `upload-delete-contract`, `smoke`, and
    `upload-delete` using local `wrangler dev` + `E2E_MOCK_PIPELINE:1`
 3. **architecture-drift** job — dedicated architecture contract verification
-4. **deploy-verify** job — preview-lane verification on pull requests plus
-   preview deploy orchestration on `main` / manual runs
+
+Preview deploy orchestration on `main` / pull requests / manual runs is a
+separate, non-blocking lane — see [Preview deploys](#preview-deploys) below;
+it is not part of the required PR check contract.
 
 All workflow `uses:` references are intentionally pinned to full 40-character
 commit SHAs, including GitHub-authored actions, so the repo can enforce
