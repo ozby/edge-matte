@@ -42,7 +42,7 @@ test("required workspace config files exist", () => {
     "pnpm-workspace.yaml",
     "tsconfig.json",
     "apps/workers/wrangler.toml",
-    "agent-kit.config.ts",
+    "webpresso.config.ts",
     "webpresso.config.ts",
     "apps/workers/package.json",
     "apps/client/package.json",
@@ -59,24 +59,29 @@ test("apps/workers/wrangler.toml declares ASSETS binding and production route", 
   assert.match(wrangler, /custom_domain\s*=\s*true/u);
 });
 
-test("agent-kit.config.ts wires the e2e host adapter", () => {
-  const config = readText("agent-kit.config.ts");
+test("webpresso.config.ts wires the e2e host adapter", () => {
+  const config = readText("webpresso.config.ts");
   assert.match(config, /hostAdapterModule/u);
-  assert.match(config, /\.\/apps\/e2e\/src\/agent-kit-host-adapter/u);
+  assert.match(config, /\.\/apps\/e2e\/src\/webpresso-host-adapter/u);
   assert.match(config, /deploy:\s*\{/u);
   assert.match(config, /metadataPath:\s*"infra\/release-metadata\.production\.json"/u);
 });
 
 test("configured e2e host adapter stays importable on the Node ESM surface", async () => {
-  const moduleHref = pathToFileURL(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")).href;
+  const moduleHref = pathToFileURL(resolve(root, "apps/e2e/src/webpresso-host-adapter.ts")).href;
   const module = await import(moduleHref);
   assert.equal(typeof module.buildExecutionPlan, "function");
 });
 
-test("webpresso.config.ts re-exports the repo config on the canonical upstream surface", () => {
+test("webpresso.config.ts is the repo config, not a re-export of a legacy file", () => {
   const config = readText("webpresso.config.ts");
-  assert.match(config, /webpressoConfig/u);
-  assert.match(config, /agent-kit\.config/u);
+  assert.match(config, /export const webpressoConfig/u);
+  // Regression guard. This file used to re-export agentKitConfig from
+  // agent-kit.config.ts and was never consulted: config resolution returns the
+  // FIRST candidate file that exists and does not fall through on an export
+  // mismatch, so the legacy file won every time and this shim was dead weight.
+  assert.doesNotMatch(config, /agent-kit/u);
+  assert.equal(existsSync(resolve(root, "agent-kit.config.ts")), false);
 });
 
 test("deprecated local setup scaffolds are absent from the repo", () => {
@@ -94,7 +99,7 @@ test("apps/e2e exposes smoke suite manifest wiring", () => {
   assert.match(manifest, /id:\s*['"]smoke['"]/u);
   assert.match(manifest, /journeys\/smoke\.smoke\.test\.ts/u);
   assert.ok(existsSync(resolve(root, "apps/e2e/journeys/smoke.smoke.test.ts")));
-  assert.ok(existsSync(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")));
+  assert.ok(existsSync(resolve(root, "apps/e2e/src/webpresso-host-adapter.ts")));
 });
 
 test("secret onboarding docs exist without forbidden local secret files", () => {

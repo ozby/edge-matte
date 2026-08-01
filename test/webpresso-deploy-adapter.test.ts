@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { webpressoDeployAdapter } from "#infra-deploy/agent-kit-deploy-adapter";
+import { webpressoDeployAdapter } from "#infra-deploy/webpresso-deploy-adapter";
 
 test("production dry-run uses wrangler without credentials", () => {
   const plan = webpressoDeployAdapter.createPlan({ lane: "prd", dryRun: true });
