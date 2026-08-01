@@ -13,6 +13,10 @@ permissions:
   pull-requests: write
   packages: write
   id-token: write
+  # cloudflare-preview/production request `checks: read`; a job-level
+  # permissions block REPLACES defaults, so it must be granted here or the
+  # entire caller fails at startup before any job is scheduled.
+  checks: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
