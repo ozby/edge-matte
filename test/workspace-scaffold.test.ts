@@ -73,10 +73,15 @@ test("configured e2e host adapter stays importable on the Node ESM surface", asy
   assert.equal(typeof module.buildExecutionPlan, "function");
 });
 
-test("webpresso.config.ts re-exports the repo config on the canonical upstream surface", () => {
+test("webpresso.config.ts is the repo config, not a re-export of a legacy file", () => {
   const config = readText("webpresso.config.ts");
-  assert.match(config, /webpressoConfig/u);
-  assert.match(config, /agent-kit\.config/u);
+  assert.match(config, /export const webpressoConfig/u);
+  // Regression guard. This file used to re-export agentKitConfig from
+  // agent-kit.config.ts and was never consulted: config resolution returns the
+  // FIRST candidate file that exists and does not fall through on an export
+  // mismatch, so the legacy file won every time and this shim was dead weight.
+  assert.doesNotMatch(config, /agent-kit/u);
+  assert.equal(existsSync(resolve(root, "agent-kit.config.ts")), false);
 });
 
 test("deprecated local setup scaffolds are absent from the repo", () => {
