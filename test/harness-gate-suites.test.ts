@@ -28,7 +28,7 @@ suites:
     surfaces:
       - harness-regression-gate
       - generated-agent-surfaces
-    proof: validates agent-kit deploy adapter expectations as a stronger held-out consumer check
+    proof: validates webpresso deploy adapter expectations as a stronger held-out consumer check
 `,
   );
 });
