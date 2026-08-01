@@ -1,3 +1,3 @@
-import { createQualityScaffoldConfig } from "@webpresso/agent-config/playwright/quality-scaffold";
+import { createQualityScaffoldConfig } from "@webpresso/app-config/playwright/quality-scaffold";
 
 export default createQualityScaffoldConfig();

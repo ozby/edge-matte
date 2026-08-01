@@ -25,7 +25,7 @@ Live demo: **[edge-matte.ozby.dev](https://edge-matte.ozby.dev)** (private-beta 
 ## Quick start
 
 Requires Node `>=24` with global `wp` plus `vp` (vite-plus) on `PATH`. The
-workspace installs `@webpresso/agent-config` only; `wp` stays a shared global
+workspace installs `@webpresso/app-config` only; `wp` stays a shared global
 CLI surface:
 
 ```bash

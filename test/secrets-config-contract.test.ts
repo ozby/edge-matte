@@ -46,7 +46,7 @@ test("root consumer setup keeps agent-config local and agent-kit global", () => 
   const scripts = object(pkg["scripts"]);
 
   assert.equal(scripts["setup:agent"], "wp setup");
-  assert.equal(declaredDependencies["@webpresso/agent-config"], "catalog:");
+  assert.equal(declaredDependencies["@webpresso/app-config"], "catalog:");
   assert.ok(
     !("@webpresso/agent-kit" in declaredDependencies),
     "root package must not declare a local @webpresso/agent-kit dependency",

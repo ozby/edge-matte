@@ -11,7 +11,7 @@ the commit/PR conventions this repo expects.
 - `vp` (vite-plus)
 
 `vp install --frozen-lockfile` installs the repo's pinned dependencies and runs
-`wp setup` during `postinstall`. Consumers keep `@webpresso/agent-config` as
+`wp setup` during `postinstall`. Consumers keep `@webpresso/app-config` as
 their direct package surface; `wp` remains a separately installed global CLI.
 
 The worker runs on Cloudflare Workers (Hono). Background removal in production

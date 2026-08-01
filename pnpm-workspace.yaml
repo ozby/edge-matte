@@ -4,7 +4,7 @@ packages:
   - "infra"
 
 catalog:
-  "@webpresso/agent-config": "0.4.4"
+  "@webpresso/app-config": "0.5.0"
   vite-plus: ^0.2.1
   "@stryker-mutator/core": ^9.6.1
   "@stryker-mutator/typescript-checker": ^9.6.1
@@ -19,3 +19,27 @@ allowBuilds:
   sharp: true
   tldjs: true
   workerd: true
+
+# Stryker core bare-imports `typescript` (undeclared) for its sandbox tsconfig
+# preprocessor; under this repo's TypeScript 7 that import lacks
+# ts.parseConfigFileTextToJson and every mutation run dies at startup. Inject the
+# TS6 compiler-API bridge as core's own dependency so only stryker sees it.
+packageExtensions:
+  "@stryker-mutator/core":
+    dependencies:
+      typescript: npm:@typescript/typescript6@^6.0.2
+
+# Security floors. These lived in package.json#pnpm.overrides since e9da5d4 and
+# never applied: pnpm 11 reads workspace settings from THIS file, so the
+# lockfile kept resolving vulnerable versions while the overrides looked
+# configured. Keep them here.
+overrides:
+  "brace-expansion": ">=5.0.8"
+  "fast-uri": ">=3.1.4"
+  "js-yaml": ">=4.3.0"
+  "postcss": ">=8.5.18"
+  "tar": ">=7.5.21"
+  "@vitest/browser": ">=4.1.10"
+  "@opentelemetry/propagator-jaeger": ">=2.9.0"
+  "sharp": ">=0.35.0"
+  "protobufjs": ">=7.6.5"

@@ -83,7 +83,7 @@ test("root command surface keeps vp as substrate while routing quality work thro
 
 test("root package declares the shared CI toolchain without package-local wrapper deps", () => {
   const pkg = readJson("package.json");
-  assert.equal(pkg.devDependencies?.["@webpresso/agent-config"], "catalog:");
+  assert.equal(pkg.devDependencies?.["@webpresso/app-config"], "catalog:");
   assert.ok(
     !pkg.devDependencies?.["@webpresso/agent-kit"],
     "root package must use global wp/agent-kit, not a local agent-kit devDependency",
