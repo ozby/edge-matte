@@ -16,7 +16,7 @@ Agent-kit owns generated agent surfaces here; Webpresso CLI owns the end-user co
 
 - Optional agent tools can be WP-owned with `wp install codex|claude-code|opencode` or `wp install oh-my opencode`; `openagent` aliases the latter, and WP-owned scopes use `wp update`.
 - `wp setup` repairs the managed `.gitignore` block for regenerated surfaces.
-- Consumer repos use the global `wp` install and keep only `@webpresso/agent-config` locally; do not add a consumer-local `@webpresso/agent-kit` dependency.
+- Consumer repos use the global `wp` install and keep only `@webpresso/app-config` locally; do not add a consumer-local `@webpresso/agent-kit` dependency.
 - Track repo-owned instruction sources (`AGENTS.md`, `agent-rules/`, `agent-skills/`).
 - Ignore generated/runtime surfaces (`.agent/`, `.agents/`, `.codex/`, `.opencode/`, etc.).
 
