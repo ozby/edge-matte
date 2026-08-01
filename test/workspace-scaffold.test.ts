@@ -42,7 +42,7 @@ test("required workspace config files exist", () => {
     "pnpm-workspace.yaml",
     "tsconfig.json",
     "apps/workers/wrangler.toml",
-    "agent-kit.config.ts",
+    "webpresso.config.ts",
     "webpresso.config.ts",
     "apps/workers/package.json",
     "apps/client/package.json",
@@ -59,16 +59,16 @@ test("apps/workers/wrangler.toml declares ASSETS binding and production route", 
   assert.match(wrangler, /custom_domain\s*=\s*true/u);
 });
 
-test("agent-kit.config.ts wires the e2e host adapter", () => {
-  const config = readText("agent-kit.config.ts");
+test("webpresso.config.ts wires the e2e host adapter", () => {
+  const config = readText("webpresso.config.ts");
   assert.match(config, /hostAdapterModule/u);
-  assert.match(config, /\.\/apps\/e2e\/src\/agent-kit-host-adapter/u);
+  assert.match(config, /\.\/apps\/e2e\/src\/webpresso-host-adapter/u);
   assert.match(config, /deploy:\s*\{/u);
   assert.match(config, /metadataPath:\s*"infra\/release-metadata\.production\.json"/u);
 });
 
 test("configured e2e host adapter stays importable on the Node ESM surface", async () => {
-  const moduleHref = pathToFileURL(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")).href;
+  const moduleHref = pathToFileURL(resolve(root, "apps/e2e/src/webpresso-host-adapter.ts")).href;
   const module = await import(moduleHref);
   assert.equal(typeof module.buildExecutionPlan, "function");
 });
@@ -94,7 +94,7 @@ test("apps/e2e exposes smoke suite manifest wiring", () => {
   assert.match(manifest, /id:\s*['"]smoke['"]/u);
   assert.match(manifest, /journeys\/smoke\.smoke\.test\.ts/u);
   assert.ok(existsSync(resolve(root, "apps/e2e/journeys/smoke.smoke.test.ts")));
-  assert.ok(existsSync(resolve(root, "apps/e2e/src/agent-kit-host-adapter.ts")));
+  assert.ok(existsSync(resolve(root, "apps/e2e/src/webpresso-host-adapter.ts")));
 });
 
 test("secret onboarding docs exist without forbidden local secret files", () => {

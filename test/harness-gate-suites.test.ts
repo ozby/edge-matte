@@ -24,7 +24,7 @@ suites:
     proof: validates baseline Playwright smoke wiring through the wp e2e adapter
   - id: edge-matte.worker-contract
     tier: held-out
-    command: vp run test -- test/agent-kit-deploy-adapter.test.ts
+    command: vp run test -- test/webpresso-deploy-adapter.test.ts
     surfaces:
       - harness-regression-gate
       - generated-agent-surfaces

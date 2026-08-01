@@ -24,9 +24,9 @@ jobs:
           node-version: "24.16.0"
           cache: true
           run-install: false
-      - uses: ./.github/actions/setup-wp-release
+      - uses: webpresso/github-actions/.github/actions/setup-wp@2003ca953f336efb779165f748e1ad8408565428
         with:
-          version: "3.3.6"
-          github-token: ${{ secrets.CI_AGENT_KIT_TOKEN || github.token }}
+          version: "0.0.5"
+          package-root: true
       - run: vp install --frozen-lockfile
       - run: wp test --mutation

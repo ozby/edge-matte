@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildExecutionPlan } from "./agent-kit-host-adapter";
+import { buildExecutionPlan } from "./webpresso-host-adapter";
 
-describe("agent-kit-host-adapter", () => {
+describe("webpresso-host-adapter", () => {
   it("routes reviewer-critical upload-delete through Playwright", () => {
     const [batch] = buildExecutionPlan({ suite: "upload-delete" });
     expect(batch.batchKey).toBe("upload-delete");
