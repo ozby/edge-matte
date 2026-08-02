@@ -4,7 +4,7 @@ packages:
   - "infra"
 
 catalog:
-  "@webpresso/app-config": "0.5.0"
+  "@webpresso/app-config": "0.5.1"
   vite-plus: ^0.2.1
   "@stryker-mutator/core": ^9.6.1
   "@stryker-mutator/typescript-checker": ^9.6.1
