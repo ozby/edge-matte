@@ -158,7 +158,7 @@ wp audit architecture-drift --root .
 
 - Keep one pure pipeline core.
 - Add ports only at real side-effect boundaries.
-- Reuse agent-kit/Webpresso quality rails instead of bespoke wrappers.
+- Reuse Webpresso quality rails instead of bespoke wrappers.
 - Prefer deleting duplication over adding abstraction.
 - Never use hardcoded relative filesystem paths in executable code or config.
   Use absolute paths derived from an explicit anchor (repo root finder, package
@@ -166,14 +166,14 @@ wp audit architecture-drift --root .
 
 ## Quality surface
 
-Use agent-kit/Webpresso for tests, formatting, linting, and QA when the app is
+Use the Webpresso app (`wp`) for tests, formatting, linting, and QA when the app is
 scaffolded:
 
 - `vp` for package scripts
 - `wp` for setup/audits
-- agent-kit MCP tools first when available; otherwise use the canonical `wp` / `vp` surface
+- `wp_*` MCP tools first when available; otherwise use the canonical `wp` / `vp` surface
 
-Do not invent parallel local QA workflows when agent-kit already owns the lane.
+Do not invent parallel local QA workflows when `wp` already owns the lane.
 
 ## Secret-handling policy
 
@@ -181,7 +181,7 @@ Do not invent parallel local QA workflows when agent-kit already owns the lane.
   `.env` / `.env.*` (except `.env.example`); keep secrets only in platform
   secret stores and documented secret management paths.
 - Do not write provider keys, tokens, or credentials to disk.
-- Webpresso tooling (`wp`, `vp`, agent-kit audits) is expected on `PATH` via a
+- Webpresso tooling (`wp`, `vp`, `wp audit`) is expected on `PATH` via a
   global install — not as a repo-local npm dependency.
 
 Enforced checks:

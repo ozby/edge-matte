@@ -29,7 +29,7 @@ test("validateMarkdownLinkTarget accepts relative and cross-repo links", () => {
   assert.equal(validateMarkdownLinkTarget("2026-05-27-edge-matte.md"), null);
   assert.equal(
     validateMarkdownLinkTarget(
-      "https://github.com/webpresso/agent-kit/blob/main/skills/plan-refine/SKILL.md",
+      "https://github.com/webpresso/app/blob/main/skills/plan-refine/SKILL.md",
     ),
     null,
   );
@@ -56,7 +56,7 @@ test("collectBlueprintLinkViolations scans all blueprint markdown files", () => 
     writeFileSync(join(blueprintDir, "good.md"), "[Architecture](../../docs/architecture.md)\n");
     writeFileSync(
       join(root, "blueprints", "README.md"),
-      "[Agent kit](https://github.com/webpresso/agent-kit/blob/main/README.md)\n",
+      "[Webpresso app](https://github.com/webpresso/app/blob/main/README.md)\n",
     );
     writeFileSync(
       join(blueprintDir, "bad.md"),

@@ -23,9 +23,9 @@
       "mustContain": ["edge-matte.ozby.dev"]
     },
     {
-      "id": "agent-kit-quality-reuse",
+      "id": "webpresso-quality-reuse",
       "paths": ["docs/architecture.md", "blueprints/**/*.md"],
-      "mustContain": ["agent-kit", "vite-plus"]
+      "mustContain": ["Webpresso", "vite-plus"]
     }
   ],
   "blueprintPolicy": {
