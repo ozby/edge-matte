@@ -109,7 +109,7 @@ export function buildExecutionPlan(request: E2eExecutionRequest): E2eExecutionBa
   }));
 }
 
-export const agentKitHostAdapter = {
+export const webpressoE2eHostAdapter = {
   listSuites: rootifySuites,
   resolveSuiteId: resolveE2ESuiteId,
   normalizeFilePath: normalizeE2EPath,
@@ -123,4 +123,4 @@ export const agentKitHostAdapter = {
   buildExecutionPlan,
 };
 
-export default agentKitHostAdapter;
+export default webpressoE2eHostAdapter;

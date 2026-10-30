@@ -86,7 +86,7 @@ test("root package declares the shared CI toolchain without package-local wrappe
   assert.equal(pkg.devDependencies?.["@webpresso/app-config"], "catalog:");
   assert.ok(
     !pkg.devDependencies?.["@webpresso/agent-kit"],
-    "root package must use global wp/agent-kit, not a local agent-kit devDependency",
+    "root package must use global wp, not a local @webpresso/agent-kit devDependency",
   );
   assert.equal(pkg.devDependencies?.["vite-plus"], "^0.2.1");
 });

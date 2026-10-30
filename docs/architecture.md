@@ -267,14 +267,14 @@ v1 has no user accounts.
 ```mermaid
 flowchart TD
     DEV[Developer / CI] --> VP[vite-plus scripts<br/>vp check / vp fmt / wp run test]
-    DEV --> WP[agent-kit CLI<br/>wp setup / wp audit]
-    DEV --> MCP[agent-kit MCP tools<br/>wp_audit / structured verification lanes]
+    DEV --> WP[Webpresso app CLI<br/>wp setup / wp audit]
+    DEV --> MCP[Webpresso MCP tools<br/>wp_audit / structured verification lanes]
 
     VP --> UNIT[Unit + route tests]
     UNIT --> WORKERS[Cloudflare Workers pool tests]
     UNIT --> REACT[React/jsdom tests]
 
-    WP --> E2E[agent-kit E2E host adapter]
+    WP --> E2E[Webpresso E2E host adapter]
     E2E --> MANIFEST[apps/e2e suite manifest]
     MANIFEST --> CONTRACT[upload-delete-contract: HTTP upload→serve→delete + error envelopes]
     MANIFEST --> SMOKE[smoke: /health + SPA shell]
@@ -300,7 +300,7 @@ bytes differ from input); the mock pipeline is a pass-through and cannot.
 Quality gates are adopted from the Webpresso/IngestLens pattern rather than
 reinvented locally. EdgeMatte should keep only project-specific journey files and
 suite registration in `apps/e2e`; execution planning, structured QA lanes,
-formatting, test presets, and blueprint audits come from agent-kit/vite-plus.
+formatting, test presets, and blueprint audits come from the Webpresso app and vite-plus.
 
 ## Infrastructure deployment ownership
 
@@ -310,7 +310,7 @@ Release/bootstrap companions:
 ```mermaid
 flowchart LR
     GH[GitHub repo] --> CI[GitHub Actions]
-    CI --> CHECKS[agent-kit/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
+    CI --> CHECKS[Webpresso/vite-plus gates<br/>format check, lint, typecheck, tests, e2e smoke, build]
     CHECKS --> DRY[wrangler deploy --dry-run]
     CHECKS --> PREVIEW[deploy-preview.yml<br/>main -> preview_main<br/>PR -> preview_pr_n + destroy]
     PREVIEW --> PREVIEWDOMAINS[custom-domain preview Workers<br/>preview-main.edge-matte.ozby.dev<br/>preview-pr-&lt;n&gt;.edge-matte.ozby.dev]

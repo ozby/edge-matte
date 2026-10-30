@@ -21,7 +21,7 @@ test("repo surfaces call wp audit architecture-drift directly", () => {
     assert.match(
       content,
       /wp audit architecture-drift --root \./u,
-      `${file} must use the shared agent-kit architecture-drift audit`,
+      `${file} must use the shared wp architecture-drift audit`,
     );
     assert.doesNotMatch(
       content,

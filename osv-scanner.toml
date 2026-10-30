@@ -36,7 +36,7 @@ reason = "tmp is only present through dev/test transitive tooling paths in this 
 [[IgnoredVulns]]
 id = "GHSA-8988-4f7v-96qf"
 ignoreUntil = 2026-09-30
-reason = "@opentelemetry/core is only present through dev-only vite-plus / agent-kit toolchain paths in this repo snapshot."
+reason = "@opentelemetry/core is only present through dev-only vite-plus / wp toolchain paths in this repo snapshot."
 
 [[IgnoredVulns]]
 id = "GHSA-h67p-54hq-rp68"

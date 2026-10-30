@@ -30,7 +30,7 @@ Production target: `https://edge-matte.ozby.dev`
 - `scaffold/root` → root config files, bootstrap docs, shared config
 - `worker/core` → `apps/workers/**`
 - `client/ui` → `apps/client/**`
-- `e2e` → `apps/e2e/**`, `agent-kit.config.ts`
+- `e2e` → `apps/e2e/**`, `webpresso.config.ts`
 - `infra/release` → `infra/**`, `.github/workflows/**`, `apps/workers/wrangler.toml`, release docs
 
 Rule: no two agents write to the same lane family in the same wave.

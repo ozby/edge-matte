@@ -38,7 +38,7 @@ create the R2 bucket.
 
 Reusable provider-specific deploy plumbing stays on a separate
 **private/internal** Cloudflare/Pulumi package boundary. Do not treat that
-package as part of `agent-kit`, and do not treat reuse as automatic permission
+package as part of the Webpresso app, and do not treat reuse as automatic permission
 to publish it. Any later public promotion must be planned separately and pass
 `catalog/agent/rules/public-package-safety.md` expectations plus tarball and
 denied-content review before release.
@@ -66,8 +66,7 @@ A deployment is **not healthy** until both `production-smoke` and
 ## Shared deploy-contract adoption
 
 EdgeMatte now adopts the shared deploy-contract surface on the canonical
-`webpresso.config.ts` path while keeping local compatibility with
-`agent-kit.config.ts`.
+`webpresso.config.ts` path.
 
 - Internal shared lane IDs stay `dev`, `preview_main`, `preview_pr_<n>`, `prd`
 - Cloudflare-facing env names are derived separately and dash-safe

@@ -35,7 +35,7 @@ test("secrets metadata uses the exact schema-v1 Doppler authority contract", () 
   });
 });
 
-test("root consumer setup keeps agent-config local and agent-kit global", () => {
+test("root consumer setup keeps app-config local and wp global", () => {
   const pkg = readJson("package.json");
   const declaredDependencies: Record<string, unknown> = {
     ...object(pkg["dependencies"] ?? {}),
